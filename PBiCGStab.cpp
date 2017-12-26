@@ -4,7 +4,7 @@
 void PBiCGStab::solve(double* x, const int itmax){
 
 
-	double rho0, rho, alpha, omega, beta;
+    double rho0, rho, alpha, omega, beta;
     double res = 10.0;
    
     rho0 = alpha = omega = 1.0; 	
@@ -21,7 +21,7 @@ void PBiCGStab::solve(double* x, const int itmax){
 
     double tmp, tmp1, tmp2;	
      
-	for(int i=1; i<=itmax; i++){
+    for(int i=1; i<=itmax; i++){
 		rho = blas_vdot(r0_, r, size);
         beta = (rho/rho0) * (alpha/omega);
         cg_direct(p, r, v, beta, omega); 

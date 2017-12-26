@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET = pfm_alpha 
+TARGET = pfm_alpha.exe 
 
 CSRC = common.cpp blas.cpp PBiCGStab.cpp HeatCG.cpp main.cpp 
 SRCS = $(CSRC)
