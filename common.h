@@ -16,7 +16,11 @@ const long MB = 1024*1024;
 //the size of time-space domain
 const double Tspan = 4.0;
 const double Xspan = 1.0; 
+
+//the time steps of the whole time domain
 const long NT = 10000;
+
+//the mesh size of the whole space grid
 const int  NX = 100;
 const int NGuard = 1; //guard cells
 
@@ -25,7 +29,7 @@ const double DT = Tspan/NT;
 const double DX = Xspan / (NX+2*NGuard-1);
 
 //the number of time slices, parallel processes along time domain 
-const int Tslices = 10;
+const int Tslices = 4;
 const int Tsteps_oneslice = NT/Tslices; 
 
 const double EPS = 1.0e-6;

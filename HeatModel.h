@@ -6,8 +6,8 @@ struct HeatModel : public Model {
 
 public: 
 
-    HeatModel(int nx, int nguard):Model(nx,nguard) {
-    }
+    HeatModel():Model() { }
+
     // nguard = 1
     void bc(){
         x[0] = x[1];
