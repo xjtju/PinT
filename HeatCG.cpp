@@ -1,5 +1,9 @@
 #include "HeatCG.h"
 
+HeatCG::HeatCG(Grid *g, const double eps) : PBiCGStab(g,eps){
+    lamda = k * g->dt / (2*g->dx*g->dx); 
+}
+
 //calcaluate the residual r = b - Ax
 void HeatCG::cg_rk(double *r, double *x, double *b){
     for(int i=nguard; i<nx+nguard; i++){

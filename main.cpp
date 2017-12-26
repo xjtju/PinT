@@ -1,11 +1,12 @@
 #include <mpi.h>
 
 #include "common.h"
+#include "PinT.h"
+#include "HeatGrid.h"
 #include "HeatCG.h"
-#include "HeatModel.h"
 
 // integrate the target equation along one time slice,   
-int integrator(PBiCGStab *solver,Model *model);
+int integrator(PBiCGStab *solver,PinT *conf, Grid *grid);
 
 int main(int argc, char* argv[]) {
     
@@ -18,45 +19,53 @@ int main(int argc, char* argv[]) {
     int f_steps;  // fine solver 
     int c_dt;       // time step with of coarse solver
     int f_dt;       // fine solver
-
+    /*
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
     spnum = 1;
     tsnum = numprocs / spnum; 
-    c_steps = 10;
-    f_steps = 100;
-
+    */
+    PinT *conf = new PinT();
+    conf->init();
     
-    int size = NX + 2*NGuard;
+    HeatGrid *fg = new HeatGrid(
+            conf->sub_nx,
+            1,
+            conf->dx,
+            conf->f_dt
+            );
 
-    Model *model = new HeatModel(NX, NGuard);
-    PBiCGStab *solver = new HeatCG(NX, NGuard, EPS);    
+    fg->init();
+    int nx = fg->nx;
+    int size = fg->size; 
+    int nguard = fg->nguard;
 
-    model->init_x();
+    PBiCGStab *solver = new HeatCG(fg, EPS);    
 
-    integrator(solver, model); 
+
+    integrator(solver, conf, fg); 
     
     
     
-    double *x = model->x;
-    for(int i=NGuard; i<=NX; i++){
+    double *x = fg->x;
+    for(int i=nguard; i<=nx; i++){
         printf("%f\n", x[i]);
     }
 
     delete solver;
-    delete model;
+    delete fg;
 
     return 0;
 }
 
 
-int integrator(PBiCGStab *solver, Model *model){
+int integrator(PBiCGStab *solver, PinT *conf, Grid *grid){
 
-    for(int i=0; i<NT; i++){
-        model->bc();
-        solver->solve(model->x,10);
+    for(int i=0; i<conf->Nt; i++){
+        grid->bc();
+        solver->solve(grid->x,10);
     }
     return 0;
 }

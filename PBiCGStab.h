@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "blas.h"
+#include "Grid.h"
 
 class PBiCGStab {
 
@@ -29,10 +30,10 @@ protected:
 
     
 public:
-    PBiCGStab(const int nx, const int nguard, const double eps){
-        this->nx = nx;
-        this->nguard = nguard;
-        this->size = nx + 2*nguard;
+    PBiCGStab(Grid *g, const double eps){
+        this->nx = g->nx;
+        this->nguard = g->nguard;
+        this->size = g->size; 
         this->eps = eps;
 
         r0_ = alloc_mem(size);
