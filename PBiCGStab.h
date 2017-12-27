@@ -19,8 +19,10 @@ class PBiCGStab {
 protected:
     int nx; 
     int nguard;
-    double eps = 1.0e-6;
     int size;
+
+    double eps = 1.0e-6;
+    int itmax = 10; 
 
     double *r0_, *r;  // 0 ... itmax  
     double *p, *p_;   // conjugated direction
@@ -28,9 +30,15 @@ protected:
     double *s, *s_, *t;
     double *b;       //RHS
 
+    Grid *grid;
     
 public:
-    PBiCGStab(Grid *g, const double eps){
+
+    inline void set_eps(double eps) { this->eps = eps; }
+    inline void set_itmax(int iter) { this->itmax = iter;}
+
+    PBiCGStab(Grid *g){
+        this->grid = g;
         this->nx = g->nx;
         this->nguard = g->nguard;
         this->size = g->size; 
@@ -62,7 +70,7 @@ public:
 
 
     // the template algorithm of PBiCBSTAB
-    void solve(double *x, const int itmax);
+    void solve();
 
     // x = x + ay + bz  
     void cg_xi(double *x, double alpha, double *y, double omega, double *z);
@@ -72,6 +80,9 @@ public:
 
     // preconditioner: solve Mp_=p
     void preconditioner(double *p_, double *p);
+    
+    double* fetch(); // fetch physical variables into solver
+    void update();  // update physical variables in grid 
 
     /***** stencil related functions *****/
     //calcaluate the residual r = b - Ax 

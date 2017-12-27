@@ -1,6 +1,7 @@
 #ifndef PinT_H
 #define PinT__H 1
 
+#include <stdio.h>
 /**
  * the configuration of Parareal method, the current structure is proper when there is only one physical process
  **/
@@ -11,36 +12,24 @@ public:
     double Tspan = 4.0;
     double Xspan = 1.0; 
 
-    inline void set_Tspan(double t){
-        this->Tspan = t;
-    }
-    inline void set_Xspan(double x){
-        this->Xspan = x;
-    }
+    inline void set_Tspan(double t){ this->Tspan = t; }
+    inline void set_Xspan(double x){ this->Xspan = x; }
 
     long   Nt = 200000;  // the time steps of the whole time domain serially if using fine solver
     long   Nx = 100;     // the whole grid space size 
-    inline void set_Nt(long nt){
-        this->Nt = nt;
-    }
-    inline void set_Nx(long nx){
-        this->Nx = nx;
-    }
+    inline void set_Nt(long nt){ this->Nt = nt; }
+    inline void set_Nx(long nx){ this->Nx = nx; }
 
-    int   rfc_ = 20;  // fine steps / coarse steps 
-    inline void set_rfc_(int rfc){
-        this->rfc_ = rfc;
-    }
+    int   rfc_ = 10;  // fine steps / coarse steps 
+    inline void set_rfc_(int rfc){ this->rfc_ = rfc; }
 
     int slices    = 4; // the number of time partitions(slices), parallel processes along time domain 
     int subgrids  = 1; // the number of space partitions, parallel processes along the space domain 
-    inline void set_slices(int n){
-        this->slices = n;
-    }
-    inline void set_subgrids(int n){
-        this->subgrids = n;
-    }
+    inline void set_slices(int n){ this->slices = n; }
+    inline void set_subgrids(int n){ this->subgrids = n; }
 
+    int kpar_limit;
+    inline void set_kpar_limit(int k) { this->kpar_limit = k;}
     // the number of timesteps of fine/coarse solver in one time slice
     long f_steps; 
     long c_steps;
@@ -51,6 +40,8 @@ public:
 
     int sub_nx; // the subgrid size of one MPI process 
 
+    double converge_eps = 1.0e-6;
+    
     PinT() {};
     ~PinT() {};
     
@@ -78,6 +69,20 @@ public:
 
         sub_nx = Nx / subgrids;
         dx = Xspan / Nx; 
+
+        kpar_limit = slices; 
+    }
+
+    void print() {
+        printf("PinT configuration : \n");
+        printf("  space num : %d\n", subgrids);
+        printf("  time  num : %d\n", slices);
+        printf("  fine steps: %d\n", f_steps);
+        printf("  coar steps: %d\n", c_steps);
+        printf("  dx        : %f\n", dx);
+        printf("  fine   dt : %f\n", f_dt);
+        printf("  coarse dt : %f\n", c_dt);
+        printf("  rfc_      : %d\n", rfc_);
     }
 };
 #endif

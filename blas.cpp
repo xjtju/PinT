@@ -24,3 +24,12 @@ void blas_avpy(double* s, double a, double* v, double* y, int size){
     }
 }
 
+void blas_pint_sum(double *u, double *f, double *g, double *g_, double *res, int size) {
+    double tmp, tmp2;
+    for(int i=0; i<size; i++) {
+        tmp = g[i] + f[i] - g_[i];
+        tmp2 = u[i] - tmp;
+        *res = *res + tmp2*tmp2;
+        u[i] = tmp;
+    }
+}

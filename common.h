@@ -13,8 +13,6 @@
 const double PI =  M_PI;
 const long MB = 1024*1024;
 
-const double EPS = 1.0e-6;
-
 double* alloc_mem(size_t size);
 void clear_mem(double *x, size_t size);
 void free_mem(double *u);

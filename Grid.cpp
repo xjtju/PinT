@@ -1,8 +1,8 @@
 #include "Grid.h"
 
-Grid::Grid(int nx, int ng, double dx, double dt) {
+Grid::Grid(int nx, int nguard, double dx, double dt) {
     this->nx = nx;
-    this->nguard = ng;
+    this->nguard = nguard;
     this->dx = dx;
     this->dt = dt;
     this->size = nx+2*nguard;

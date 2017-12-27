@@ -2,7 +2,7 @@
 
 TARGET = pfm_alpha.exe 
 
-CSRC = common.cpp blas.cpp Grid.cpp HeatGrid.cpp PBiCGStab.cpp HeatCG.cpp main.cpp 
+CSRC = common.cpp blas.cpp Grid.cpp HeatGrid.cpp PBiCGStab.cpp HeatSolver.cpp main.cpp 
 SRCS = $(CSRC)
 
 .SUFFIXES: .o .cpp
@@ -33,13 +33,13 @@ depend:
 # DO NOT DELETE
 
 Grid.o: Grid.h common.h
-HeatCG.o: HeatCG.h PBiCGStab.h common.h blas.h Grid.h
 HeatGrid.o: HeatGrid.h Grid.h common.h
+HeatSolver.o: HeatSolver.h PBiCGStab.h common.h blas.h Grid.h
 PBiCGStab.o: PBiCGStab.h common.h blas.h Grid.h
 blas.o: blas.h
 common.o: common.h
-main.o: common.h PinT.h HeatGrid.h Grid.h HeatCG.h PBiCGStab.h blas.h
+main.o: common.h PinT.h HeatGrid.h Grid.h HeatSolver.h PBiCGStab.h blas.h
 Grid.o: common.h
-HeatCG.o: PBiCGStab.h common.h blas.h Grid.h
 HeatGrid.o: Grid.h common.h
+HeatSolver.o: PBiCGStab.h common.h blas.h Grid.h
 PBiCGStab.o: common.h blas.h Grid.h

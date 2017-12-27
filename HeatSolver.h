@@ -1,5 +1,5 @@
-#ifndef _PinT_HEATCG_H_
-#define _PinT_HEATCG_H_ 1
+#ifndef _PinT_HEATSOLVER_H_
+#define _PinT_HEATSOLVER_H_ 1
 
 #include "PBiCGStab.h"
 
@@ -7,14 +7,14 @@
  * 1D heat equation with Crank-Nicolson
  */
 
-class HeatCG : public PBiCGStab {
+class HeatSolver : public PBiCGStab {
 
 public:
     double k = 0.061644; // diffuse coefficient
 
     double lamda; 
 
-    HeatCG(Grid *g, const double eps); 
+    HeatSolver(Grid *g); 
     
     void cg_rk(double *r, double *x, double *b);
     void cg_Xv(double *v, double *y); 	

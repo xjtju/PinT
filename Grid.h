@@ -6,6 +6,8 @@
 /**
  * in current, the class is only for holding the physical variables.
  * In the further, it can be extended to a mesh structure
+ *
+ * The iniialization of grid variables and boundary condition is done by Grid, so do the guard cell synchonization.
  */
 
 class Grid {
@@ -13,14 +15,14 @@ class Grid {
 public:
     //the mesh size of the whole space grid
     int  nx;
-    //inline void set_nx(int n){
-    //    this->nx = n;
-    //}
+    inline void set_nx(int n){
+        this->nx = n;
+    }
 
     int nguard = 1;
-    //inline void set_nguard(int n){
-     //   this->nguard = n;
-    //}
+    inline void set_nguard(int n){
+       this->nguard = n;
+    }
 
     int size;
     double dx,dt;   
@@ -28,12 +30,14 @@ public:
     // the physical variables     
     double *x;
 
-    Grid(int nx, int ng, double dx, double dt); 
+    Grid(int nx, int nguard, double dx, double dt); 
     ~Grid();
 
     virtual int init()=0;
 
     //boundary condition
     virtual void bc()=0;
+
+    void guardcell() {};
 };
 #endif

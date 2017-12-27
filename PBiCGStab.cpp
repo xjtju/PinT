@@ -1,17 +1,18 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
 
-void PBiCGStab::solve(double* x, const int itmax){
+void PBiCGStab::solve(){
 
+    double *x = fetch();  // get the grid variables
 
     double rho0, rho, alpha, omega, beta;
-    double res = 10.0;
+    double res = 1000.0;
    
     rho0 = alpha = omega = 1.0; 	
       
     clear_mem(v, size);
     clear_mem(p, size);
-
+    
     cg_b(x);
     cg_rk(r, x, b); //init residual r = b - Ax 
 	// choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
@@ -40,7 +41,7 @@ void PBiCGStab::solve(double* x, const int itmax){
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
 	    tmp1 = blas_vdot(t, s, size); // t dot z	
         tmp2 = blas_vdot(t, t, size); // t dot t 
-		omega = tmp1 / tmp2;  // 
+		omega = tmp1 / tmp2;   
         
 	    cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z; 	
 	    blas_avpy(r, -omega, t, s, size); //r = s - omega*t	
@@ -54,7 +55,8 @@ void PBiCGStab::solve(double* x, const int itmax){
         }
         rho0 = rho;
 	}
-    
+
+    update(); // update grid variables
 }
 
 //p = r + beta * ( p - omg * v )
@@ -84,4 +86,13 @@ void PBiCGStab::cg_xi(double* x, double alpha, double* y, double omega, double* 
 */
 void PBiCGStab::preconditioner(double* p_, double* p){
     blas_cp(p_, p, size);
+}
+
+double* PBiCGStab::fetch() {
+      return grid->x;  // get the grid variables
+}
+
+void PBiCGStab::update() {
+    //in current implementation, the solver directly modify the grid variables, 
+    //so it is not necessary to do any real operations for updating 
 }
