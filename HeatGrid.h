@@ -1,5 +1,5 @@
-#ifndef PinT_HEATGRID_H
-#define PinT_HEATGRID_H 1 
+#ifndef PinT_HEATGRID_H_
+#define PinT_HEATGRID_H_ 1 
 
 #include "Grid.h"
 
@@ -11,7 +11,7 @@ class HeatGrid : public Grid {
 
 public: 
 
-    HeatGrid(int nx, int ng, double dx, double dt); 
+    HeatGrid(PinT *conf); 
     int init();
     void bc();
 };

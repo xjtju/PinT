@@ -1,26 +1,41 @@
-#ifndef PinT_H
-#define PinT__H 1
+#ifndef PinT_H_
+#define PinT_H_ 1
 
 #include <stdio.h>
 /**
  * the configuration of Parareal method, the current structure is proper when there is only one physical process
+ *
+ * singleton model
+ *
  **/
 struct PinT {
 
+private:
+    PinT() {};
+    //PinT(PinT const&);              // Don't Implement
+    void operator=(PinT const&);    // Don't implement
+
 public:    
+
+    static PinT& instance()
+    {
+        static PinT instance; 
+        return instance;
+    }
+
     //the size of time-space domain
-    double Tspan = 4.0;
+    double Tspan = 1.5;
     double Xspan = 1.0; 
 
     inline void set_Tspan(double t){ this->Tspan = t; }
     inline void set_Xspan(double x){ this->Xspan = x; }
 
-    long   Nt = 200000;  // the time steps of the whole time domain serially if using fine solver
+    long   Nt = 1000000;  // the time steps of the whole time domain serially if using fine solver
     long   Nx = 100;     // the whole grid space size 
     inline void set_Nt(long nt){ this->Nt = nt; }
     inline void set_Nx(long nx){ this->Nx = nx; }
 
-    int   rfc_ = 10;  // fine steps / coarse steps 
+    int   rfc_ = 50;  // fine steps / coarse steps 
     inline void set_rfc_(int rfc){ this->rfc_ = rfc; }
 
     int slices    = 4; // the number of time partitions(slices), parallel processes along time domain 
@@ -39,13 +54,10 @@ public:
     double dx;  // cell width 
 
     int sub_nx; // the subgrid size of one MPI process 
-
+    int nguard = 1; // the nguard cell number 
     double converge_eps = 1.0e-6;
     
-    PinT() {};
-    ~PinT() {};
     
-
     void set_tdomain(double tspan, long nt, int rfc, int slices) {
 
         this->Tspan = tspan;
@@ -83,6 +95,7 @@ public:
         printf("  fine   dt : %f\n", f_dt);
         printf("  coarse dt : %f\n", c_dt);
         printf("  rfc_      : %d\n", rfc_);
+        printf("\n");
     }
 };
 #endif

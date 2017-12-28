@@ -1,19 +1,36 @@
 #include "HeatGrid.h"
 
-HeatGrid::HeatGrid(int nx, int ng, double dx, double dt) : Grid(nx,ng,dx,dt){} 
+HeatGrid::HeatGrid(PinT *conf) : Grid(conf){
+} 
 
 int HeatGrid::init(){
-    x = alloc_mem(size);
          
     for(int i = nguard; i<nx+nguard ; i++){
-       x[i] = cos(2*i*dx); 
+        double unk = cos(2*i*dx);
+        u_f[i] = unk; 
+        u_c[i] = unk; 
+        u_cprev[i] = unk; 
+        u_start[i] = unk;
+        u_end[i] = unk;
     }
     bc();
     return 0;
 }
 
-// nguard = 1
+// nguard = 1, now space parallel is not considered
 void HeatGrid::bc(){
-    x[0] = x[1];
-    x[nx+nguard] = x[nx];
+    u_f[0] = u_f[1];
+    u_f[nx+nguard] = u_f[nx];
+    
+    u_c[0] = u_c[1];
+    u_c[nx+nguard] = u_c[nx];
+
+    u_cprev[0] = u_cprev[1];
+    u_cprev[nx+nguard] = u_cprev[nx];
+
+    u_start[0] = u_start[1];
+    u_start[nx+nguard] = u_start[nx];
+
+    u_end[0] = u_end[1];
+    u_end[nx+nguard] = u_end[nx];
 }

@@ -3,8 +3,8 @@
  * 
  * Xiao Jian, 2017.12.22
  */
-#ifndef PinT_COMMON_H
-#define PinT_COMMON_H 1
+#ifndef PinT_COMMON_H_
+#define PinT_COMMON_H_ 1
 
 #include <math.h>
 #include <assert.h>

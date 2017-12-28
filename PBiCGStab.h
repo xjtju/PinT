@@ -12,14 +12,11 @@
 
 #include "common.h"
 #include "blas.h"
-#include "Grid.h"
+#include "Solver.h"
 
-class PBiCGStab {
+class PBiCGStab : public Solver{
 
 protected:
-    int nx; 
-    int nguard;
-    int size;
 
     double eps = 1.0e-6;
     int itmax = 10; 
@@ -30,19 +27,12 @@ protected:
     double *s, *s_, *t;
     double *b;       //RHS
 
-    Grid *grid;
-    
 public:
 
     inline void set_eps(double eps) { this->eps = eps; }
     inline void set_itmax(int iter) { this->itmax = iter;}
 
-    PBiCGStab(Grid *g){
-        this->grid = g;
-        this->nx = g->nx;
-        this->nguard = g->nguard;
-        this->size = g->size; 
-        this->eps = eps;
+    PBiCGStab(PinT* c, Grid *g):Solver(c,g){
 
         r0_ = alloc_mem(size);
         r   = alloc_mem(size);
@@ -81,9 +71,9 @@ public:
     // preconditioner: solve Mp_=p
     void preconditioner(double *p_, double *p);
     
-    double* fetch(); // fetch physical variables into solver
-    void update();  // update physical variables in grid 
-
+    virtual double* fetch() = 0; // fetch physical variables into solver
+    void update() ;  // update physical variables in grid 
+    
     /***** stencil related functions *****/
     //calcaluate the residual r = b - Ax 
     virtual void cg_rk(double *r, double *x, double *b) = 0;

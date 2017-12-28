@@ -1,8 +1,6 @@
 #include "HeatSolver.h"
 
-HeatSolver::HeatSolver(Grid *g) : PBiCGStab(g){
-    lamda = k * g->dt / (2*g->dx*g->dx); 
-}
+HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){ }
 
 //calcaluate the residual r = b - Ax
 void HeatSolver::cg_rk(double *r, double *x, double *b){

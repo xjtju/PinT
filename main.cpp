@@ -1,15 +1,12 @@
 #include <mpi.h>
 
 #include "common.h"
-#include "PinT.h"
+#include "Solver.h"
 #include "HeatGrid.h"
-#include "HeatSolver.h"
+#include "HeatSolverF.h"
 
 // the PinT algorithm template
 int evolve(PinT *conf, Grid *fg, PBiCGStab *fs, Grid *gg, PBiCGStab *gf);
-
-// integrate the target equation along one time slice,   
-void integrate(Grid *g, PBiCGStab *solver, int steps);
 
 int main(int argc, char* argv[]) {
     
@@ -24,16 +21,17 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    PinT *conf = new PinT();
-    conf->init();
-    spnum = conf->subgrids;
-    tsnum = conf->slices; 
+    //load global configuration 
+    PinT conf = PinT::instance();
+    conf.init();
+    spnum = conf.subgrids;
+    tsnum = conf.slices; 
     
     //check the configuration is consist with the real run time
     assert(tsnum == (numprocs/spnum));
     
     if(myid == 0) {
-       conf->print(); 
+       conf.print(); 
     }
    
     int key=myid%spnum, color=myid/spnum;  
@@ -43,40 +41,27 @@ int main(int argc, char* argv[]) {
     MPI_Comm_split(MPI_COMM_WORLD,color,key,&sp_comm);
     MPI_Comm_rank(sp_comm, &spid);
 
-    // create Coarse/fine Grid and Solver
-    HeatGrid *fg = new HeatGrid(
-            conf->sub_nx, // grid size
-            1,   //guard cells
-            conf->dx, //cell size
-            conf->f_dt //time step
-            );
-    fg->init();
-    HeatSolver *fslv = new HeatSolver(fg);    
-    fslv->set_eps(1.0e-6);
-    fslv->set_itmax(10);
+    // create the grid/mesh and solver 
+    Grid *g = new HeatGrid(&conf);
+    g->init();
 
-    HeatGrid *gg = new HeatGrid(
-            conf->sub_nx,
-            1,
-            conf->dx,
-            conf->c_dt
-            );
-    gg->init();
-    HeatSolver *gslv = new HeatSolver(gg);
-    gslv->set_eps(1.0e-6);
-    gslv->set_itmax(10);
+    Solver *F = new HeatSolverF(&conf,g);    
+    Solver *G = new HeatSolverC(&conf,g);
+    // for convience only, set the pointer to grid inner variables
+    double *u_cprev = g->u_cprev;  
+    double *u_start= g->u_start; 
+    double *u_end  = g->u_end;  
+    double *u_c    = g->u_c;
+    double *u_f    = g->u_f;
 
     int source, dest, tag;
     int ierr;
-    int size = gg->size; 
+    int size = g->size; 
     MPI_Request req;
     MPI_Status  stat;
 
-    double *c_prev = alloc_mem(gg->size); // the structure holder for the coarse solver at the previous iteration of the the same slice 
-    double *u_start= alloc_mem(gg->size); // the latest solution of the current time slice start point or the previous slice end 
-    double *u_end  = alloc_mem(gg->size); // the latest solution of the current time slice end point or the next slice start 
-
-    blas_cp(u_start, gg->x, size);
+    
+    blas_cp(u_start, u_c, size);
     if(myid/spnum >= 1) {
         source = myid - spnum;
         tag = myid*100;
@@ -84,28 +69,36 @@ int main(int argc, char* argv[]) {
         // besides the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     }
     
-    blas_cp(gg->x, u_start, size); 
+    g->bc();
+    blas_cp(u_c, u_start, size); 
     //coarse 
-    integrate(gg, gslv, conf->c_steps);
+    G->evolve();
       
+    g->bc();
     if(myid/spnum<(tsnum-1)){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
-        ierr = MPI_Rsend(gg->x, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
+        ierr = MPI_Rsend(u_c, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
-    blas_cp(u_end, gg->x, size); 
+    blas_cp(u_end, u_c, size); 
 
     int kpar=1; 
     double res_loc, res_sp, max_res;
     res_loc = res_sp = max_res = 0.0;
-    for(; kpar<=conf->kpar_limit; kpar++)
+
+    for(; kpar<=conf.kpar_limit; kpar++)
     {
+        res_loc = 0.0;
+        res_sp  = 0.0;
+        max_res = 0.0;
+        g->bc();
         // step1: fine solver parallel run based on U^{k-1}_{n-1} 
-        blas_cp(fg->x, u_start, size);
-        integrate(fg, fslv, conf->f_steps);
+        blas_cp(u_f, u_start, size);
+        F->evolve();
+        g->bc();
         // step2:
-        blas_cp(c_prev, gg->x, size); 
+        blas_cp(u_cprev, u_c, size); 
         // step3:
         if(myid/spnum>=1){
 	        source = myid - spnum;
@@ -113,10 +106,11 @@ int main(int argc, char* argv[]) {
 	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
         } 
         // step4:
-        blas_cp(gg->x, u_start, size); 
-        integrate(gg, gslv, conf->c_steps);
+        blas_cp(u_c, u_start, size); 
+        G->evolve();
+        g->bc();
         // step5: 
-        blas_pint_sum(u_end, fg->x, gg->x, c_prev, &res_loc, size);  
+        blas_pint_sum(u_end, u_f, u_c, u_cprev, &res_loc, size);  
         // step6: 
         if(myid/spnum< (tsnum-1)){
 	        dest = myid + spnum;
@@ -128,12 +122,19 @@ int main(int argc, char* argv[]) {
         MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         
+        //res_loc = sqrt(res_loc);
+        //if(myid==0){
+	    //    printf("kpar:%d, myid:%d, loc_res:%13.6e \n\n", kpar, myid, res_loc);
+        //}
+	    //printf("kpar:%d, myid:%d, res_loc:%13.6e \n", kpar, myid, res_loc);
+
+        max_res = sqrt(max_res/tsnum);
         if(myid==numprocs-1){
-	        printf("id:%d, kpar:%d, res:%13.6e \n", myid,kpar,sqrt(max_res));
+	        printf("kpar:%d, myid:%d, max_res:%13.6e \n\n", kpar, myid, max_res);
         }
      
         //STEP8
-        if( sqrt(max_res) < conf->converge_eps) 
+        if( max_res < conf.converge_eps) 
             break;   
     }
     
@@ -144,30 +145,12 @@ int main(int argc, char* argv[]) {
         printf("kpar=%d\n",kpar);
     }
 
-    delete fslv;
-    delete fg;
-    delete gg;
-    delete gslv;
+    delete F;
+    delete G;
+    delete g;
 
     MPI_Barrier(MPI_COMM_WORLD); 
 
     return 0;
 }
 
-void integrate(Grid *g, PBiCGStab *solver, int steps){
-
-    for(int i=0; i<steps; i++){
-        g->bc();
-        solver->solve();
-    }
-}
-
-int evolve(PinT *conf, Grid *fg, PBiCGStab *fs, Grid *gg, PBiCGStab *gf)
-{
-    for(int i=0; i<conf->Nt; i++){
-        fg->bc();
-        fs->solve();
-    }
-
-    return 0;
-}

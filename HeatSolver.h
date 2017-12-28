@@ -14,7 +14,7 @@ public:
 
     double lamda; 
 
-    HeatSolver(Grid *g); 
+    HeatSolver(PinT *c, Grid *g); 
     
     void cg_rk(double *r, double *x, double *b);
     void cg_Xv(double *v, double *y); 	

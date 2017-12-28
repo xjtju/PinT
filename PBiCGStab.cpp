@@ -88,10 +88,6 @@ void PBiCGStab::preconditioner(double* p_, double* p){
     blas_cp(p_, p, size);
 }
 
-double* PBiCGStab::fetch() {
-      return grid->x;  // get the grid variables
-}
-
 void PBiCGStab::update() {
     //in current implementation, the solver directly modify the grid variables, 
     //so it is not necessary to do any real operations for updating 
