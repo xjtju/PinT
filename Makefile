@@ -1,17 +1,18 @@
 #!/bin/bash
 
 TARGET = pfm_alpha.exe
-INCLUDES= -Isrc/core -Isrc/heat
+INCLUDES= -Isrc/core -Isrc/utils -Isrc/heat
 
 CSRC = $(wildcard src/core/*.cpp) \
 	   $(wildcard src/heat/*.cpp) \
 	   $(wildcard src/*.cpp) 
+CSRC2 = $(wildcard src/utils/*.c) 
 
 FSRC = 
 	   
 SRCS = $(CSRC)
 
-COBJS = $(CSRC:.cpp=.o)
+COBJS = $(CSRC:.cpp=.o) $(CSRC2:.c=.o)
 OBJS  = $(COBJS)
 
 CXX=mpic++

@@ -1,6 +1,7 @@
 #include <mpi.h>
 
 #include "common.h"
+#include "Driver.h"
 #include "Solver.h"
 #include "HeatGrid.h"
 #include "HeatSolverF.h"
@@ -8,8 +9,17 @@
 // the PinT algorithm template
 int evolve(PinT *conf, Grid *fg, PBiCGStab *fs, Grid *gg, PBiCGStab *gf);
 
+/**
+ * the ini configuration file as the first command line parameter
+ */
 int main(int argc, char* argv[]) {
     
+    char* ini_file = (char*)"pint.ini";  // default ini file
+   
+    if(argc>1) {
+        ini_file = argv[1];      
+    }
+   
     int myid, numprocs;
 
     int spnum;    // space parallel 
@@ -21,32 +31,33 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
+    Driver driver;
+
     //load global configuration 
-    PinT conf = PinT::instance();
-    conf.init();
-    spnum = conf.subgrids;
-    tsnum = conf.slices; 
+    PinT *conf = PinT::instance();
+    driver.init(ini_file,conf);
+
+    if(myid==0) conf->print();
+
+    spnum = conf->spnum;
+    tsnum = conf->tsnum; 
     
+    driver.Abort("TEST",""); 
     //check the configuration is consist with the real run time
     assert(tsnum == (numprocs/spnum));
-    
-    if(myid == 0) {
-       conf.print(); 
-    }
-   
+
     int key=myid%spnum, color=myid/spnum;  
     int spid=0;
-    
     //communicator for spatil parallel
     MPI_Comm_split(MPI_COMM_WORLD,color,key,&sp_comm);
     MPI_Comm_rank(sp_comm, &spid);
 
     // create the grid/mesh and solver 
-    Grid *g = new HeatGrid(&conf);
+    Grid *g = new HeatGrid(conf);
     g->init();
 
-    Solver *F = new HeatSolverF(&conf,g);    
-    Solver *G = new HeatSolverC(&conf,g);
+    Solver *F = new HeatSolverF(conf,g);    
+    Solver *G = new HeatSolverC(conf,g);
     // for convience only, set the pointer to grid inner variables
     double *u_cprev = g->u_cprev;  
     double *u_start= g->u_start; 
@@ -60,7 +71,6 @@ int main(int argc, char* argv[]) {
     MPI_Request req;
     MPI_Status  stat;
 
-    
     blas_cp(u_start, u_c, size);
     if(myid/spnum >= 1) {
         source = myid - spnum;
@@ -87,7 +97,7 @@ int main(int argc, char* argv[]) {
     double res_loc, res_sp, max_res;
     res_loc = res_sp = max_res = 0.0;
 
-    for(; kpar<=conf.kpar_limit; kpar++)
+    for(; kpar<=conf->kpar_limit; kpar++)
     {
         res_loc = 0.0;
         res_sp  = 0.0;
@@ -134,7 +144,7 @@ int main(int argc, char* argv[]) {
         }
      
         //STEP8
-        if( max_res < conf.converge_eps) 
+        if( max_res < conf->converge_eps) 
             break;   
     }
     
@@ -149,7 +159,7 @@ int main(int argc, char* argv[]) {
     delete G;
     delete g;
 
-    MPI_Barrier(MPI_COMM_WORLD); 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     return 0;
 }
