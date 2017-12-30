@@ -1,8 +1,9 @@
 #ifndef PinT_H_
 #define PinT_H_ 1
 
-#include <mpi.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * the configuration of Parareal method, the current structure is proper when there is only one physical process
@@ -68,5 +69,7 @@ public:
 
 
 };
+
+int handler(void* pint, const char* section, const char* name, const char* value);
 
 #endif
