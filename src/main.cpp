@@ -37,14 +37,13 @@ int main(int argc, char* argv[]) {
     PinT *conf = PinT::instance();
     driver.init(ini_file,conf);
 
-    if(myid==0) conf->print();
-
     spnum = conf->spnum;
     tsnum = conf->tsnum; 
     
-    driver.Abort("TEST",""); 
     //check the configuration is consist with the real run time
-    assert(tsnum == (numprocs/spnum));
+    if(tsnum != (numprocs/spnum)) {
+        driver.Abort("configuration inconsist : %s. \n" "(the space num)*(the time num) should equal with the total process num");
+    }
 
     int key=myid%spnum, color=myid/spnum;  
     int spid=0;

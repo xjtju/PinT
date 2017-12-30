@@ -7,7 +7,6 @@
 #define PinT_COMMON_H_ 1
 
 #include <math.h>
-#include <assert.h>
 #include <stdio.h>
 
 const double PI =  M_PI;
