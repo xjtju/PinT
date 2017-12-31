@@ -4,6 +4,7 @@
 #include "common.h"
 #include "FortFunc.h"
 #include "PinT.h"
+
 /**
  * in current, the class is only for holding the physical variables used by PinT.
  * In the further, it can be extended to a mesh structure
@@ -22,7 +23,7 @@ class Grid {
 public:
     PinT *conf;
 
-    int dims;
+    int ndim;
 
     //the mesh size of the whole space grid
     int  nxyz[3];
@@ -53,16 +54,30 @@ public:
     double *u_start; // the latest solution of the current time slice start point or the previous slice end 
     double *u_end;   // the latest solution of the current time slice end point or the next slice start 
     double *u;       // pointing the same variable with u_end
+    
+    int myid;   // MPI process id in global 
+    int mysid;  // process id in space domain
 
+    int spnum ; // the number of space partitions, parallel processes along the space domain 
+    int spnumx;
+    int spnumy;
+    int spnumz;
+    MPI_Comm *sp_comm; //space within the same time slice
+    int rank_1d;
+    MPI_Comm comm1d;
 
     Grid(PinT* conf); 
     ~Grid();
 
     virtual int init()=0;
 
-    //boundary condition
+    // boundary condition
     virtual void bc()=0;
+    
+    // create the grid topology
+    void create_topology(); 
 
-    void guardcell() {};
+    // guardcell exchange  
+    void guardcell();
 };
 #endif

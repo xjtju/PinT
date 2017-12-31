@@ -3,7 +3,7 @@
 Grid::Grid(PinT *conf) {
     this->conf = conf; 
     
-    this->dims = conf->dims;
+    this->ndim = conf->ndim;
 
     this->nx = conf->nx;
     this->ny = conf->ny;
@@ -24,20 +24,28 @@ Grid::Grid(PinT *conf) {
     this->ngxyz[0] = nguard;
     this->ngxyz[1] = 0;
     this->ngxyz[2] = 0;
-    if(dims>=2) {
+    if(ndim>=2) {
         this->ngxyz[1] = nguard;
         this->sy= ny + 2*nguard;
     }
-    if(dims==3) {
+    if(ndim==3) {
         this->ngxyz[2] = nguard;
         this->sz= nz + 2*nguard;
     }
 
-    
     this->sxyz[0] = sx;
     this->sxyz[1] = sy;
     this->sxyz[2] = sz;
     this->size = sx * sy * sz;
+
+    this->spnum = conf->spnum;
+    this->spnumx = conf->spnumx;
+    this->spnumy = conf->spnumy;
+    this->spnumz = conf->spnumz;
+
+    this->myid = conf->myid;
+    this->mysid = conf->myid;
+    this->sp_comm = conf->sp_comm;
 
     u_f = alloc_mem(size);
     u_c = alloc_mem(size);
@@ -54,4 +62,31 @@ Grid:: ~Grid(){
     free_mem(u_start);
     free_mem(u_end);
     u = NULL;
+}
+void Grid::create_topology(){
+    int dims[1];
+    int periods[1];
+    int coord_1d[1]; 
+
+    dims[0] = spnumx; 
+    periods[0] = 0;
+
+    MPI_Cart_create(*sp_comm, ndim, dims, periods, 1, &comm1d);
+    MPI_Cart_coords(comm1d, mysid, ndim, coord_1d);
+    MPI_Cart_rank(comm1d, coord_1d, &rank_1d);
+
+    printf("I am %d: (%d); originally %d\n",rank_1d,coord_1d[0],mysid);
+}
+void Grid::guardcell() {
+   MPI_Request req;
+   MPI_Status stat;
+   int ierr;
+   int left, right, front, back, top, bottom;
+
+   MPI_Cart_shift(comm1d,0,-1,&rank_1d,&left);
+   MPI_Cart_shift(comm1d,0,+1,&rank_1d,&right);
+   MPI_Sendrecv(*sendbuf, sendcount, MPI_DOUBLE, int dest, int sendtag, 
+                *recvbuf, recvcount, MPI_DOUBLE, int source, int recvtag,
+                comm1d, &stat);
+
 }

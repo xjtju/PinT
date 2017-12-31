@@ -11,11 +11,11 @@ void PinT::init(){
 
     nx = Nx / spnumx;
     dx = Xspan / Nx; 
-    if(dims>=2) { 
+    if(ndim>=2) { 
         ny = Ny / spnumy;
         dy = Yspan / Ny; 
     }
-    if(dims==3) {
+    if(ndim==3) {
         nz = Ny / spnumz;
         dz = Zspan / Nz; 
     }
@@ -26,7 +26,7 @@ void PinT::init(){
 void PinT::print() {
 
     printf("PinT ini configuration : \n");
-    printf("  space dimension  : %d\n", dims);
+    printf("  space dimension  : %d\n", ndim);
     printf("  space domain     : [%f, %f, %f]\n", Xspan, Yspan, Zspan);
     printf("  grid cell        : [%f, %f, %f]\n", dx, dy,dz);
     printf("  sub space domain : [%d, %d, %d]\n", nx, ny, nz);
@@ -53,7 +53,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     PinT* conf = (PinT*)pint;
 
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    if (MATCH("domain","dims"))        { conf->dims = atoi(value); }
+    if (MATCH("domain","ndim"))        { conf->ndim = atoi(value); }
 
     else if (MATCH("domain", "Tspan")) { conf->Tspan = atof(value); } 
     else if (MATCH("domain", "Nt"))    { conf->Nt = atoi(value); } 

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <mpi.h>
 /**
  * the configuration of Parareal method, the current structure is proper when there is only one physical process
  *
@@ -31,7 +31,7 @@ public:
     void print();
       
     // very important, the settings of x/y/z must be consistent with dims  
-    int dims = 1; 
+    int ndim = 1; 
 
     //the size of time-space domain
     double Tspan; 
@@ -54,15 +54,16 @@ public:
     int spnumx;
     int spnumy = 0;
     int spnumz = 0;
-
+    
+    /* in a good design , the nx and dx etc. should be in Grid object */
     long nx ; // the subgrid (local) size of one MPI process 
     long ny = 1 ; 
     long nz = 1 ; 
-
+   
     double dx;  // cell width 
     double dy = 1;
     double dz = 1;
-
+    
     int nguard = 1; // the nguard cell number 
 
     int kpar_limit;
@@ -73,6 +74,13 @@ public:
     // time step width of fine/coarse solver 
     double f_dt; 
     double c_dt; 
+
+    // because the following dynamic information will not change during the whole running time
+    // for conveniently shareing, the dynamic information is placed in the static configuration class  
+    int myid;   // MPI process id in global 
+    int mysid;  // process id in space domain
+    int mytid;  // process id in time domain (slice number)
+    MPI_Comm *sp_comm; //space within the same time slice
 
     double converge_eps = 1.0e-6;
 

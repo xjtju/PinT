@@ -17,7 +17,9 @@ int main(int argc, char* argv[]) {
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
-
+    g->create_topology();
+    
+    driver.Abort("高次元テスト:%d\n", 2);
 
     Solver *F = new HeatSolverF(conf,g);    
     Solver *G = new HeatSolverC(conf,g);
@@ -25,7 +27,6 @@ int main(int argc, char* argv[]) {
     // run the parareal algorithm 
     driver.evolve(g, G, F);
     
-    //driver.Abort("高次元テスト:%d\n", 2);
 
     // output result
     if(driver.myid == driver.numprocs-1) { 

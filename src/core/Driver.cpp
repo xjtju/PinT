@@ -39,10 +39,15 @@ void Driver::init(int argc, char* argv[]){
         Abort("configuration inconsistent : %s. \n", "(the space num) should be equal with value multiplied from all directions");
     }
 
-    int key=myid%spnum, color=myid/spnum;  
+    int key=myid%spnum, color=myid/spnum; 
     //communicator for spatil parallel
-    MPI_Comm_split(MPI_COMM_WORLD,color,key,&sp_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, color, key, &sp_comm);
     MPI_Comm_rank(sp_comm, &mysid);
+    
+    conf->sp_comm = &sp_comm;
+    conf->myid = myid;
+    conf->mytid = mytid;  
+    conf->mysid = mysid;
 }
 
 // the PinT algorithm template
@@ -96,17 +101,16 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         kpar = kpar + 1;
         g->bc();
         
-        // step2:
+        // step1:
         blas_cp(u_cprev, u_c, size); //this step is not necessary at the following of fine solver 
 
-        // step1: fine solver parallel run based on U^{k-1}_{n-1}
+        // step2: fine solver parallel run based on U^{k-1}_{n-1}
         blas_cp(u_f, u_start, size);
         F->evolve();
         g->bc();
 
         if(kpar == 1) {
             blas_cp(u_end, u_f, size); 
-            double fdist = blas_vdist(u_end,u_f,size); 
         }
         g->bc();
 

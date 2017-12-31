@@ -9,12 +9,10 @@ implicit none
     ny = nxyz(2)
     nz = nxyz(3)
 
-    !!print *, nx, ny, nz   
     do k=1, nz
         do j=1, ny
             p(0,    j, k) = p(1 , j, k)
             p(nx+1, j, k) = p(nx, j, k) 
-            !!print *, p(0, j, k), p(1, j, k), p(ix, j,k), p(ix+1, j, k)   
         end do
     end do
 end subroutine bc
