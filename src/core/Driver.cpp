@@ -32,7 +32,11 @@ void Driver::init(int argc, char* argv[]){
 
     //check the configuration is consist with the real run time
     if(tsnum != (numprocs/spnum)) {
-        Abort("configuration inconsist : %s. \n" "(the space num)*(the time num) should be equal with the total process num");
+        Abort("configuration inconsistent : %s. \n", "(the space num)*(the time num) should be equal with the total process num");
+    }
+
+    if(spnum != (conf->spnumx*conf->spnumy*conf->spnumz)) {
+        Abort("configuration inconsistent : %s. \n", "(the space num) should be equal with value multiplied from all directions");
     }
 
     int key=myid%spnum, color=myid/spnum;  
@@ -69,6 +73,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     blas_cp(u_c, u_start, size); 
     G->evolve();
     g->bc();
+
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
     if(!isLastSlice(myid)){
         dest = myid + spnum;
@@ -98,6 +103,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp(u_f, u_start, size);
         F->evolve();
         g->bc();
+
         if(kpar == 1) {
             blas_cp(u_end, u_f, size); 
             double fdist = blas_vdist(u_end,u_f,size); 

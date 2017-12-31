@@ -2,20 +2,6 @@
 
 PinT* PinT::s_instance = 0;
 
-void PinT::set_tdomain(double tspan, long nt, int rfc, int tsnum) {
-
-    this->Tspan = tspan;
-    this->Nt    = nt;
-    this->rfc_  = rfc;
-    this->tsnum = tsnum;
-}
-
-void PinT::set_sdomain(double xspan, long nx, int spnum) {
-    this->Xspan = xspan;
-    this->Nx    = nx;    
-    this->spnum = spnum;
-}
-    
 void PinT::init(){
     f_steps = Nt/tsnum ; 
     c_steps = f_steps/rfc_ ;    
@@ -23,10 +9,18 @@ void PinT::init(){
     f_dt = Tspan/Nt;              
     c_dt = f_dt*rfc_; 
 
-    sub_nx = Nx / spnum;
+    nx = Nx / spnumx;
     dx = Xspan / Nx; 
+    if(dims>=2) { 
+        ny = Ny / spnumy;
+        dy = Yspan / Ny; 
+    }
+    if(dims==3) {
+        nz = Ny / spnumz;
+        dz = Zspan / Nz; 
+    }
 
-    kpar_limit = tsnum; 
+    kpar_limit = tsnum;
 }
 
 void PinT::print() {
@@ -34,14 +28,14 @@ void PinT::print() {
     printf("PinT ini configuration : \n");
     printf("  space dimension  : %d\n", dims);
     printf("  space domain     : [%f, %f, %f]\n", Xspan, Yspan, Zspan);
-    printf("  grid cell        : [%f, %f, %f]\n", dx, dx,dx);
-    printf("  sub space domain : [%d, %d, %d]\n", sub_nx, sub_nx, sub_nx);
+    printf("  grid cell        : [%f, %f, %f]\n", dx, dy,dz);
+    printf("  sub space domain : [%d, %d, %d]\n", nx, ny, nz);
     printf("  guard cells      : %d\n",nguard);
 
     printf("  time domin       : %f\n", Tspan);
-
-    printf("  space parallel   : %d\n", spnum);
     printf("  time  parallel   : %d\n", tsnum);
+    printf("  space parallel   : %d\n", spnum);
+    printf("  space division   : [%d, %d, %d]\n", spnumx, spnumy, spnumz);
 
     printf("  serial time steps: %d\n", Nt);
     printf("  fine   steps     : %d\n", f_steps);
@@ -75,6 +69,9 @@ int handler(void* pint, const char* section, const char* name, const char* value
 
     else if (MATCH("parareal", "tsnum")) { conf->tsnum = atoi(value); } 
     else if (MATCH("parareal", "spnum")) { conf->spnum = atoi(value); } 
+    else if (MATCH("parareal", "spnumx")) { conf->spnumx = atoi(value); } 
+    else if (MATCH("parareal", "spnumy")) { conf->spnumy = atoi(value); } 
+    else if (MATCH("parareal", "spnumz")) { conf->spnumz = atoi(value); } 
 
     else if (MATCH("parareal", "kpar_limit")) { conf->kpar_limit = atoi(value); } 
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
@@ -87,4 +84,3 @@ int handler(void* pint, const char* section, const char* name, const char* value
     }
     return 0;
 }
-

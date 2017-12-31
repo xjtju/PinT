@@ -17,8 +17,6 @@ private:
     static PinT* s_instance;
 
     PinT() {}
-    void set_tdomain(double tspan, long nt, int rfc, int tsnum) ;
-    void set_sdomain(double xspan, long nx, int spnum) ;
 
 public:    
 
@@ -30,27 +28,42 @@ public:
     }
 
     void init();
-    void print() ;
+    void print();
+      
+    // very important, the settings of x/y/z must be consistent with dims  
+    int dims = 1; 
 
     //the size of time-space domain
     double Tspan; 
-
-    int dims;
+    
     double Xspan; 
-    double Yspan; 
-    double Zspan; 
+    double Yspan = 0; 
+    double Zspan = 0; 
 
 
     long   Nt;  // the time steps of the whole time domain serially if using fine solver
-    long   Nx;  // the whole grid space size 
-    long   Ny;
-    long   Nz;
-
+    long   Nx;  // the whole grid space size covering the whole space domain 
+    long   Ny = 1;
+    long   Nz = 1;
 
     int   rfc_ ;  // fine steps / coarse steps 
 
-    int tsnum  ; // the number of time partitions(slices), parallel processes along time domain 
-    int spnum  ; // the number of space partitions, parallel processes along the space domain 
+    int tsnum ; // the number of time partitions(slices), parallel processes along time domain 
+
+    int spnum ; // the number of space partitions, parallel processes along the space domain 
+    int spnumx;
+    int spnumy = 0;
+    int spnumz = 0;
+
+    long nx ; // the subgrid (local) size of one MPI process 
+    long ny = 1 ; 
+    long nz = 1 ; 
+
+    double dx;  // cell width 
+    double dy = 1;
+    double dz = 1;
+
+    int nguard = 1; // the nguard cell number 
 
     int kpar_limit;
 
@@ -60,13 +73,8 @@ public:
     // time step width of fine/coarse solver 
     double f_dt; 
     double c_dt; 
-    double dx;  // cell width 
-
-    int sub_nx; // the subgrid size of one MPI process 
-    int nguard = 1; // the nguard cell number 
 
     double converge_eps = 1.0e-6;
-
 
 };
 

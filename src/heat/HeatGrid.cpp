@@ -19,18 +19,9 @@ int HeatGrid::init(){
 
 // nguard = 1, now space parallel is not considered
 void HeatGrid::bc(){
-    u_f[0] = u_f[1];
-    u_f[nx+nguard] = u_f[nx];
-    
-    u_c[0] = u_c[1];
-    u_c[nx+nguard] = u_c[nx];
-
-    u_cprev[0] = u_cprev[1];
-    u_cprev[nx+nguard] = u_cprev[nx];
-
-    u_start[0] = u_start[1];
-    u_start[nx+nguard] = u_start[nx];
-
-    u_end[0] = u_end[1];
-    u_end[nx+nguard] = u_end[nx];
+    bc_(nxyz, ngxyz, u_f); 
+    bc_(nxyz, ngxyz, u_c);   
+    bc_(nxyz, ngxyz, u_cprev);   
+    bc_(nxyz, ngxyz, u_start);   
+    bc_(nxyz, ngxyz, u_end);    
 }

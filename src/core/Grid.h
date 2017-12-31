@@ -2,6 +2,7 @@
 #define PinT_GRID_H 1 
 
 #include "common.h"
+#include "FortFunc.h"
 #include "PinT.h"
 /**
  * in current, the class is only for holding the physical variables used by PinT.
@@ -21,14 +22,27 @@ class Grid {
 public:
     PinT *conf;
 
+    int dims;
+
     //the mesh size of the whole space grid
-    int  nx;
+    int  nxyz[3];
+    int  nx;  //grid size without guard cells
+    int  ny;
+    int  nz;
 
     int nguard = 1;
+    // in order to automatically adapt to multi-dimension  
+    int ngxyz[3];  
 
     int size;
-    double dx;   
+    int sxyz[3];
+    int sx; //grid size with guard cells
+    int sy;
+    int sz;
 
+    double dx; //grid cell size   
+    double dy;
+    double dz;
     
     // the output of fine/coarse solver      
     double *u_f;  

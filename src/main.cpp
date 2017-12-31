@@ -18,12 +18,15 @@ int main(int argc, char* argv[]) {
     Grid *g = new HeatGrid(conf);
     g->init();
 
+
     Solver *F = new HeatSolverF(conf,g);    
     Solver *G = new HeatSolverC(conf,g);
    
     // run the parareal algorithm 
     driver.evolve(g, G, F);
     
+    //driver.Abort("高次元テスト:%d\n", 2);
+
     // output result
     if(driver.myid == driver.numprocs-1) { 
         for(int i=0; i<g->size; i++){
