@@ -65,6 +65,10 @@ public:
     MPI_Comm *sp_comm; //space within the same time slice
     int rank_1d;
     MPI_Comm comm1d;
+    // for guardcell send and receive in one direction 
+    double *gcell_send;
+    double *gcell_recv;
+    int sguard; // the size of guard cells in one direction
 
     Grid(PinT* conf); 
     ~Grid();

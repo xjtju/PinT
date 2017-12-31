@@ -26,7 +26,6 @@ int main(int argc, char* argv[]) {
    
     // run the parareal algorithm 
     driver.evolve(g, G, F);
-    
 
     // output result
     if(driver.myid == driver.numprocs-1) { 

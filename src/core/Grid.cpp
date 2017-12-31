@@ -53,6 +53,11 @@ Grid::Grid(PinT *conf) {
     u_start = alloc_mem(size);
     u_end = alloc_mem(size);
     u=u_end;
+
+    sguard = nguard * sy * sz;  
+    gcell_send = alloc_mem(sguard);
+    gcell_recv = alloc_mem(sguard);
+    printf("gcell size : %d\n", sguard);
 }
 
 Grid:: ~Grid(){
@@ -85,8 +90,10 @@ void Grid::guardcell() {
 
    MPI_Cart_shift(comm1d,0,-1,&rank_1d,&left);
    MPI_Cart_shift(comm1d,0,+1,&rank_1d,&right);
-   MPI_Sendrecv(*sendbuf, sendcount, MPI_DOUBLE, int dest, int sendtag, 
-                *recvbuf, recvcount, MPI_DOUBLE, int source, int recvtag,
-                comm1d, &stat);
+
+   MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, left,  8008, 
+                gcell_recv, sguard, MPI_DOUBLE, right, 8008, comm1d, &stat);
+   MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, right, 9009, 
+                gcell_recv, sguard, MPI_DOUBLE, left,  9009, comm1d, &stat);
 
 }
