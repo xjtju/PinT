@@ -71,13 +71,12 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         source = myid - spnum;
         tag = myid*100;
         MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-        g->bc();
     }
-    
+    g->guardcell(u_start);    
+    //printf("%d : %f, %f, %f, ... %f, %f, %f \n", mysid, u_start[0], u_start[1],u_start[2],u_start[size-3], u_start[size-2], u_start[size-1]);
     //coarse 
     blas_cp(u_c, u_start, size); 
     G->evolve();
-    g->bc();
 
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
     if(!isLastSlice(myid)){
@@ -86,7 +85,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //send to next time slice
         ierr = MPI_Rsend(u_c, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
-    
+   
+    //Abort("space parallel %d.\n",3);
     //blas_cp(u_end, u_c, size); 
 
     double res_loc, res_sp, max_res;
@@ -99,7 +99,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         max_res = 0.0;
 
         kpar = kpar + 1;
-        g->bc();
+        g->guardcell(u_c);
         
         // step1:
         blas_cp(u_cprev, u_c, size); //this step is not necessary at the following of fine solver 
@@ -107,27 +107,27 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
         blas_cp(u_f, u_start, size);
         F->evolve();
-        g->bc();
+        g->guardcell(u_f);
 
         if(kpar == 1) {
             blas_cp(u_end, u_f, size); 
         }
-        g->bc();
-
+        
         // step3:
         if(!isFirstSlice(myid)){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
 	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-            g->bc();
+            g->guardcell(u_start);
         } 
         // step4:
         blas_cp(u_c, u_start, size); 
         G->evolve();
-        g->bc();
+        g->guardcell(u_c); 
         
         // step5: 
-        blas_pint_sum(u_end, u_f, u_c, u_cprev, &res_loc, size, true);  
+        blas_pint_sum(u_end, u_f, u_c, u_cprev, &res_loc, g->nx, g->nguard, true);  
+        
         // step6: 
         if(!isLastSlice(myid)){
 	        dest = myid + spnum;
@@ -136,9 +136,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         }
         
         //STEP7 gather residual
-        MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
-        MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        
+        g->sp_allreduce(&res_loc, &res_sp);
+        //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
+        //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        g->allreduce(&res_sp, &max_res,MPI_MAX); 
         monitorResidual(u_c,u_cprev,u_end,u_f,res_loc,max_res,size);
 
         max_res = sqrt(max_res/tsnum);
@@ -146,7 +147,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         if( max_res < conf->converge_eps) 
             break;   
     }
-
+    g->guardcell(u_end);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -215,15 +216,15 @@ void Driver::WARN(const char* fmt, ...) {
 
 
 void Driver::Abort(const char* fmt, ...) {
-
-    va_list args;
     
+    va_list args;
+        
     va_start(args, fmt);
     fputs("ERROR: ", stderr);
     vfprintf(stderr, fmt, args);
     va_end(args);
 
-    MPI_Finalize();
+    MPI_Abort(MPI_COMM_WORLD, 2018);
 
     exit(1);
 }

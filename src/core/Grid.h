@@ -44,7 +44,11 @@ public:
     double dx; //grid cell size   
     double dy;
     double dz;
-    
+
+    double idx; //global coord idx of the left-back-bottom point  
+    double idy;
+    double idz;
+
     // the output of fine/coarse solver      
     double *u_f;  
     double *u_c;
@@ -76,12 +80,24 @@ public:
     virtual int init()=0;
 
     // boundary condition
-    virtual void bc()=0;
-    
+    void bc();
+    void bc(double *d); 
+
     // create the grid topology
     void create_topology(); 
 
     // guardcell exchange  
     void guardcell();
+    void guardcell(double *d);
+    // grid topology. left:X:right; front:Y:back; top:Z:bottom
+    int left, right, front, back, top, bottom;
+
+    // space domain, for only one datum with double type and SUM operation 
+    void sp_allreduce(double *d);  //d is input and output
+    void sp_allreduce(double *d, double *o); //d is input, o is output
+    // time-space domain
+    void allreduce(double *d, double *o, int op);
+
+    void output();
 };
 #endif

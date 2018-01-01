@@ -6,7 +6,8 @@ HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){ }
 void HeatSolver::cg_rk(double *r, double *x, double *b){
     for(int i=nguard; i<nx+nguard; i++){
         double ax = -lamda*x[i-1] + (1+2*lamda)*x[i] - lamda*x[i+1];  
-        r[i] = b[i] - ax; 
+        r[i] = b[i] - ax;
+        //printf("%f ",r[i]);
     }
 }
 

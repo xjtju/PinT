@@ -12,63 +12,87 @@ void PBiCGStab::solve(){
       
     clear_mem(v, size);
     clear_mem(p, size);
-    
-    cg_b(x);
-    cg_rk(r, x, b); //init residual r = b - Ax 
-	// choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
-	blas_cp(r0_, r, size);
+    clear_mem(b, size);
+    clear_mem(r, size);
 
-    double b_nrm2 = blas_vdot(b, b, size);
+    grid->guardcell(x);     
+    cg_b(x);
+    //grid->guardcell(b);
+    cg_rk(r, x, b); //init residual r = b - Ax 
+    //grid->guardcell(r);
+
+    // choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
+    blas_cp(r0_, r, size);
 
     double tmp, tmp1, tmp2;	
-     
+    tmp = tmp1 = tmp2 = 0.0;  
+
+    double b_nrm2 = blas_vdot(b, b, nx, nguard);
+    grid->sp_allreduce(&b_nrm2);
+
     for(int i=1; i<=itmax; i++){
-		rho = blas_vdot(r0_, r, size);
+        rho = blas_vdot(r0_, r, nx, nguard);
+        //printf("%d rho : %f\n",i,  rho);
+        grid->sp_allreduce(&rho);
+
         beta = (rho/rho0) * (alpha/omega);
         cg_direct(p, r, v, beta, omega); 
 
-	    preconditioner(p_,p); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
-	    cg_Xv(v,p_);        // v=Ap_	
+        grid->guardcell(p);
+        preconditioner(p_,p); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
+
+        grid->guardcell(p_);
+        cg_Xv(v,p_);        // v=Ap_	
         
-        tmp = blas_vdot(r0_, v, size);
+        tmp = blas_vdot(r0_, v, nx, nguard);
+        grid->sp_allreduce(&tmp);
         alpha = rho / tmp; 
         // h = x + alpha*p_, is ||h|| is sufficiently small, can do...  
         
-        blas_avpy(s, -alpha, v, r, size); //s = -av + r  or s = r - av
+        blas_avpy(s, -alpha, v, r, nx, nguard); //s = -av + r  or s = r - av
+        grid->guardcell(s);
         // solve Ms_=s , in some algorithm description, s_ is also denoted by z
-	    preconditioner(s_,s); 
+        preconditioner(s_,s); 
+
+        grid->guardcell(s_);
         cg_Xv(t,s_); // t=Az
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
-	    tmp1 = blas_vdot(t, s, size); // t dot z	
+        tmp1 = blas_vdot(t, s, size); // t dot z	
+        grid->sp_allreduce(&tmp1);
         tmp2 = blas_vdot(t, t, size); // t dot t 
+        grid->sp_allreduce(&tmp2);
 		omega = tmp1 / tmp2;   
         
 	    cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z; 	
 	    blas_avpy(r, -omega, t, s, size); //r = s - omega*t	
          
 		// ||r|| 
-		tmp = blas_vdot(r, r, size);
-        res = sqrt(tmp/b_nrm2); 
-		if(res < eps) {
-            //printf("%4d\n", i);
+        tmp = blas_vdot(r, r, nx, nguard);
+	    grid->sp_allreduce(&tmp);	
+        res = sqrt(tmp/b_nrm2);
+
+        //printf("PBI %d, %f\n",i, res);
+        if(res < eps) {
             break;
         }
         rho0 = rho;
+        grid->bc(x);
 	}
 
+    grid->guardcell(x);
     update(); // update grid variables
 }
 
 //p = r + beta * ( p - omg * v )
 void PBiCGStab::cg_direct(double* p, double* r, double* v, double beta, double omega){
-    for(int i=0; i<size; i++) {
+    for(int i=nguard; i<nx+nguard; i++) {
         p[i] = r[i] + beta*(p[i] - omega*v[i]);
     }
 }
 
 // x = x + ay + bz  
 void PBiCGStab::cg_xi(double* x, double alpha, double* y, double omega, double* z){
-    for(int i=0; i<size; i++) {
+    for(int i=nguard; i<nx+nguard; i++) {
         x[i] = x[i] + alpha*y[i] + omega*z[i];
     }
 }

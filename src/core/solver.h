@@ -31,12 +31,7 @@ public:
     virtual void solve() = 0;
 
     // integrate over one time slice , the default implementation
-    void evolve(){
-        for(int i=0; i<steps; i++){
-            grid->bc();
-            solve();
-        }
-    }
+    void evolve();
 };
 
 #endif

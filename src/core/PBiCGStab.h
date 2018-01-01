@@ -19,7 +19,7 @@ class PBiCGStab : public Solver{
 protected:
 
     double eps = 1.0e-6;
-    int itmax = 10; 
+    int itmax = 5; 
 
     double *r0_, *r;  // 0 ... itmax  
     double *p, *p_;   // conjugated direction

@@ -17,18 +17,18 @@ int main(int argc, char* argv[]) {
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
-    g->create_topology();
     
-    driver.Abort("高次元テスト:%d\n", 2);
+    //driver.Abort("高次元テスト:%d\n", 2);
 
     Solver *F = new HeatSolverF(conf,g);    
     Solver *G = new HeatSolverC(conf,g);
-   
+
     // run the parareal algorithm 
     driver.evolve(g, G, F);
 
     // output result
     if(driver.myid == driver.numprocs-1) { 
+    //if(driver.myid ==0 ) {
         for(int i=0; i<g->size; i++){
             printf("%f\n", g->u_end[i]);
         }
