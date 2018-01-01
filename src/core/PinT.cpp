@@ -32,6 +32,9 @@ void PinT::print() {
     printf("  sub space domain : [%d, %d, %d]\n", nx, ny, nz);
     printf("  guard cells      : %d\n",nguard);
 
+    printf("  boundary type    : %d\n",bc_type);
+    printf("  bc_val(type=0)   : %f\n",bc_val);
+
     printf("  time domin       : %f\n", Tspan);
     printf("  time  parallel   : %d\n", tsnum);
     printf("  space parallel   : %d\n", spnum);
@@ -66,6 +69,9 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("domain", "Ny"))    { conf->Ny = atoi(value); } 
     else if (MATCH("domain", "Nz"))    { conf->Nz = atoi(value); } 
     else if (MATCH("domain", "nguard")){ conf->nguard = atoi(value); } 
+
+    else if (MATCH("domain", "bc_type")){ conf->bc_type = atoi(value); } 
+    else if (MATCH("domain", "bc_val")) { conf->bc_val  = atof(value); } 
 
     else if (MATCH("parareal", "tsnum")) { conf->tsnum = atoi(value); } 
     else if (MATCH("parareal", "spnum")) { conf->spnum = atoi(value); } 

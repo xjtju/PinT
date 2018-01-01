@@ -32,6 +32,9 @@ public:
     int  nz;
 
     int nguard = 1;
+    int bc_type;
+    double bc_val;
+
     // in order to automatically adapt to multi-dimension  
     int ngxyz[3];  
 

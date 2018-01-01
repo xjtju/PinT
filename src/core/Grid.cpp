@@ -13,6 +13,8 @@ Grid::Grid(PinT *conf) {
     this->nxyz[2] = conf->nz;
 
     this->nguard = conf->nguard;
+    this->bc_type = conf->bc_type;
+    this->bc_val = conf->bc_val;
 
     this->dx = conf->dx;
     this->dy = conf->dy;
@@ -102,15 +104,15 @@ void Grid::guardcell(double* d) {
    MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, right,  8008, 
                 gcell_recv, sguard, MPI_DOUBLE, left, 8008, comm1d, &stat);
    d[0] = gcell_recv[0];
-   if(MPI_PROC_NULL==left)  // I am is the most left border
-      d[0] = d[1]; 
+
    //printf("%d L: %f, %f ", rank_1d, gcell_send[0], gcell_recv[0]);
+ 
    gcell_send[0] = d[1];
    MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, left, 9009, 
                 gcell_recv, sguard, MPI_DOUBLE, right,  9009, comm1d, &stat);
    d[sx-1] = gcell_recv[0];
-   if(MPI_PROC_NULL==right)  //right border
-      d[sx-1] = d[sx-2]; 
+
+   bc(d);
 }
 /**
  * Deprecated.
@@ -126,6 +128,12 @@ void Grid::guardcell() {
 
 // nguard = 1, now space parallel is not considered
 void Grid::bc(double* d){
+   if( 0==bc_type ){
+       //fixed value
+   }else ( 1==bc_type ) {
+       //reflected
+   }
+
    if(MPI_PROC_NULL==left)  // I am is the most left border
       d[0] = d[1]; 
    if(MPI_PROC_NULL==right)  //right border

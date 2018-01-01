@@ -65,6 +65,8 @@ public:
     double dz = 1;
     
     int nguard = 1; // the nguard cell number 
+    int bc_type =0; // boundary type. 0:always unchanged, default is ZERO; 1: reflect
+    double bc_val = 0.0; // valid when bc_type=0 
 
     int kpar_limit;
 
