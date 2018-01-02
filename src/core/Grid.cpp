@@ -176,11 +176,11 @@ void Grid::guardcell_1d(double* d) {
 void Grid::guardcell_2d(double* d) {
    MPI_Request req;
    MPI_Status stat;
-   int ierr;
-   
-   int sg = this->gcsx; 
-   //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
-   //left - right : sy * nguard  
+   int sg;
+ 
+   // X: left - right : sy * nguard  
+   sg = this->gcsx; 
+
    if(MPI_PROC_NULL!=right)  // not right border
        packgc_2d_r_(nxyz, &nguard, d, gcell_sendx);
    MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
@@ -195,8 +195,24 @@ void Grid::guardcell_2d(double* d) {
    if(MPI_PROC_NULL!=right)  // not right border
        unpackgc_2d_r_(nxyz, &nguard, d, gcell_recvx);
 
+   // Y: front - back  
    sg = this->gcsy;
+   
+   if(MPI_PROC_NULL!=back)  
+       packgc_2d_b_(nxyz, &nguard, d, gcell_sendy);
+   MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, back,  6006, 
+                gcell_recvy, sg, MPI_DOUBLE, front, 6006, st_comm, &stat);
+   if(MPI_PROC_NULL!=front)  
+       unpackgc_2d_f_(nxyz,&nguard,d,gcell_recvy);
+    
+   if(MPI_PROC_NULL!=front)  
+       packgc_2d_f_(nxyz, &nguard, d, gcell_sendy);
+   MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, front, 7007, 
+                gcell_recvy, sg, MPI_DOUBLE, back,  7007, st_comm, &stat);
+   if(MPI_PROC_NULL!=back)  
+       unpackgc_2d_b_(nxyz, &nguard, d, gcell_recvy);
 
+   //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
    bc_2d(d);
 }
 
@@ -220,28 +236,27 @@ void Grid::bc_1d(double* d) {
     int ng = nguard;
     if( 0==bc_type ){ //fixed value
        if(MPI_PROC_NULL==left)  // left border
-           bc_val_l_(nxyz, &ng, d, &bc_val);
+           bc_val_1d_l_(nxyz, &ng, d, &bc_val);
        if(MPI_PROC_NULL==right)  //right border
-           bc_val_r_(nxyz, &ng, d, &bc_val);
+           bc_val_1d_r_(nxyz, &ng, d, &bc_val);
     }
     else if( 1==bc_type ) { //reflected
        if(MPI_PROC_NULL==left)  
-           bc_ref_l_(nxyz, &ng, d);
+           bc_ref_1d_l_(nxyz, &ng, d);
        if(MPI_PROC_NULL==right)  
-           bc_ref_r_(nxyz, &ng, d);
+           bc_ref_1d_r_(nxyz, &ng, d);
    }
 }
 void Grid::bc_2d(double* d) {
     int ng = nguard;
     if( 0==bc_type ) {
+        printf("WARNING : not completed for 2D fixed value bc!");
     }
     else if( 1==bc_type ) { //reflected
-       if(MPI_PROC_NULL==left)  
-           bc_ref_2d_l_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==right)  
-           bc_ref_2d_r_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==front) {}  
-       if(MPI_PROC_NULL==back) {} 
+       if(MPI_PROC_NULL==left)   bc_ref_2d_l_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==right)  bc_ref_2d_r_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==front)  bc_ref_2d_f_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
 }
 void Grid::bc(){
