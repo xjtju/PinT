@@ -86,6 +86,8 @@ public:
 
     double converge_eps = 1.0e-6;
 
+    char* debug_pre;
+    char* monitor_pre;
 };
 
 int handler(void* pint, const char* section, const char* name, const char* value);

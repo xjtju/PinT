@@ -48,6 +48,10 @@ void PinT::print() {
     printf("  rfc_ (steps )    : %d\n", rfc_);
     printf("  kpar_limit       : %d\n", kpar_limit);
     printf("  converge eps     : %f\n", converge_eps);
+
+    printf("  debug out prefix : %s\n", debug_pre);
+    printf("  monitor   prefix : %s\n", monitor_pre);
+
     printf("\n");
 }
 
@@ -83,6 +87,9 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
 
     else if (MATCH("parareal", "converge_eps")) { conf->converge_eps = atof(value); } 
+    
+    else if (MATCH("monitor", "debug_pre")) { conf->debug_pre = strdup(value); } 
+    else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 
 
     else {
         printf("WARN : unknown ini parameter [%s]/[%s] , ignored. \n", section, name);

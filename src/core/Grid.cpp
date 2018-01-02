@@ -48,6 +48,9 @@ Grid::Grid(PinT *conf) {
     this->myid = conf->myid;
     this->mysid = conf->mysid;
     this->sp_comm = conf->sp_comm;
+    
+    this->mytid = conf->mytid;
+    this->tsnum = conf->tsnum;
 
     u_f = alloc_mem(size);
     u_c = alloc_mem(size);
@@ -130,7 +133,7 @@ void Grid::guardcell() {
 void Grid::bc(double* d){
    if( 0==bc_type ){
        //fixed value
-   }else ( 1==bc_type ) {
+   }else if( 1==bc_type ) {
        //reflected
    }
 
@@ -148,12 +151,6 @@ void Grid::bc(){
     bc(u_end);    
 }
 /**
- * collect the final result from all space domain and output 
- */
-void Grid::output() {
-    
-}
-/**
  * MPI_Allreduce double
  */
 void Grid::sp_allreduce(double *d) {
@@ -168,4 +165,27 @@ void Grid::sp_allreduce(double *d, double *o) {
 
 void Grid::allreduce(double *d, double *o, int op) {
     MPI_Allreduce(d, o, 1, MPI_DOUBLE, op, MPI_COMM_WORLD); 
+}
+
+/**
+ * collect the final result from all space domain and output 
+ * it simply write the u_end to file, used only for debug ,not for massive running.
+ * file name : mytid.mysid.txt 
+ */
+void Grid::output() {
+    if (mytid != (tsnum-1)) return;  //only output the last time slice
+
+    FILE * fp;
+    char fname[20];
+
+    sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
+
+    fp = fopen (fname,"w");
+    
+    for(int i = 0; i < sx ; i++){
+       fprintf (fp, "  %12.8f  ", u_end[i]);
+    }
+    fprintf(fp,"\n"); 
+
+    fclose (fp);
 }

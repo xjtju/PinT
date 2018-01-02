@@ -27,13 +27,7 @@ int main(int argc, char* argv[]) {
     driver.evolve(g, G, F);
 
     // output result
-    if(driver.myid == driver.numprocs-1) { 
-    //if(driver.myid ==0 ) {
-        for(int i=0; i<g->size; i++){
-            printf("%f\n", g->u_end[i]);
-        }
-        printf("kpar=%d\n",driver.kpar);
-    }
+    g->output();
     
     driver.finalize();  
 

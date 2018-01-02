@@ -76,6 +76,10 @@ public:
     double *gcell_send;
     double *gcell_recv;
     int sguard; // the size of guard cells in one direction
+    
+    // time slice information
+    int mytid;
+    int tsnum; 
 
     Grid(PinT* conf); 
     ~Grid();

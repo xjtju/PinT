@@ -8,7 +8,7 @@ void PBiCGStab::solve(){
     double rho0, rho, alpha, omega, beta;
     double res = 1000.0;
    
-    rho0 = alpha = omega = 1.0; 	
+    rho0 = alpha = omega = 1.0;     
       
     clear_mem(v, size);
     clear_mem(p, size);
@@ -24,7 +24,7 @@ void PBiCGStab::solve(){
     // choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
     blas_cp(r0_, r, size);
 
-    double tmp, tmp1, tmp2;	
+    double tmp, tmp1, tmp2; 
     tmp = tmp1 = tmp2 = 0.0;  
 
     double b_nrm2 = blas_vdot(b, b, nx, nguard);
@@ -42,7 +42,7 @@ void PBiCGStab::solve(){
         preconditioner(p_,p); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
 
         grid->guardcell(p_);
-        cg_Xv(v,p_);        // v=Ap_	
+        cg_Xv(v,p_);        // v=Ap_    
         
         tmp = blas_vdot(r0_, v, nx, nguard);
         grid->sp_allreduce(&tmp);
@@ -57,18 +57,18 @@ void PBiCGStab::solve(){
         grid->guardcell(s_);
         cg_Xv(t,s_); // t=Az
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
-        tmp1 = blas_vdot(t, s, size); // t dot z	
+        tmp1 = blas_vdot(t, s, size); // t dot z    
         grid->sp_allreduce(&tmp1);
         tmp2 = blas_vdot(t, t, size); // t dot t 
         grid->sp_allreduce(&tmp2);
-		omega = tmp1 / tmp2;   
+        omega = tmp1 / tmp2;   
         
-	    cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z; 	
-	    blas_avpy(r, -omega, t, s, size); //r = s - omega*t	
+        cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z;   
+        blas_avpy(r, -omega, t, s, size); //r = s - omega*t 
          
-		// ||r|| 
+        // ||r|| 
         tmp = blas_vdot(r, r, nx, nguard);
-	    grid->sp_allreduce(&tmp);	
+        grid->sp_allreduce(&tmp);   
         res = sqrt(tmp/b_nrm2);
 
         //printf("PBI %d, %f\n",i, res);
@@ -77,7 +77,7 @@ void PBiCGStab::solve(){
         }
         rho0 = rho;
         grid->bc(x);
-	}
+    }
 
     grid->guardcell(x);
     update(); // update grid variables
