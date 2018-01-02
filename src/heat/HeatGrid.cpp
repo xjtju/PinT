@@ -3,18 +3,39 @@
 HeatGrid::HeatGrid(PinT *conf) : Grid(conf){
 } 
 
-int HeatGrid::init(){
-         
+int HeatGrid::init() {
+    if(this->ndim == 1) init1d();
+    if(this->ndim == 2) init2d();
+}
+void HeatGrid::init1d(){
+    long ind = 0;
     for(int i = nguard; i<nx+nguard ; i++){
-        int gxi = (idx+i-nguard); // global coordincate of the cell
+        ind = i;
+        int gxi = (ind+i-nguard); // global coordincate of the cell
         double unk = cos(2*gxi*dx);
-        u_f[i] = unk; 
-        u_c[i] = unk; 
-        u_cprev[i] = unk; 
-        u_start[i] = unk;
-        u_end[i] = unk;
+        
+        u_f[ind] = unk; 
+        u_c[ind] = unk; 
+        u_cprev[ind] = unk; 
+        u_start[ind] = unk;
+        u_end[ind] = unk;
     }
-    //guardcell();
-    return 0;
 }
 
+void HeatGrid::init2d(){
+    long ind = 0;     
+    for(int j = nguard; j<ny+nguard ; j++)
+    for(int i = nguard; i<nx+nguard ; i++){
+
+        int gyi = (idy+j-nguard);
+        int gxi = (idx+i-nguard);
+        ind = j*sx + i;
+        double unk = cos(2*gxi*dx)*cos(2*gyi*dy);
+        
+        u_f[ind] = unk; 
+        u_c[ind] = unk; 
+        u_cprev[ind] = unk; 
+        u_start[ind] = unk;
+        u_end[ind] = unk;
+    }
+}

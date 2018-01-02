@@ -17,8 +17,11 @@ int main(int argc, char* argv[]) {
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
-    
-    //driver.Abort("高次元テスト:%d\n", 2);
+
+    g->guardcell(g->u_end);
+
+    g->output();
+    driver.Abort("高次元テスト:%d\n", 4);
 
     Solver *F = new HeatSolverF(conf,g);    
     Solver *G = new HeatSolverC(conf,g);

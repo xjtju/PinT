@@ -11,6 +11,7 @@ void PinT::init(){
 
     nx = Nx / spnumx;
     dx = Xspan / Nx; 
+
     if(ndim>=2) { 
         ny = Ny / spnumy;
         dy = Yspan / Ny; 

@@ -8,6 +8,7 @@ Grid::Grid(PinT *conf) {
     this->nx = conf->nx;
     this->ny = conf->ny;
     this->nz = conf->nz;
+
     this->nxyz[0] = conf->nx;
     this->nxyz[1] = conf->ny;
     this->nxyz[2] = conf->nz;
@@ -21,24 +22,36 @@ Grid::Grid(PinT *conf) {
     this->dz = conf->dz;
     
     this->sx= nx + 2*nguard;
-    this->sy = ny;
-    this->sz = nz;
+    this->sy= ny + 2*nguard;
+    this->sz= nz + 2*nguard;
+    //this->sy = ny;
+    //this->sz = nz;
     this->ngxyz[0] = nguard;
-    this->ngxyz[1] = 0;
-    this->ngxyz[2] = 0;
-    if(ndim>=2) {
-        this->ngxyz[1] = nguard;
-        this->sy= ny + 2*nguard;
+    this->ngxyz[1] = nguard;
+    this->ngxyz[2] = nguard;
+
+    if(ndim == 1){
+        this->size = this->sx;
+        this->gcsx = nguard;
+        this->gcell_sendx = alloc_mem(nguard);
+        this->gcell_recvx = alloc_mem(nguard);
+    }
+    if(ndim==2) {
+        this->size = this->sx * this->sy; 
+        this->gcsx = this->sy*nguard;
+        this->gcsy = this->sx*nguard;
+        this->gcell_sendx = alloc_mem(this->gcsx);
+        this->gcell_recvx = alloc_mem(this->gcsx);
+        this->gcell_sendy = alloc_mem(this->gcsy);
+        this->gcell_recvy = alloc_mem(this->gcsy);
     }
     if(ndim==3) {
-        this->ngxyz[2] = nguard;
-        this->sz= nz + 2*nguard;
+        this->size = sx * sy * sz;
     }
 
     this->sxyz[0] = sx;
     this->sxyz[1] = sy;
     this->sxyz[2] = sz;
-    this->size = sx * sy * sz;
 
     this->spnum = conf->spnum;
     this->spnumx = conf->spnumx;
@@ -59,15 +72,12 @@ Grid::Grid(PinT *conf) {
     u_end = alloc_mem(size);
     u=u_end;
 
-    sguard = nguard * sy * sz;  
-    gcell_send = alloc_mem(sguard);
-    gcell_recv = alloc_mem(sguard);
-
-    //printf("gcell size : %d\n", sguard);
     create_topology();
 
     //after the topology is determined, the coordinate can also be fixed 
-    this->idx = rank_1d*nx;
+    this->idx = this->coords[0]*nx;
+    if(ndim>=2) this->idy = this->coords[1]*ny;
+    if(ndim==3) this->idz = this->coords[2]*nz;
 }
 
 Grid:: ~Grid(){
@@ -76,47 +86,120 @@ Grid:: ~Grid(){
     free_mem(u_cprev);
     free_mem(u_start);
     free_mem(u_end);
+
+    if(ndim == 3) {
+        free_mem(gcell_sendz);
+        free_mem(gcell_recvz);
+    }
+    if(ndim >= 2) {
+        free_mem(gcell_sendy);
+        free_mem(gcell_recvy);
+    }
+    if(ndim >=1) {
+        free_mem(gcell_sendx);
+        free_mem(gcell_recvx);
+    }
+
     u = NULL;
 }
 
+void Grid::create_topology() {
+    if(ndim == 1) create_topology_1d();
+    if(ndim == 2) create_topology_2d();
+}
 /**
  * create virtual space topology
  */
-void Grid::create_topology(){
+void Grid::create_topology_1d(){
+    int periods[1] ={0};
     int dims[1];
-    int periods[1];
-    int coord_1d[1]; 
+    int coord[1]; 
 
     dims[0] = spnumx; 
-    periods[0] = 0;
 
-    MPI_Cart_create(*sp_comm, ndim, dims, periods, 1, &comm1d);
-    MPI_Cart_coords(comm1d, mysid, ndim, coord_1d);
-    MPI_Cart_rank(comm1d, coord_1d, &rank_1d);
+    MPI_Cart_create(*sp_comm, ndim, dims, periods, 1, &st_comm);
+    MPI_Cart_coords(st_comm, mysid, ndim, coord);
+    MPI_Cart_rank(st_comm, coord, &st_rank);
 
-    MPI_Cart_shift(comm1d, 0, 1, &left, &right);
-    printf("I am %d: (%d); originally %d. topology : %d | %d | %d \n",rank_1d,coord_1d[0], mysid, left, rank_1d, right);
+    MPI_Cart_shift(st_comm, 0, 1, &left, &right);
+    this->coords = coord;
+    //printf("I am %d: (%d); originally %d. topology : %d | %d | %d \n",st_rank,coord_1d[0], mysid, left, st_rank, right);
+}
+
+void Grid::create_topology_2d(){
+    int periods[2] = {0,0};
+    int dims[2];
+    int coord[2]; 
+
+    dims[0] = spnumx; 
+    dims[1] = spnumy;
+
+    MPI_Cart_create(*sp_comm, ndim, dims, periods, 2, &st_comm);
+    MPI_Cart_coords(st_comm, mysid, ndim, coord);
+    MPI_Cart_rank(st_comm, coord, &st_rank);
+
+    MPI_Cart_shift(st_comm, 0, 1, &left, &right);
+    MPI_Cart_shift(st_comm, 1, 1, &front, &back);
+
+    this->coords = coord;
+//    printf("I am %d: (%d,%d); originally %d. dim0 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, left, st_rank, right);
+//    printf("I am %d: (%d,%d); originally %d. dim1 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, front, st_rank, back);
 }
 
 void Grid::guardcell(double* d) {
+    if(ndim == 1) guardcell_1d(d);
+    if(ndim == 2) guardcell_2d(d);
+}
+
+void Grid::guardcell_1d(double* d) {
    MPI_Request req;
    MPI_Status stat;
    int ierr;
+   
+   int sg = this->gcsx;
 
-   gcell_send[0] = d[sx-2];
-   MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, right,  8008, 
-                gcell_recv, sguard, MPI_DOUBLE, left, 8008, comm1d, &stat);
-   d[0] = gcell_recv[0];
+   packgc_1d_r_(nxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
+                gcell_recvx, sg, MPI_DOUBLE, left, 8008, st_comm, &stat);
+   unpackgc_1d_l_(nxyz, &nguard, d, gcell_recvx);
 
-   //printf("%d L: %f, %f ", rank_1d, gcell_send[0], gcell_recv[0]);
+   //printf("%d L: %f, %f ", st_rank, gcell_send[0], gcell_recv[0]);
  
-   gcell_send[0] = d[1];
-   MPI_Sendrecv(gcell_send, sguard, MPI_DOUBLE, left, 9009, 
-                gcell_recv, sguard, MPI_DOUBLE, right,  9009, comm1d, &stat);
-   d[sx-1] = gcell_recv[0];
+   packgc_1d_l_(nxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, left, 9009, 
+                gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
+   unpackgc_1d_r_(nxyz, &nguard, d, gcell_recvx);
 
-   bc(d);
+   bc_1d(d);
 }
+
+void Grid::guardcell_2d(double* d) {
+   MPI_Request req;
+   MPI_Status stat;
+   int ierr;
+   
+   int sg = this->gcsx; 
+   //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
+   //left - right : sy * nguard  
+   if(MPI_PROC_NULL!=right)  // not right border
+       packgc_2d_r_(nxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
+                gcell_recvx, sg, MPI_DOUBLE, left, 8008, st_comm, &stat);
+   if(MPI_PROC_NULL!=left)  // not left border
+       unpackgc_2d_l_(nxyz,&nguard,d,gcell_recvx);
+    
+   if(MPI_PROC_NULL!=left)  // not left border
+       packgc_2d_l_(nxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, left, 9009, 
+                gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
+   if(MPI_PROC_NULL!=right)  // not right border
+       unpackgc_2d_r_(nxyz, &nguard, d, gcell_recvx);
+
+   sg = this->gcsy;
+
+   bc_2d(d);
+}
+
 /**
  * Deprecated.
  * Usually it is not necessary to synchonize guard cells for all the variables.
@@ -129,20 +212,38 @@ void Grid::guardcell() {
     guardcell(u_end);
 }
 
-// nguard = 1, now space parallel is not considered
 void Grid::bc(double* d){
-   if( 0==bc_type ){
-       //fixed value
-   }else if( 1==bc_type ) {
-       //reflected
-   }
-
-   if(MPI_PROC_NULL==left)  // I am is the most left border
-      d[0] = d[1]; 
-   if(MPI_PROC_NULL==right)  //right border
-      d[sx-1] = d[sx-2]; 
+    if(ndim == 1) bc_1d(d);
 }
-
+// nguard = 1, now space parallel is not considered
+void Grid::bc_1d(double* d) {
+    int ng = nguard;
+    if( 0==bc_type ){ //fixed value
+       if(MPI_PROC_NULL==left)  // left border
+           bc_val_l_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==right)  //right border
+           bc_val_r_(nxyz, &ng, d, &bc_val);
+    }
+    else if( 1==bc_type ) { //reflected
+       if(MPI_PROC_NULL==left)  
+           bc_ref_l_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==right)  
+           bc_ref_r_(nxyz, &ng, d);
+   }
+}
+void Grid::bc_2d(double* d) {
+    int ng = nguard;
+    if( 0==bc_type ) {
+    }
+    else if( 1==bc_type ) { //reflected
+       if(MPI_PROC_NULL==left)  
+           bc_ref_2d_l_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==right)  
+           bc_ref_2d_r_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==front) {}  
+       if(MPI_PROC_NULL==back) {} 
+    }
+}
 void Grid::bc(){
     bc(u_f); 
     bc(u_c);   
@@ -177,13 +278,16 @@ void Grid::output() {
 
     FILE * fp;
     char fname[20];
-
+    int ind = 0;   
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
     fp = fopen (fname,"w");
-    
-    for(int i = 0; i < sx ; i++){
-       fprintf (fp, "  %12.8f  ", u_end[i]);
+    for(int j = 0; j < sy ; j++) { 
+        for(int i = 0; i < sx ; i++){
+            ind = j*sx + i; 
+            fprintf (fp, "  %12.8f  ", u_end[ind]);
+        }
+        fprintf(fp,"\n"); 
     }
     fprintf(fp,"\n"); 
 

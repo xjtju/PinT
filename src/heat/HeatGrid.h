@@ -13,5 +13,7 @@ public:
 
     HeatGrid(PinT *conf); 
     int init();
+    void init1d();
+    void init2d();
 };
 #endif

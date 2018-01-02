@@ -38,19 +38,23 @@ public:
     // in order to automatically adapt to multi-dimension  
     int ngxyz[3];  
 
-    int size;
+    long size;
     int sxyz[3];
     int sx; //grid size with guard cells
     int sy;
     int sz;
 
+    int gcsx; //guard cell size 
+    int gcsy;
+    int gcsz;
+
     double dx; //grid cell size   
     double dy;
     double dz;
 
-    double idx; //global coord idx of the left-back-bottom point  
-    double idy;
-    double idz;
+    long idx; //global coord idx of the left-back-bottom point  
+    long idy;
+    long idz;
 
     // the output of fine/coarse solver      
     double *u_f;  
@@ -61,7 +65,7 @@ public:
     double *u_start; // the latest solution of the current time slice start point or the previous slice end 
     double *u_end;   // the latest solution of the current time slice end point or the next slice start 
     double *u;       // pointing the same variable with u_end
-    
+   
     int myid;   // MPI process id in global 
     int mysid;  // process id in space domain
 
@@ -70,12 +74,18 @@ public:
     int spnumy;
     int spnumz;
     MPI_Comm *sp_comm; //space within the same time slice
-    int rank_1d;
-    MPI_Comm comm1d;
+    int st_rank;       // topology rank 
+    MPI_Comm st_comm;  // topology comm
+    int *coords;        // topology coordinates 
     // for guardcell send and receive in one direction 
-    double *gcell_send;
-    double *gcell_recv;
-    int sguard; // the size of guard cells in one direction
+    double *gcell_sendx; // left & right
+    double *gcell_sendy; // front & back
+    double *gcell_sendz; // top & bottom
+
+    double *gcell_recvx;
+    double *gcell_recvy;
+    double *gcell_recvz;
+
     
     // time slice information
     int mytid;
@@ -89,13 +99,19 @@ public:
     // boundary condition
     void bc();
     void bc(double *d); 
+    void bc_1d(double *d); 
+    void bc_2d(double *d); 
 
     // create the grid topology
     void create_topology(); 
+    void create_topology_1d();
+    void create_topology_2d();
 
     // guardcell exchange  
     void guardcell();
     void guardcell(double *d);
+    void guardcell_1d(double *d);
+    void guardcell_2d(double *d);
     // grid topology. left:X:right; front:Y:back; top:Z:bottom
     int left, right, front, back, top, bottom;
 
