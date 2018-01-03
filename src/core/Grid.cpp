@@ -106,6 +106,8 @@ Grid:: ~Grid(){
 void Grid::create_topology() {
     if(ndim == 1) create_topology_1d();
     if(ndim == 2) create_topology_2d();
+    if(ndim == 3) 
+        printf("WARNING : not completed for 3D !");
 }
 /**
  * create virtual space topology
@@ -146,9 +148,18 @@ void Grid::create_topology_2d(){
 //    printf("I am %d: (%d,%d); originally %d. dim1 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, front, st_rank, back);
 }
 
+/*
+ * In topology, the guard cells also include boundary cells locating the whole space domain border. 
+ * so the guard cell function will call the bc function at the end of it 
+ */
+
 void Grid::guardcell(double* d) {
     if(ndim == 1) guardcell_1d(d);
     if(ndim == 2) guardcell_2d(d);
+}
+void Grid::bc(double* d){
+    if(ndim == 1) bc_1d(d);
+    if(ndim == 2) bc_2d(d);
 }
 
 void Grid::guardcell_1d(double* d) {
@@ -227,9 +238,17 @@ void Grid::guardcell() {
     guardcell(u_start);
     guardcell(u_end);
 }
-
-void Grid::bc(double* d){
-    if(ndim == 1) bc_1d(d);
+/**
+ * Deprecated.
+ * Usually it is not necessary to set border cells for all the variables,
+ * although the bc function is very light-weight (no MPI communication).
+ */
+void Grid::bc(){
+    bc(u_f); 
+    bc(u_c);   
+    bc(u_cprev);   
+    bc(u_start);   
+    bc(u_end);    
 }
 // nguard = 1, now space parallel is not considered
 void Grid::bc_1d(double* d) {
@@ -250,7 +269,10 @@ void Grid::bc_1d(double* d) {
 void Grid::bc_2d(double* d) {
     int ng = nguard;
     if( 0==bc_type ) {
-        printf("WARNING : not completed for 2D fixed value bc!");
+       if(MPI_PROC_NULL==left)   bc_val_2d_l_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==right)  bc_val_2d_r_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==front)  bc_val_2d_f_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==back)   bc_val_2d_b_(nxyz, &ng, d, &bc_val);
     }
     else if( 1==bc_type ) { //reflected
        if(MPI_PROC_NULL==left)   bc_ref_2d_l_(nxyz, &ng, d);
@@ -258,13 +280,6 @@ void Grid::bc_2d(double* d) {
        if(MPI_PROC_NULL==front)  bc_ref_2d_f_(nxyz, &ng, d);
        if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
-}
-void Grid::bc(){
-    bc(u_f); 
-    bc(u_c);   
-    bc(u_cprev);   
-    bc(u_start);   
-    bc(u_end);    
 }
 /**
  * MPI_Allreduce double
@@ -297,9 +312,11 @@ void Grid::output() {
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
     fp = fopen (fname,"w");
-    for(int j = 0; j < sy ; j++) { 
+    for(int j=sy-1; j>=0 ; j--) { 
+        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ------------  \n");
         for(int i = 0; i < sx ; i++){
-            ind = j*sx + i; 
+            ind = j*sx + i;
+            if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
             fprintf (fp, "  %12.8f  ", u_end[ind]);
         }
         fprintf(fp,"\n"); 
