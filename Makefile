@@ -3,7 +3,8 @@
 TARGET = pfm_alpha.exe
 INCLUDES= -Isrc/core -Isrc/utils -Isrc/heat
 .FUFFIXES: .o .cpp .c .f90
-FSRC = $(wildcard src/utils/*.f90)
+FSRC = $(wildcard src/utils/*.f90) \
+	   $(wildcard src/heat/*.f90) 
 
 CSRC = $(wildcard src/core/*.cpp) \
 	   $(wildcard src/heat/*.cpp) \

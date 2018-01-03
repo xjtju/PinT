@@ -30,6 +30,7 @@ public:
     int  nx;  //grid size without guard cells
     int  ny;
     int  nz;
+    int inner_size; // size not including guard cells
 
     int nguard = 1;
     int bc_type;
@@ -38,7 +39,7 @@ public:
     // in order to automatically adapt to multi-dimension  
     int ngxyz[3];  
 
-    long size;
+    long size;  // size including guard cells
     int sxyz[3];
     int sx; //grid size with guard cells
     int sy;
@@ -115,6 +116,16 @@ public:
     // grid topology. left:X:right; front:Y:back; top:Z:bottom
     int left, right, front, back, top, bottom;
 
+    inline long getInnerIdx(int ix){
+        return ix-nguard;
+    }
+    inline long getInnerIdx(int ix, int iy){
+        return nx*(iy-nguard)+(ix-nguard);
+    }
+    inline long getInnerIdx(int ix, int iy, int iz){
+        return ny*nx*(iz-nguard)+nx*(iy-nguard)+(ix-nguard);
+    }
+    
     // space domain, for only one datum with double type and SUM operation 
     void sp_allreduce(double *d);  //d is input and output
     void sp_allreduce(double *d, double *o); //d is input, o is output

@@ -83,17 +83,42 @@ void PBiCGStab::solve(){
     update(); // update grid variables
 }
 
+//
+// vector operations can be accelerated by SIMD. 
+//
+
 //p = r + beta * ( p - omg * v )
-void PBiCGStab::cg_direct(double* p, double* r, double* v, double beta, double omega){
+void PBiCGStab::cg_direct1d(double* p, double* r, double* v, double beta, double omega){
+    long idx;
     for(int i=nguard; i<nx+nguard; i++) {
-        p[i] = r[i] + beta*(p[i] - omega*v[i]);
+        idx = grid->getInnerIdx(i);
+        p[i] = r[idx] + beta*(p[i] - omega*v[idx]);
     }
 }
 
-// x = x + ay + bz  
-void PBiCGStab::cg_xi(double* x, double alpha, double* y, double omega, double* z){
+// p : outer_size; r, v : inner_size
+void PBiCGStab::cg_direct2d(double* p, double* r, double* v, double beta, double omega){
+    long idx;
+    for(int j=nguard; j<ny+nguard; j++)
+        for(int i=nguard; i<nx+nguard; i++) {
+            idx = grid->getInnerIdx(i,j); 
+            p[i] = r[idx] + beta*(p[i] - omega*v[idx]);
+    }
+}
+
+// x = x + ay + bz (x p_ s, outer_size) 
+void PBiCGStab::cg_xi1d(double* x, double alpha, double* y, double omega, double* z){
     for(int i=nguard; i<nx+nguard; i++) {
         x[i] = x[i] + alpha*y[i] + omega*z[i];
+    }
+}
+
+void PBiCGStab::cg_xi2d(double* x, double alpha, double* y, double omega, double* z){
+    long idx;
+    for(int j=nguard; j<ny+nguard; j++) 
+        for(int i=nguard; i<nx+nguard; i++) {
+            idx = j*sy + i;
+            x[idx] = x[idx] + alpha*y[idx] + omega*z[idx];
     }
 }
 

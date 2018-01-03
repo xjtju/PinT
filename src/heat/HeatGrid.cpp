@@ -24,7 +24,7 @@ void HeatGrid::init1d(){
 
 void HeatGrid::init2d(){
     long ind = 0;     
-    for(int j = ny+nguard-1; j>=nguard ; j--)
+    for(int j = ny+nguard-1; j>=nguard; j--)
     for(int i = nguard; i<nx+nguard ; i++){
 
         int gyi = (idy+j-nguard);

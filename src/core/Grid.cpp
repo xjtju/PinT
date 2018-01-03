@@ -1,42 +1,48 @@
 #include "Grid.h"
-
+/**
+ * X (0 ... i) : left          right 
+ * Y (0 ... j) : front         back 
+ * Z (0 ... k) : bottom(under) top     
+ */
 Grid::Grid(PinT *conf) {
     this->conf = conf; 
     
     this->ndim = conf->ndim;
+
+    this->nguard = conf->nguard;
+    this->bc_type = conf->bc_type;
+    this->bc_val = conf->bc_val;
 
     this->nx = conf->nx;
     this->ny = conf->ny;
     this->nz = conf->nz;
 
     this->nxyz[0] = conf->nx;
-    this->nxyz[1] = conf->ny;
-    this->nxyz[2] = conf->nz;
-
-    this->nguard = conf->nguard;
-    this->bc_type = conf->bc_type;
-    this->bc_val = conf->bc_val;
-
     this->dx = conf->dx;
-    this->dy = conf->dy;
-    this->dz = conf->dz;
-    
     this->sx= nx + 2*nguard;
-    this->sy= ny + 2*nguard;
-    this->sz= nz + 2*nguard;
-    //this->sy = ny;
-    //this->sz = nz;
     this->ngxyz[0] = nguard;
-    this->ngxyz[1] = nguard;
-    this->ngxyz[2] = nguard;
+    if(ndim>=2) { 
+        this->nxyz[1] = conf->ny;
+        this->dy = conf->dy;
+        this->sy= ny + 2*nguard;
+        this->ngxyz[1] = nguard;
+    }
+    if(ndim==3) {
+        this->nxyz[2] = conf->nz;
+        this->dz = conf->dz;
+        this->sz= nz + 2*nguard;
+        this->ngxyz[2] = nguard;
+    }
 
     if(ndim == 1){
+        this->inner_size = nx;
         this->size = this->sx;
         this->gcsx = nguard;
         this->gcell_sendx = alloc_mem(nguard);
         this->gcell_recvx = alloc_mem(nguard);
     }
     if(ndim==2) {
+        this->inner_size = nx*ny;
         this->size = this->sx * this->sy; 
         this->gcsx = this->sy*nguard;
         this->gcsy = this->sx*nguard;
@@ -46,6 +52,7 @@ Grid::Grid(PinT *conf) {
         this->gcell_recvy = alloc_mem(this->gcsy);
     }
     if(ndim==3) {
+        this->inner_size = nx*ny*nz;
         this->size = sx * sy * sz;
     }
 
@@ -65,19 +72,20 @@ Grid::Grid(PinT *conf) {
     this->mytid = conf->mytid;
     this->tsnum = conf->tsnum;
 
+    create_topology();
+
+    // after the topology is determined, the coordinate can also be fixed 
+    this->idx = this->coords[0]*nx;
+    if(ndim>=2) this->idy = this->coords[1]*ny;
+    if(ndim==3) this->idz = this->coords[2]*nz;
+    
+    // allocate memory for grid level variables 
     u_f = alloc_mem(size);
     u_c = alloc_mem(size);
     u_cprev = alloc_mem(size);
     u_start = alloc_mem(size);
     u_end = alloc_mem(size);
     u=u_end;
-
-    create_topology();
-
-    //after the topology is determined, the coordinate can also be fixed 
-    this->idx = this->coords[0]*nx;
-    if(ndim>=2) this->idy = this->coords[1]*ny;
-    if(ndim==3) this->idz = this->coords[2]*nz;
 }
 
 Grid:: ~Grid(){
@@ -281,6 +289,7 @@ void Grid::bc_2d(double* d) {
        if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
 }
+
 /**
  * MPI_Allreduce double
  */
@@ -307,7 +316,7 @@ void Grid::output() {
     if (mytid != (tsnum-1)) return;  //only output the last time slice
 
     FILE * fp;
-    char fname[20];
+    char fname[21];
     int ind = 0;   
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
