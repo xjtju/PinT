@@ -20,6 +20,7 @@ implicit none
     real, dimension(1-ng:nxyz(1)+ng) :: p
     real val 
 
+    nx = nxyz(1)
     p(nx+1:nx+ng) = val 
 end subroutine bc_val_1d_r
 
@@ -41,6 +42,7 @@ implicit none
     integer, dimension(3) :: nxyz
     real, dimension(1-ng:nxyz(1)+ng) :: p
 
+    nx = nxyz(1)
     p(nx+1:nx+ng) = p(nx:nx) 
 end subroutine bc_ref_1d_r
 
@@ -65,6 +67,7 @@ implicit none
     integer, dimension(3) :: nxyz
     real, dimension(1-ng : nxyz(1)+ng) :: p
     real, dimension(1 : ng) :: gdata
+
     nx = nxyz(1)
     gdata(1 : ng ) = p( nx-ng+1 : nx )
 end subroutine packgc_1d_r
@@ -87,6 +90,7 @@ implicit none
     integer, dimension(3) :: nxyz
     real, dimension(1-ng : nxyz(1)+ng) :: p
     real, dimension(1:ng) :: gdata
+
     nx = nxyz(1)
     p( nx+1 : nx+ng ) = gdata(1 : ng ) 
 end subroutine unpackgc_1d_r

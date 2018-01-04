@@ -11,7 +11,7 @@ void HeatGrid::init1d(){
     long ind = 0;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        int gxi = (ind+i-nguard); // global coordincate of the cell
+        int gxi = (idx+i-nguard); // global coordincate of the cell
         double unk = cos(2*gxi*dx);
         
         u_f[ind] = unk; 
@@ -24,14 +24,23 @@ void HeatGrid::init1d(){
 
 void HeatGrid::init2d(){
     long ind = 0;     
-    for(int j = ny+nguard-1; j>=nguard; j--)
-    for(int i = nguard; i<nx+nguard ; i++){
+    double x, y, unk;
+    for(int j = nguard; j<ny+nguard; j++)
+    for(int i = nguard; i<nx+nguard; i++){
 
         int gyi = (idy+j-nguard);
         int gxi = (idx+i-nguard);
+
+        x = gxi*dx-nx/2*dx;
+        y = gyi*dy-ny/2*dy;
         ind = j*sx + i;
-        double unk = cos(2*gxi*dx)*cos(2*gyi*dy);
-        
+
+       if( x*x + y*y <= 0.09 )
+            unk = 30.0; 
+        else unk = 10.0; 
+
+       //unk = cos(2*gxi*dx);
+
         u_f[ind] = unk; 
         u_c[ind] = unk; 
         u_cprev[ind] = unk; 

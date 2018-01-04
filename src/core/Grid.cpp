@@ -21,6 +21,8 @@ Grid::Grid(PinT *conf) {
     this->dx = conf->dx;
     this->sx= nx + 2*nguard;
     this->ngxyz[0] = nguard;
+    this->sy = 1; // TEST
+    this->sz = 1; // TEST
     if(ndim>=2) { 
         this->nxyz[1] = conf->ny;
         this->dy = conf->dy;
@@ -158,7 +160,8 @@ void Grid::create_topology_2d(){
 
 /*
  * In topology, the guard cells also include boundary cells locating the whole space domain border. 
- * so the guard cell function will call the bc function at the end of it 
+ * But the guard cell function will not automatically call the bc function at the end of it,
+ * because ... !!!
  */
 
 void Grid::guardcell(double* d) {
@@ -177,19 +180,23 @@ void Grid::guardcell_1d(double* d) {
    
    int sg = this->gcsx;
 
-   packgc_1d_r_(nxyz, &nguard, d, gcell_sendx);
+   if(MPI_PROC_NULL!=right)  // not right border
+       packgc_1d_r_(nxyz, &nguard, d, gcell_sendx);
    MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
                 gcell_recvx, sg, MPI_DOUBLE, left, 8008, st_comm, &stat);
-   unpackgc_1d_l_(nxyz, &nguard, d, gcell_recvx);
+   if(MPI_PROC_NULL!=left)  // not left border
+      unpackgc_1d_l_(nxyz, &nguard, d, gcell_recvx);
 
    //printf("%d L: %f, %f ", st_rank, gcell_send[0], gcell_recv[0]);
  
-   packgc_1d_l_(nxyz, &nguard, d, gcell_sendx);
+   if(MPI_PROC_NULL!=left)  // not left border
+       packgc_1d_l_(nxyz, &nguard, d, gcell_sendx);
    MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, left, 9009, 
                 gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
-   unpackgc_1d_r_(nxyz, &nguard, d, gcell_recvx);
+   if(MPI_PROC_NULL!=right)  // not right border
+       unpackgc_1d_r_(nxyz, &nguard, d, gcell_recvx);
 
-   bc_1d(d);
+   //bc_1d(d);
 }
 
 void Grid::guardcell_2d(double* d) {
@@ -322,15 +329,39 @@ void Grid::output() {
 
     fp = fopen (fname,"w");
     for(int j=sy-1; j>=0 ; j--) { 
-        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ------------  \n");
+        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
         for(int i = 0; i < sx ; i++){
             ind = j*sx + i;
             if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
-            fprintf (fp, "  %12.8f  ", u_end[ind]);
+            fprintf (fp, "  %10.5f  ", u_end[ind]);
         }
         fprintf(fp,"\n"); 
     }
     fprintf(fp,"\n"); 
 
     fclose (fp);
+}
+void Grid::output_var(double *p, bool inner) {
+    int i,j, ind;
+    if(inner) {
+        for(int j=ny-1; j>=0 ; j--) { 
+            for(int i = 0; i < nx ; i++){
+                ind = j*nx + i;
+                printf ("  %10.5f  ", p[ind]);
+            }
+            printf("\n");
+        }
+        printf("\n\n");
+    } else {
+        for(int j=sy-1; j>=0 ; j--) { 
+        if( (j==nguard-1) || (j==sy-nguard-1)) printf("  ----------  \n");
+        for(int i = 0; i < sx ; i++){
+            ind = j*sx + i;
+            if( (i==nguard) || (i==sx-nguard)) printf(" | ");
+            printf ("  %10.5f  ", p[ind]);
+        }
+        printf("\n"); 
+        }
+        printf("\n"); 
+    }
 }

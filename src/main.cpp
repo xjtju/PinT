@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     g->guardcell(g->u_end);
 
-    g->output();
-    driver.Abort("高次元テスト:%d\n", 4);
+    //g->output();
+    //driver.Abort("高次元テスト2D HEAT:%d\n", 5);
 
     Solver *F = new HeatSolverF(conf,g);    
     Solver *G = new HeatSolverC(conf,g);

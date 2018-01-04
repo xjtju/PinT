@@ -113,6 +113,7 @@ public:
     void guardcell(double *d);
     void guardcell_1d(double *d);
     void guardcell_2d(double *d);
+
     // grid topology. left:X:right; front:Y:back; top:Z:bottom
     int left, right, front, back, top, bottom;
 
@@ -125,7 +126,17 @@ public:
     inline long getInnerIdx(int ix, int iy, int iz){
         return ny*nx*(iz-nguard)+nx*(iy-nguard)+(ix-nguard);
     }
-    
+
+    inline long getOuterIdx(int ix){
+        return ix;
+    }
+    inline long getOuterIdx(int ix, int iy){
+        return sx*iy + ix;
+    }
+    inline long getOuterIdx(int ix, int iy, int iz){
+        return sy*sx*iz + sx*iy + ix;
+    }
+
     // space domain, for only one datum with double type and SUM operation 
     void sp_allreduce(double *d);  //d is input and output
     void sp_allreduce(double *d, double *o); //d is input, o is output
@@ -133,5 +144,6 @@ public:
     void allreduce(double *d, double *o, int op);
 
     void output();
+    void output_var(double *p, bool inner); 
 };
 #endif

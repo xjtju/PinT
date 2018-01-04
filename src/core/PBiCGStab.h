@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "blas.h"
+#include "blascg.h"
 #include "Solver.h"
 
 class PBiCGStab : public Solver{
@@ -19,7 +20,7 @@ class PBiCGStab : public Solver{
 protected:
 
     double eps = 1.0e-6;
-    int itmax = 5; 
+    int itmax = 20; 
 
     double *r0_, *r ;  // 0 ... itmax  
     double *p, *p_ ;   // conjugated direction, out size
@@ -34,17 +35,17 @@ public:
     inline void set_itmax(int iter) { this->itmax = iter;}
 
     PBiCGStab(PinT* c, Grid *g):Solver(c,g){
-        b   = alloc_mem(inner_size);
+        b   = alloc_mem(size);
 
-        r0_ = alloc_mem(inner_size);
-        r   = alloc_mem(inner_size);
-        v   = alloc_mem(inner_size);
-        t   = alloc_mem(inner_size);
+        r0_ = alloc_mem(size);
+        r   = alloc_mem(size);
+        v   = alloc_mem(size);
+        t   = alloc_mem(size);
 
-        p   = alloc_mem(outer_size);
-        p_  = alloc_mem(outer_size);
-        s   = alloc_mem(outer_size);
-        s_  = alloc_mem(outer_size);
+        p   = alloc_mem(size);
+        p_  = alloc_mem(size);
+        s   = alloc_mem(size);
+        s_  = alloc_mem(size);
     }
 
     ~PBiCGStab() {
@@ -61,8 +62,15 @@ public:
     }
 
 
+    // preconditioner: solve Mp_=p
+    void preconditioner(double *p_, double *p);
+    
+    virtual double* fetch() = 0; // fetch physical variables into solver
+    void update() ;  // update physical variables in grid 
+    
     // the template algorithm of PBiCBSTAB
     void solve();
+
 
     // x = x + ay + bz  
     inline void cg_xi(double *x, double alpha, double *y, double omega, double *z){
@@ -84,12 +92,7 @@ public:
     void cg_direct1d(double* p, double* r, double* v, double beta, double omega);
     void cg_direct2d(double* p, double* r, double* v, double beta, double omega);
 
-    // preconditioner: solve Mp_=p
-    void preconditioner(double *p_, double *p);
-    
-    virtual double* fetch() = 0; // fetch physical variables into solver
-    void update() ;  // update physical variables in grid 
-    
+
     /***** stencil related functions *****/
     //calcaluate the residual r = b - Ax 
     inline void cg_rk(double *r, double *x, double *b){
@@ -114,6 +117,28 @@ public:
     }
     virtual void cg_b1d(double *x)=0;
     virtual void cg_b2d(double *x)=0;
+
+   
+    /**** BLAS related functions *****/
+    // s = r - alpha*v
+    inline void cg_avpy(double* s, double alpha, double* r, double* v) {
+        if(ndim==1) blas_avpy(s, -alpha, v, r, nx, nguard);
+        else if (ndim==2) blas_avpy_2d_(grid->nxyz, &nguard, &alpha, s, r, v); 
+    }
+    //r = s - omega*t 
+    inline void cg_avpyr(double* r, double omega, double* s, double* t) {
+        if(ndim==1) blas_avpy(r, -omega, t, s, nx, nguard); 
+        else if (ndim==2) blas_avpy_2dr_(grid->nxyz, &nguard, &omega, r, s, t); 
+    }
+    // t dot z
+    inline double cg_vdot_pro(double *t, double *z){
+        double tmp;
+        if(ndim==1) tmp = blas_vdot(t, s, sx); 
+        else if(ndim==2) 
+            blas_vdot_2d_(grid->nxyz, &nguard, t, s, &tmp); 
+        return tmp;
+    }
+
 };
 
 #endif

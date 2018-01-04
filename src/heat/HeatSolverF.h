@@ -5,25 +5,15 @@
 
 class HeatSolverF : public HeatSolver {
 public:
-    HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g){
-
-        this->steps = conf->f_steps;  
-    }
-
-    double* fetch(){
-        return grid->u_f;
-    }
+    HeatSolverF(PinT *conf, Grid *g);
+    
+    double* fetch();
 };
 
 class HeatSolverC : public HeatSolver {
 public:
-    HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g){
-
-        this->steps = conf->c_steps;  
-    }
-    double* fetch(){
-        return grid->u_c;
-    }
+    HeatSolverC(PinT *conf, Grid *g);
+    double* fetch();
 };
 
 #endif

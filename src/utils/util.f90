@@ -144,6 +144,7 @@ implicit none
     integer, dimension(3) :: nxyz
     real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
     real, dimension(1:ng, 1:nxyz(2)+2*ng ) :: gdata
+
     nx = nxyz(1) 
     sy = nxyz(2) + 2*ng 
     p(nx+1:nx+ng, 1-ng:sy-ng) =  gdata(1:ng, 1:sy) 

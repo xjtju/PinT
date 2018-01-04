@@ -73,11 +73,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
     }
     g->guardcell(u_start);    
-    printf("%d : %f, %f, %f, ... %f, %f, %f \n", mysid, u_start[0], u_start[1],u_start[2],u_start[size-3], u_start[size-2], u_start[size-1]);
+    //printf("%d : %f, %f, %f, ... %f, %f, %f \n", mysid, u_start[0], u_start[1],u_start[2],u_start[size-3], u_start[size-2], u_start[size-1]);
     //coarse 
     blas_cp(u_c, u_start, size); 
     G->evolve();
-
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
     if(!isLastSlice(myid)){
         dest = myid + spnum;
