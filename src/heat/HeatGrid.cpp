@@ -35,11 +35,11 @@ void HeatGrid::init2d(){
         y = gyi*dy-ny/2*dy;
         ind = j*sx + i;
 
-       if( x*x + y*y <= 0.09 )
-            unk = 30.0; 
-        else unk = 10.0; 
+       //if( x*x + y*y <= 0.09 )
+       //     unk = 30.0; 
+       // else unk = 10.0; 
 
-       //unk = cos(2*gxi*dx);
+        unk = 0;
 
         u_f[ind] = unk; 
         u_c[ind] = unk; 

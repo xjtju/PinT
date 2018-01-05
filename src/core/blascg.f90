@@ -1,12 +1,12 @@
 !! PBiCGStab  
-!! s = -av + r  or s = r - av 
-!! s is outer size, others are inner size 
+ 
+!! s = r - alpha*v or  s = -alpha*v + r  
+!! r = s - omega*t 
 subroutine blas_avpy_2d(nxyz, ng, alpha, s, r, v)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
     real :: alpha
-    !!real, dimension( 1:nxyz(1), 1:nxyz(2) ) :: r, v 
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: s, r, v 
 
     ix = nxyz(1)
@@ -18,30 +18,11 @@ implicit none
     end do
 end subroutine blas_avpy_2d
 
-!! r = s - omega*t 
-subroutine blas_avpy_2dr(nxyz, ng, alpha, r, s, t)
-implicit none
-    integer, dimension(3) :: nxyz 
-    integer :: ng, i, j, ix, jy
-    real :: alpha
-    !!real, dimension( 1:nxyz(1), 1:nxyz(2) ) :: r, t 
-    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: s, r, t
-
-    ix = nxyz(1)
-    jy = nxyz(2)
-    do j=1, jy
-    do i=1, ix
-      r(i,j) = s(i,j) - alpha*t(i,j)
-    end do
-    end do
-end subroutine blas_avpy_2dr
-
-!!!tmp1 = blas_vdot(t, s, size); s is outer_size 
+!!!tmp1 = blas_vdot(t, s, size) 
 subroutine blas_vdot_2d(nxyz, ng, t, s, val)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
-    !!real, dimension( 1:nxyz(1), 1:nxyz(2) ) :: t 
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: s, t
     real :: val
 
@@ -53,4 +34,39 @@ implicit none
     end do
     end do
 end subroutine blas_vdot_2d
+
+!! x = x + alpha*y + omega*z  
+subroutine cg_xi2d(nxyz, ng, x,  y, z, alpha, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, ix, jy
+    real :: alpha, omega 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: x, y, z 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    do j=1, jy
+    do i=1, ix
+      x(i,j) = x(i,j) + alpha*y(i,j) + omega*z(i,j) 
+    end do
+    end do
+end subroutine cg_xi2d
+
+
+!!p = r + beta * ( p - omg * v )
+subroutine cg_direct2d(nxyz, ng, p, r, v, beta, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, ix, jy
+    real :: beta, omega 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: p, r, v 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    do j=1, jy
+    do i=1, ix
+      p(i,j) = r(i,j) + beta * ( p(i,j) - omega*v(i,j) )
+    end do
+    end do
+end subroutine cg_direct2d
 

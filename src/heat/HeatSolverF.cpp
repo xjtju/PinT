@@ -13,6 +13,9 @@ HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g) {
 
     this->steps = conf->f_steps;  
 
+    this->itmax = 10;  // For DEBUG
+    //this->steps = 10;  // For DEBUG
+
     printf("fine   : lamdax=%f, lamday=%f \n", lamda_x, lamda_y);
 }
 
@@ -30,6 +33,9 @@ HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g){
     lamdaxyz[2] = lamda_z;
 
     this->steps = conf->c_steps; 
+
+    this->itmax = 10;  // For DEBUG
+    //this->steps = 10;  // For DEBUG
 
     printf("Coarse : lamdax=%f, lamday=%f \n", lamda_x, lamda_y);
 }

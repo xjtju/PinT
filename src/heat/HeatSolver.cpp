@@ -3,7 +3,7 @@
 HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){
 
     this->eps = 1.0e-6;
-    //this->itmax = 10;
+
 
     // diffuse coefficient, problem specific
     if(ndim==1) k = 0.061644; 

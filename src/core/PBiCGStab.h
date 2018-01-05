@@ -66,31 +66,10 @@ public:
     void preconditioner(double *p_, double *p);
     
     virtual double* fetch() = 0; // fetch physical variables into solver
-    void update() ;  // update physical variables in grid 
+    void update() ;  // update physical variables in grid, reserved blank functions. 
     
     // the template algorithm of PBiCBSTAB
     void solve();
-
-
-    // x = x + ay + bz  
-    inline void cg_xi(double *x, double alpha, double *y, double omega, double *z){
-        if(ndim==1) 
-            cg_xi1d(x, alpha, y, omega, z);
-        else if(ndim==2) 
-            cg_xi2d(x, alpha, y, omega, z);
-    }
-    void cg_xi1d(double *x, double alpha, double *y, double omega, double *z);
-    void cg_xi2d(double *x, double alpha, double *y, double omega, double *z);
-
-    //p = r + beta * ( p - omg * v )
-    inline void cg_direct(double* p, double* r, double* v, double beta, double omega){
-        if(ndim==1)
-            cg_direct1d(p, r, v, beta, omega);
-        else if(ndim==2)
-            cg_direct2d(p, r, v, beta, omega);
-    }
-    void cg_direct1d(double* p, double* r, double* v, double beta, double omega);
-    void cg_direct2d(double* p, double* r, double* v, double beta, double omega);
 
 
     /***** stencil related functions *****/
@@ -120,24 +99,43 @@ public:
 
    
     /**** BLAS related functions *****/
-    // s = r - alpha*v
+    // vector production 
+    inline double cg_vdot(double *t, double *z){
+        double tmp;
+        if(ndim==1) tmp = blas_vdot(t, z, nx, nguard); 
+        else if(ndim==2) 
+            blas_vdot_2d_(grid->nxyz, &nguard, t, z, &tmp); 
+        return tmp;
+    }
+
+    // s = r - alpha*v or r = s - omega*t 
     inline void cg_avpy(double* s, double alpha, double* r, double* v) {
         if(ndim==1) blas_avpy(s, -alpha, v, r, nx, nguard);
         else if (ndim==2) blas_avpy_2d_(grid->nxyz, &nguard, &alpha, s, r, v); 
     }
-    //r = s - omega*t 
-    inline void cg_avpyr(double* r, double omega, double* s, double* t) {
-        if(ndim==1) blas_avpy(r, -omega, t, s, nx, nguard); 
-        else if (ndim==2) blas_avpy_2dr_(grid->nxyz, &nguard, &omega, r, s, t); 
-    }
-    // t dot z
-    inline double cg_vdot_pro(double *t, double *z){
-        double tmp;
-        if(ndim==1) tmp = blas_vdot(t, s, sx); 
+
+    /**** CG special functions *****/
+    // in practice, from 2D, fortran is used.
+    //
+    // x = x + ay + bz  
+    inline void cg_xi(double *x, double alpha, double *y, double omega, double *z){
+        if(ndim==1) 
+            cg_xi1d(x, y, z, alpha, omega);
         else if(ndim==2) 
-            blas_vdot_2d_(grid->nxyz, &nguard, t, s, &tmp); 
-        return tmp;
+            cg_xi2d_(grid->nxyz, &nguard, x, y, z, &alpha, &omega);
     }
+    void cg_xi1d(double *x, double *y, double *z, double alpha, double omega);
+    void cg_xi2d(double *x, double *y, double *z, double alpha, double omega);
+
+    //p = r + beta * ( p - omg * v )
+    inline void cg_direct(double* p, double* r, double* v, double beta, double omega){
+        if(ndim==1)
+            cg_direct1d(p, r, v, beta, omega);
+        else if(ndim==2)
+            cg_direct2d_(grid->nxyz, &nguard, p, r, v, &beta, &omega);
+    }
+    void cg_direct1d(double* p, double* r, double* v, double beta, double omega);
+    void cg_direct2d(double* p, double* r, double* v, double beta, double omega);
 
 };
 
