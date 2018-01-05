@@ -135,7 +135,6 @@ void Grid::create_topology_1d(){
 
     MPI_Cart_shift(st_comm, 0, 1, &left, &right);
     this->coords = coord;
-    //printf("I am %d: (%d); originally %d. topology : %d | %d | %d \n",st_rank,coord_1d[0], mysid, left, st_rank, right);
 }
 
 void Grid::create_topology_2d(){
@@ -150,7 +149,7 @@ void Grid::create_topology_2d(){
     MPI_Cart_coords(st_comm, mysid, ndim, coord);
     MPI_Cart_rank(st_comm, coord, &st_rank);
 
-    MPI_Cart_shift(st_comm, 0, 1, &left, &right);
+    MPI_Cart_shift(st_comm, 0, 1, &left,  &right);
     MPI_Cart_shift(st_comm, 1, 1, &front, &back);
 
     this->coords = coord;
@@ -161,16 +160,11 @@ void Grid::create_topology_2d(){
 /*
  * In topology, the guard cells also include boundary cells locating the whole space domain border. 
  * But the guard cell function will not automatically call the bc function at the end of it,
- * because ... !!!
+ * because boundary condition is usually applied between two time steps, but guard cell may be exchanged within one time steps when necessary. 
  */
-
 void Grid::guardcell(double* d) {
     if(ndim == 1) guardcell_1d(d);
     if(ndim == 2) guardcell_2d(d);
-}
-void Grid::bc(double* d){
-    if(ndim == 1) bc_1d(d);
-    if(ndim == 2) bc_2d(d);
 }
 
 void Grid::guardcell_1d(double* d) {
@@ -195,8 +189,6 @@ void Grid::guardcell_1d(double* d) {
                 gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
    if(MPI_PROC_NULL!=right)  // not right border
        unpackgc_1d_r_(nxyz, &nguard, d, gcell_recvx);
-
-   //bc_1d(d);
 }
 
 void Grid::guardcell_2d(double* d) {
@@ -239,7 +231,6 @@ void Grid::guardcell_2d(double* d) {
        unpackgc_2d_b_(nxyz, &nguard, d, gcell_recvy);
 
    //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
-   bc_2d(d);
 }
 
 /**
@@ -264,6 +255,10 @@ void Grid::bc(){
     bc(u_cprev);   
     bc(u_start);   
     bc(u_end);    
+}
+void Grid::bc(double* d){
+    if(ndim == 1) bc_1d(d);
+    if(ndim == 2) bc_2d(d);
 }
 // nguard = 1, now space parallel is not considered
 void Grid::bc_1d(double* d) {
@@ -341,6 +336,7 @@ void Grid::output() {
 
     fclose (fp);
 }
+
 void Grid::output_var(double *p, bool inner) {
     int i,j, ind;
     if(inner) {

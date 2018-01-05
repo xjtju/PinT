@@ -61,11 +61,11 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
     int source, dest, tag;
     int ierr;
-    int size = g->size; 
+    size_t size = g->size; 
     MPI_Request req;
     MPI_Status  stat;
 
-    blas_cp(u_start, u_c, size); // is not necessary, because all vectors have the same values at the init
+    blas_cp_(u_start, u_c, &size); // is not necessary, because all vectors have the same values at the init
      // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     if(!isFirstSlice(myid)) {
         source = myid - spnum;
@@ -75,7 +75,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     g->guardcell(u_start);    
     //printf("%d : %f, %f, %f, ... %f, %f, %f \n", mysid, u_start[0], u_start[1],u_start[2],u_start[size-3], u_start[size-2], u_start[size-1]);
     //coarse 
-    blas_cp(u_c, u_start, size); 
+    blas_cp_(u_c, u_start, &size); 
     G->evolve();
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
     if(!isLastSlice(myid)){
@@ -86,7 +86,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     }
    
     //Abort("space parallel %d.\n",3);
-    //blas_cp(u_end, u_c, size); 
+    //blas_cp_(u_end, u_c, size); 
 
     double res_loc, res_sp, max_res;
     res_loc = res_sp = max_res = 0.0;
@@ -101,15 +101,15 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         g->guardcell(u_c);
         
         // step1:
-        blas_cp(u_cprev, u_c, size); //this step is not necessary at the following of fine solver 
+        blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
 
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
-        blas_cp(u_f, u_start, size);
+        blas_cp_(u_f, u_start, &size);
         F->evolve();
         g->guardcell(u_f);
 
         if(kpar == 1) {
-            blas_cp(u_end, u_f, size); 
+            blas_cp_(u_end, u_f, &size); 
         }
         
         // step3:
@@ -120,12 +120,12 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
             g->guardcell(u_start);
         } 
         // step4:
-        blas_cp(u_c, u_start, size); 
+        blas_cp_(u_c, u_start, &size); 
         G->evolve();
         g->guardcell(u_c); 
         
         // step5: 
-        blas_pint_sum(u_end, u_f, u_c, u_cprev, &res_loc, g->nx, g->nguard, true);  
+        pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
         
         // step6: 
         if(!isLastSlice(myid)){
@@ -139,7 +139,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         g->allreduce(&res_sp, &max_res,MPI_MAX); 
-        monitorResidual(u_c,u_cprev,u_end,u_f,res_loc,max_res,size);
+        monitorResidual(g,res_loc,max_res,size);
 
         max_res = sqrt(max_res/tsnum);
         //STEP8
@@ -163,21 +163,27 @@ void Driver::finalize() {
  * it is no need to calcaluate again after all next processes.  
  * That is the accumulative residual before the time slice should be ZERO according PARAREAL's theory..  
  */
-void Driver::monitorResidual(double* u_c, double* u_cprev, double* u_end, double* u_f, double res_loc, double max_res,int size ){
+void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
 
     bool debug = false;
+    double *u_c    = g->u_c;
+    double *u_cprev = g->u_cprev;  
+    double *u_end  = g->u_end;  
+    double *u_f    = g->u_f;
+    double cdist, fdist;
+
     if(debug && (myid==0)){
         res_loc = sqrt(res_loc);
-        double cdist = blas_vdist(u_c,u_cprev,size); 
-        double fdist = blas_vdist(u_end,u_f,size); 
+        vector_dist(g, u_c,   u_cprev,&cdist); 
+        vector_dist(g, u_end, u_f,    &fdist); 
         printf("kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, myid, cdist, fdist, res_loc); 
     }
 
     if(mytid == kpar-1){
         if(res_loc > 0 ) {
             res_loc = sqrt(res_loc);
-            double cdist = blas_vdist(u_c,u_cprev,size); 
-            double fdist = blas_vdist(u_end,u_f,size); 
+            vector_dist(g, u_c,   u_cprev,&cdist); 
+            vector_dist(g, u_end, u_f,    &fdist); 
             WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e . \n\n", kpar, myid, cdist, fdist, res_loc); 
         }
     }

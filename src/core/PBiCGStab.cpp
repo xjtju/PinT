@@ -10,11 +10,11 @@ void PBiCGStab::solve(){
    
     rho0 = alpha = omega = 1.0;     
       
-    clear_mem(v, size);
-    clear_mem(b, size);
-    clear_mem(r, size);
-    clear_mem(p, size);
-    clear_mem(p_, size);
+    blas_clear_(v,  &size);
+    blas_clear_(b,  &size);
+    blas_clear_(r,  &size);
+    blas_clear_(p,  &size);
+    blas_clear_(p_, &size);
 
     grid->guardcell(x);    
     cg_b(x);
@@ -22,7 +22,7 @@ void PBiCGStab::solve(){
     cg_rk(r, x, b); //init residual r = b - Ax 
     //grid->output_var(r,false);
     // choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
-    blas_cp(r0_, r, size);
+    blas_cp_(r0_, r, &size);
 
     double tmp, tmp1, tmp2; 
     tmp = tmp1 = tmp2 = 0.0;  
@@ -141,7 +141,7 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
   so the matrix reverse and matrix multiplying vector calculations can also be skipped.      
 */
 void PBiCGStab::preconditioner(double* p_, double* p){
-    blas_cp(p_, p, size);
+    blas_cp_(p_, p, &size);
 }
 
 void PBiCGStab::update() {

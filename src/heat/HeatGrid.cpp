@@ -24,22 +24,20 @@ void HeatGrid::init1d(){
 
 void HeatGrid::init2d(){
     long ind = 0;     
-    double x, y, unk;
+    double xdist, ydist, unk;
     for(int j = nguard; j<ny+nguard; j++)
     for(int i = nguard; i<nx+nguard; i++){
 
-        int gyi = (idy+j-nguard);
-        int gxi = (idx+i-nguard);
+        xdist = this->getX(i) -  conf->Xspan/2 ;
+        ydist = this->getY(j) -  conf->Yspan/2 ;
 
-        x = gxi*dx-nx/2*dx;
-        y = gyi*dy-ny/2*dy;
-        ind = j*sx + i;
+        ind = this->getOuterIdx(i, j); 
 
-       //if( x*x + y*y <= 0.09 )
-       //     unk = 30.0; 
-       // else unk = 10.0; 
+       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
+            unk = 100.0; 
+       else unk = 0.0; 
 
-        unk = 0;
+        //unk = 0;
 
         u_f[ind] = unk; 
         u_c[ind] = unk; 

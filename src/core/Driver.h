@@ -7,6 +7,7 @@
 
 #include "ini.h"
 #include "PinT.h"
+#include "blas.h"
 #include "Solver.h"
 #include "Grid.h"
 
@@ -40,8 +41,36 @@ class Driver {
     void INFO (const char* fmt, ...);
     void WARN (const char* fmt, ...);
     void Abort(const char* fmt, ...);
+  
+    double smlr = 1.0e-12;
 
-    void monitorResidual(double* u_c, double* u_prev, double* u_end, double* u_f, double res_loc, double max_res,int size );
+    /**
+     * Parareal's iterative formula : F = G + F - G  
+     *
+     * NOTE:
+     * Due to the "Machine Epsilon" or rounding error, residual calculation is very important.
+     * Sometimes, in theory, the residual should be ZERO, but in practice, the calculation value is not ZERO, 
+     * despite it is very small, it will has an unignorable impact on convergency due to  accumulating effect.
+     * the "smlr" is the threshold for residual control, when res < smlr, res is regarded as ZERO.
+     */
+    inline void pint_sum(Grid *grid, double *u, double *f, double *g, double *g_, double *res, double *sml)  {
+        switch(grid->ndim) {
+            case 1: blas_pint_sum_1d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
+            case 2: blas_pint_sum_2d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
+            case 3: printf("ERROR: 3D is not finished"); break;
+        }
+    }
+    
+    // check the residual is whether enough small as the Kpar increasing, for DEBUG only 
+    void monitorResidual(Grid *g, double res_loc, double max_res,int size );
+    // used for residual check
+    inline void vector_dist(Grid *g, double *d, double *s, double *val) {
+        switch(g->ndim) {
+            case 1: blas_vdist_1d_(g->nxyz, &g->nguard, d, s, val); break;
+            case 2: blas_vdist_2d_(g->nxyz, &g->nguard, d, s, val); break;
+            case 3: printf("ERROR: 3D is not finished"); break;
+        }
+    }
 
     /**
      * check whether the current slice is the first, 
@@ -51,6 +80,7 @@ class Driver {
     inline bool isFirstSlice(int myid) {
         return (mytid == 0) ? true : false ; 
     }
+
     /**
      * check whether the current slice is the last, 
      * if it is the last time slice, it should not send result to any other slices.     
@@ -58,6 +88,7 @@ class Driver {
     inline bool isLastSlice(int myid) {
         return (mytid == (tsnum-1)) ? true : false ;
     }
+
     inline int getSliceNum(int myid) {
         return mytid;
     }

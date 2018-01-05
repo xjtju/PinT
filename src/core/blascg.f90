@@ -1,5 +1,53 @@
-!! PBiCGStab  
- 
+!! PBiCGStab related BLAS operations  
+
+!! 1D 
+
+!! s = r - alpha*v or  s = -alpha*v + r  
+!! r = s - omega*t 
+subroutine blas_avpy_1d(nxyz, ng, alpha, s, r, v)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, ix 
+    real :: alpha
+    real, dimension( 1-ng:nxyz(1)+ng ) :: s, r, v 
+
+    ix = nxyz(1)
+    do i=1, ix
+      s(i) = r(i) - alpha*v(i)
+    end do
+end subroutine blas_avpy_1d
+
+!! x = x + alpha*y + omega*z  
+subroutine cg_xi_1d(nxyz, ng, x,  y, z, alpha, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, ix 
+    real :: alpha, omega 
+    real, dimension( 1-ng:nxyz(1)+ng ) :: x, y, z 
+
+    ix = nxyz(1)
+    do i=1, ix
+      x(i) = x(i) + alpha*y(i) + omega*z(i) 
+    end do
+end subroutine cg_xi_1d
+
+
+!!p = r + beta * ( p - omg * v )
+subroutine cg_direct_1d(nxyz, ng, p, r, v, beta, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, ix 
+    real :: beta, omega 
+    real, dimension( 1-ng:nxyz(1)+ng ) :: p, r, v 
+
+    ix = nxyz(1)
+    do i=1, ix
+      p(i) = r(i) + beta * ( p(i) - omega*v(i) )
+    end do
+end subroutine cg_direct_1d
+
+!! 2D
+
 !! s = r - alpha*v or  s = -alpha*v + r  
 !! r = s - omega*t 
 subroutine blas_avpy_2d(nxyz, ng, alpha, s, r, v)
@@ -18,25 +66,8 @@ implicit none
     end do
 end subroutine blas_avpy_2d
 
-!!!tmp1 = blas_vdot(t, s, size) 
-subroutine blas_vdot_2d(nxyz, ng, t, s, val)
-implicit none
-    integer, dimension(3) :: nxyz 
-    integer :: ng, i, j, ix, jy
-    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: s, t
-    real :: val
-
-    ix = nxyz(1)
-    jy = nxyz(2)
-    do j=1, jy
-    do i=1, ix
-      val = t(i,j)*s(i,j)
-    end do
-    end do
-end subroutine blas_vdot_2d
-
 !! x = x + alpha*y + omega*z  
-subroutine cg_xi2d(nxyz, ng, x,  y, z, alpha, omega)
+subroutine cg_xi_2d(nxyz, ng, x,  y, z, alpha, omega)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
@@ -50,11 +81,11 @@ implicit none
       x(i,j) = x(i,j) + alpha*y(i,j) + omega*z(i,j) 
     end do
     end do
-end subroutine cg_xi2d
+end subroutine cg_xi_2d
 
 
 !!p = r + beta * ( p - omg * v )
-subroutine cg_direct2d(nxyz, ng, p, r, v, beta, omega)
+subroutine cg_direct_2d(nxyz, ng, p, r, v, beta, omega)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
@@ -68,5 +99,5 @@ implicit none
       p(i,j) = r(i,j) + beta * ( p(i,j) - omega*v(i,j) )
     end do
     end do
-end subroutine cg_direct2d
+end subroutine cg_direct_2d
 

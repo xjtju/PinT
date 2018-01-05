@@ -12,10 +12,6 @@ double* alloc_mem(size_t size){
     return u;
 }
 
-void clear_mem(double* u, size_t size){
-    for(int i=0; i<size; i++) u[i] = 0.0;
-}
-
 void free_mem(double *u){
     delete u;
 }

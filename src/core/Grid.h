@@ -116,7 +116,26 @@ public:
 
     // grid topology. left:X:right; front:Y:back; top:Z:bottom
     int left, right, front, back, top, bottom;
+  
+    /**
+     * get the XYZ global geographical value from their local outer index,
+     * often used in iniialization and position-related calculations.
+     */
+    // ind is the outer index
+    inline double getX(int ind){
+        int gind = (idx+ind-nguard);
+        return gind*dx + dx/2; 
+    }
+    inline double getY(int ind){
+        int gind = (idy+ind-nguard);
+        return gind*dy + dy/2;
+    }
+    inline double getZ(int ind){
+        int gind = (idz+ind-nguard);
+        return gind*dz + dz/2;
+    }
 
+    // get the linear index of the 1-2-3D index, the set of functions are not frequently used.
     inline long getInnerIdx(int ix){
         return ix-nguard;
     }
@@ -137,12 +156,16 @@ public:
         return sy*sx*iz + sx*iy + ix;
     }
 
+
     // space domain, for only one datum with double type and SUM operation 
     void sp_allreduce(double *d);  //d is input and output
     void sp_allreduce(double *d, double *o); //d is input, o is output
     // time-space domain
     void allreduce(double *d, double *o, int op);
 
+    /**
+     * result output and debug 
+     */
     void output();
     void output_var(double *p, bool inner); 
 };

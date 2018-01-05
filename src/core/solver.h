@@ -26,9 +26,9 @@ protected:
 
     int nguard;
     
-    int inner_size; // guard cells not included 
-    int outer_size; // guard cells included
-    int &size = outer_size;      // alias of outer_size 
+    size_t inner_size; // guard cells not included 
+    size_t outer_size; // guard cells included
+    size_t &size = outer_size;      // alias of outer_size 
 
     int steps;     // the number of time steps in one time slice
 

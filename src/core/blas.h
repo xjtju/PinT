@@ -1,29 +1,24 @@
 #ifndef PinT_BLAS_H_
 #define PinT_BLAS_H_ 1
 
-#include <math.h>
-// copy s to d
-void blas_cp(double* d, double* s, int size);
+extern "C" {
 
-void blas_clear(double* d, int size);
+    void blas_clear_(double* d, size_t *size);
+    void blas_cp_(double *d, double* s, size_t *size);
 
-// vector dot (v1, v2)
-double blas_vdot(double* v1, double* v2, int size); 
+    // vector dot (v1, v2)
+    void blas_dot_1d_( int *nxyz, int *ng, double *t, double *s, double *val); 
+    void blas_dot_2d_( int *nxyz, int *ng, double *t, double *s, double *val); 
 
-// vector dot (v1, v2)
-double blas_vdot(double* v1, double* v2, int nx, int nguard); 
+    void blas_vdist_1d_( int *nxyz, int *ng, double* v1, double* v2, double *val);
+    void blas_vdist_2d_( int *nxyz, int *ng, double* v1, double* v2, double *val);
 
-// distance between two vectors 
-double blas_vdist(double* v1, double* v2, int size);
-
-// r = a*v + y, v is vector, a is scalar
-void blas_avpy(double* r, double a, double* v, double* y, int size);
-
-// r = a*v + y, v is vector, a is scalar
-void blas_avpy(double* r, double a, double* v, double* y, int nx, int nguard);
-
-void blas_pint_sum(double *u, double *f, double *g, double *g_, double *res, int size, bool fix);
-
-void blas_pint_sum(double *u, double *f, double *g, double *g_, double *res, int nx, int nguard, bool fix);
-
+    /**
+     * Due to the "Machine Epsilon" or rounding error, residual calculation is very important.
+     * Sometimes, in theory, the residual should be ZERO, but in practice, the calculation value is not ZERO, 
+     * despite it is very small, it will has an unignorable impact on convergency due to  accumulating effect.  
+     */
+     void blas_pint_sum_1d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *res, double *sml);  
+     void blas_pint_sum_2d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *res, double *sml);  
+}
 #endif
