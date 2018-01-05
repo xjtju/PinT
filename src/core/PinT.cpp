@@ -11,6 +11,7 @@ void PinT::init(){
 
     nx = Nx / spnumx;
     dx = Xspan / Nx; 
+    
 
     if(ndim>=2) { 
         ny = Ny / spnumy;
@@ -24,13 +25,41 @@ void PinT::init(){
     kpar_limit = tsnum;
 }
 
+bool PinT::check(){
+    bool flag = true;
+
+    //check the configuration is consist with the real run time
+    if(tsnum != (numprocs/spnum)) {
+        flag = false;
+        fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
+    }
+
+    if( spnum != (spnumx*spnumy*spnumz) ) {
+        flag = false;
+        fprintf(stderr, "ERROR : (the space num) should be equal with value multiplied from all directions.\n");
+    }
+
+    if( (0 != Nx%spnumx) 
+        || ( (ndim>=2) && ( 0 != Ny%spnumy) )
+        || ( (ndim>=3) && ( 0 != Nz%spnumz) ) ) 
+    {
+        flag = false; 
+        fprintf(stderr, "WARN  : the cell number is not well divided by the parallel cores.\n");
+    }
+
+    return flag;
+}
+
 void PinT::print() {
 
     printf("PinT ini configuration : \n");
-    printf("  space dimension  : %d\n", ndim);
-    printf("  space domain     : [%f, %f, %f]\n", Xspan, Yspan, Zspan);
-    printf("  grid cell        : [%f, %f, %f]\n", dx, dy,dz);
-    printf("  sub space domain : [%d, %d, %d]\n", nx, ny, nz);
+    printf("  space dimensions : %d\n", ndim);
+
+    printf("  space domain size: [%f, %f, %f]\n", Xspan, Yspan, Zspan);
+    printf("  unit cell size   : [%f, %f, %f]\n", dx, dy,dz);
+    printf("  all space cells  : [%d, %d, %d]\n", Nx, Ny, Nz);
+    printf("  sub space cells  : [%d, %d, %d]\n", nx, ny, nz);
+    printf("  space division   : [%d, %d, %d]\n", spnumx, spnumy, spnumz);
     printf("  guard cells      : %d\n",nguard);
 
     printf("  boundary type    : %d\n",bc_type);
@@ -39,7 +68,6 @@ void PinT::print() {
     printf("  time domin       : %f\n", Tspan);
     printf("  time  parallel   : %d\n", tsnum);
     printf("  space parallel   : %d\n", spnum);
-    printf("  space division   : [%d, %d, %d]\n", spnumx, spnumy, spnumz);
 
     printf("  serial time steps: %d\n", Nt);
     printf("  fine   steps     : %d\n", f_steps);

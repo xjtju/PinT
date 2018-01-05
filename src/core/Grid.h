@@ -77,7 +77,7 @@ public:
     MPI_Comm *sp_comm; //space within the same time slice
     int st_rank;       // topology rank 
     MPI_Comm st_comm;  // topology comm
-    int *coords;        // topology coordinates 
+    int* coords;     // topology coordinates 
     // for guardcell send and receive in one direction 
     double *gcell_sendx; // left & right
     double *gcell_sendy; // front & back
@@ -156,6 +156,13 @@ public:
         return sy*sx*iz + sx*iy + ix;
     }
 
+    inline void pack_data(double *p, double *buf){
+        switch(ndim) {
+          case 1: pack_1d_(nxyz, &nguard, p, buf);
+          case 2: pack_2d_(nxyz, &nguard, p, buf);
+          case 3: printf("3D is not finished\n"); 
+        }
+    }
 
     // space domain, for only one datum with double type and SUM operation 
     void sp_allreduce(double *d);  //d is input and output
@@ -163,10 +170,21 @@ public:
     // time-space domain
     void allreduce(double *d, double *o, int op);
 
-    /**
-     * result output and debug 
-     */
-    void output();
-    void output_var(double *p, bool inner); 
+    
+    // result output and debug 
+    // NOTE : 
+    // because the framework is mainly used for PinT performance testing,
+    // the result is not important at current stage, so formal result output function is not yet provided,
+    // such as HDF5 format output etc.  
+
+    // the basic output function, write grid local variable for debug, with or without border. 
+    void output_var(FILE *fp, double *p, bool inner); 
+
+    //the wrapper of output_var, writing the local variables into debug file only for the last time slice 
+    void output_local(double *p, bool inner);
+
+    // aggregate all the final results from all the grids within the same space domain and output 
+    void output_global();
+
 };
 #endif

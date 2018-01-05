@@ -29,7 +29,8 @@ public:
 
     void init();
     void print();
-      
+    bool check();      
+
     // very important, the settings of x/y/z must be consistent with dims  
     int ndim = 1; 
 
@@ -48,8 +49,9 @@ public:
 
     int   rfc_ ;  // fine steps / coarse steps 
 
+    int numprocs; // the number of all the CPU cores, dynamically obtained by Driver class.
     int tsnum ; // the number of time partitions(slices), parallel processes along time domain 
-
+    
     int spnum ; // the number of space partitions, parallel processes along the space domain 
     int spnumx;
     int spnumy = 0;

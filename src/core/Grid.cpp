@@ -74,6 +74,7 @@ Grid::Grid(PinT *conf) {
     this->mytid = conf->mytid;
     this->tsnum = conf->tsnum;
 
+    this->coords = new int[ndim]; 
     create_topology();
 
     // after the topology is determined, the coordinate can also be fixed 
@@ -125,34 +126,30 @@ void Grid::create_topology() {
 void Grid::create_topology_1d(){
     int periods[1] ={0};
     int dims[1];
-    int coord[1]; 
 
     dims[0] = spnumx; 
 
     MPI_Cart_create(*sp_comm, ndim, dims, periods, 1, &st_comm);
-    MPI_Cart_coords(st_comm, mysid, ndim, coord);
-    MPI_Cart_rank(st_comm, coord, &st_rank);
+    MPI_Cart_coords(st_comm, mysid, ndim, coords);
+    MPI_Cart_rank(st_comm, coords, &st_rank);
 
     MPI_Cart_shift(st_comm, 0, 1, &left, &right);
-    this->coords = coord;
 }
 
 void Grid::create_topology_2d(){
     int periods[2] = {0,0};
     int dims[2];
-    int coord[2]; 
 
     dims[0] = spnumx; 
     dims[1] = spnumy;
 
     MPI_Cart_create(*sp_comm, ndim, dims, periods, 2, &st_comm);
-    MPI_Cart_coords(st_comm, mysid, ndim, coord);
-    MPI_Cart_rank(st_comm, coord, &st_rank);
+    MPI_Cart_coords(st_comm, mysid, ndim, coords);
+    MPI_Cart_rank(st_comm, coords, &st_rank);
 
     MPI_Cart_shift(st_comm, 0, 1, &left,  &right);
     MPI_Cart_shift(st_comm, 1, 1, &front, &back);
 
-    this->coords = coord;
 //    printf("I am %d: (%d,%d); originally %d. dim0 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, left, st_rank, right);
 //    printf("I am %d: (%d,%d); originally %d. dim1 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, front, st_rank, back);
 }
@@ -314,7 +311,9 @@ void Grid::allreduce(double *d, double *o, int op) {
  * it simply write the u_end to file, used only for debug ,not for massive running.
  * file name : mytid.mysid.txt 
  */
-void Grid::output() {
+void Grid::output_local(double *p, bool inner) {
+    if(ndim == 3) { printf("3D is not finished!"); return;}
+
     if (mytid != (tsnum-1)) return;  //only output the last time slice
 
     FILE * fp;
@@ -323,41 +322,84 @@ void Grid::output() {
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
     fp = fopen (fname,"w");
-    for(int j=sy-1; j>=0 ; j--) { 
-        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
-        for(int i = 0; i < sx ; i++){
-            ind = j*sx + i;
-            if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
-            fprintf (fp, "  %10.5f  ", u_end[ind]);
-        }
-        fprintf(fp,"\n"); 
-    }
-    fprintf(fp,"\n"); 
+    
+    output_var(fp, p, inner); 
 
     fclose (fp);
 }
 
-void Grid::output_var(double *p, bool inner) {
+void Grid::output_var(FILE* fp, double *p, bool inner) {
     int i,j, ind;
+    if(ndim == 3) { printf("3D is not finished!"); return; }
+
     if(inner) {
         for(int j=ny-1; j>=0 ; j--) { 
             for(int i = 0; i < nx ; i++){
                 ind = j*nx + i;
-                printf ("  %10.5f  ", p[ind]);
+                fprintf (fp,"  %10.5f  ", p[ind]);
             }
-            printf("\n");
+            fprintf(fp, "\n");
         }
-        printf("\n\n");
+        fprintf(fp,"\n\n");
     } else {
         for(int j=sy-1; j>=0 ; j--) { 
-        if( (j==nguard-1) || (j==sy-nguard-1)) printf("  ----------  \n");
+        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
         for(int i = 0; i < sx ; i++){
             ind = j*sx + i;
-            if( (i==nguard) || (i==sx-nguard)) printf(" | ");
-            printf ("  %10.5f  ", p[ind]);
+            if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
+            fprintf (fp, "  %10.5f  ", p[ind]);
         }
-        printf("\n"); 
+        fprintf(fp,"\n"); 
         }
-        printf("\n"); 
+        fprintf(fp,"\n"); 
     }
+}
+
+void Grid::output_global(){
+    if (mytid != (tsnum-1)) return;  //only output the last time slice
+    
+
+    MPI_Request req, req_p;
+    MPI_Status sta, sta_p;
+    int ierr ;
+    int source, dest;
+
+    FILE *fp;
+    char fname[21];
+    int ind = 0;   
+    
+    int idbuf[3];
+    double* sendrecv_buf = alloc_mem(this->inner_size); 
+
+    dest = spnum - 1;
+    if( mysid != dest ){ //is not the last space grid 
+        printf("[%d] is sending to the last grid [%d]\n", mysid, dest);
+        pack_data(u_end, sendrecv_buf);
+        ierr = MPI_Isend(sendrecv_buf, inner_size, MPI_DOUBLE, dest, 9999, *sp_comm, &req); 
+        MPI_Wait(&req, &sta);
+       return;
+    }
+
+
+    sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
+    fp = fopen (fname,"w");
+    for(int k=0; k<spnumz; k++)
+    for(int j=0; j<spnumy; j++)
+    for(int i=0; i<spnumx; i++) {
+        source = i + j*spnumx + k*spnumy*spnumx;
+        if(source == mysid) continue;
+        printf("[%d] is aggregating from the front grid [%d]\n", mysid, source);
+        MPI_Irecv(sendrecv_buf, inner_size, MPI_DOUBLE, source, 9999, *sp_comm, &req_p);
+        MPI_Wait(&req_p, &sta_p);
+
+        output_var(fp,sendrecv_buf, true);
+    }
+     
+    output_var(fp,u_end, true);
+
+    fclose(fp);
+
+    free_mem(sendrecv_buf);
+
+    printf("All the data has been aggregated into the file : %s \n", fname);
 }

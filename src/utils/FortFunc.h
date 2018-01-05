@@ -50,7 +50,14 @@ extern "C" {
 
     // left  right 
     // front back
-    // top   bottom/under 
+    // top   bottom/under
+    //
+    
+    // for pack and unpack all inner grid data for aggregating result 
+
+    void pack_1d_(int* nxyz, int *ng, double* p, double* gdata);
+
+    void pack_2d_(int* nxyz, int *ng, double* p, double* gdata);
 }
 #endif
 

@@ -30,7 +30,8 @@ int main(int argc, char* argv[]) {
     driver.evolve(g, G, F);
 
     // output result
-    g->output();
+    g->output_local(g->u_end, false);
+    //g->output_global();
     
     driver.finalize();  
 

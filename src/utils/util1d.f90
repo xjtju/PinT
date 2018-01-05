@@ -95,3 +95,13 @@ implicit none
     p( nx+1 : nx+ng ) = gdata(1 : ng ) 
 end subroutine unpackgc_1d_r
 
+!! pull out the inner grid data
+subroutine pack_1d(nxyz, ng, p, gdata)
+implicit none
+    integer :: ng, nx 
+    integer, dimension(3) :: nxyz
+    real, dimension(1-ng:nxyz(1)+ng) :: p
+    real, dimension(1 : nxyz(1)) :: gdata
+    nx = nxyz(1)
+    gdata( 1:nx ) = p( 1:nx ) 
+end subroutine pack_1d

@@ -198,3 +198,16 @@ implicit none
     ny = nxyz(2)
     p(1-ng:sx-ng , ny+1:ny+ng) = gdata(1:sx , 1:ng) 
 end subroutine unpackgc_2d_b    
+
+!! pull out the inner data of one grid
+subroutine pack_2d(nxyz, ng, p, gdata)
+implicit none
+    integer :: ng, nx, ny
+    integer, dimension(3) :: nxyz
+    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
+    real, dimension(1:nxyz(1), 1:nxyz(2)) :: gdata
+
+    nx = nxyz(1)
+    ny = nxyz(2)
+    gdata(1:nx , 1:ny) = p(1:nx , 1:ny);
+end subroutine pack_2d    

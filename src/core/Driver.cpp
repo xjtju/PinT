@@ -26,18 +26,15 @@ void Driver::init(int argc, char* argv[]){
         if(myid==0) conf->print();
     }
 
+    conf->numprocs = numprocs;
     spnum = conf->spnum;
     tsnum = conf->tsnum;
     mytid = myid / spnum;
 
     //check the configuration is consist with the real run time
-    if(tsnum != (numprocs/spnum)) {
-        Abort("configuration inconsistent : %s. \n", "(the space num)*(the time num) should be equal with the total process num");
-    }
-
-    if(spnum != (conf->spnumx*conf->spnumy*conf->spnumz)) {
-        Abort("configuration inconsistent : %s. \n", "(the space num) should be equal with value multiplied from all directions");
-    }
+    bool checkOK = conf->check();
+    if(!checkOK)
+        Abort("configuration inconsistent : the program is forcely stopped due to the previous WARNs or ERRORs, please check the ini file again!\n\n");
 
     int key=myid%spnum, color=myid/spnum; 
     //communicator for spatil parallel
