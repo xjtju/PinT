@@ -71,7 +71,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
     }
     g->guardcell(u_start);    
-    //printf("%d : %f, %f, %f, ... %f, %f, %f \n", mysid, u_start[0], u_start[1],u_start[2],u_start[size-3], u_start[size-2], u_start[size-1]);
+
     //coarse 
     blas_cp_(u_c, u_start, &size); 
     G->evolve();
@@ -83,7 +83,6 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         ierr = MPI_Rsend(u_c, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
    
-    //Abort("space parallel %d.\n",3);
     //blas_cp_(u_end, u_c, size); 
 
     double res_loc, res_sp, max_res;
@@ -135,8 +134,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //STEP7 gather residual
         g->sp_allreduce(&res_loc, &res_sp);
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
-        //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         g->allreduce(&res_sp, &max_res,MPI_MAX); 
+        //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         monitorResidual(g,res_loc,max_res,size);
 
         max_res = sqrt(max_res/tsnum);

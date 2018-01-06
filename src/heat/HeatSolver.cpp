@@ -4,14 +4,13 @@ HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){
 
     this->eps = 1.0e-6;
 
-
     // diffuse coefficient, problem specific
     if(ndim==1) k = 0.061644; 
     if(ndim==2) k = 0.061644;
 }
 
 //
-// 1D
+// 1D, not used fortran
 //
 
 //calcaluate the residual r = b - Ax
@@ -61,3 +60,5 @@ void HeatSolver::cg_Xv2d(double* v, double *y) {
 void HeatSolver::cg_b2d(double *x){
     cg_b2d_(grid->nxyz, lamdaxyz, &nguard, x, b);
 }
+
+

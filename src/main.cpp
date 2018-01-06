@@ -3,7 +3,10 @@
 #include "HeatSolverF.h"
 
 /**
- * NOTE : the ini configuration file as the first command line parameter
+ * the example program for employing parareal method (PinT) to solve real problem based on the framework.
+ *
+ * NOTE : the ini configuration file as the first command line parameter, 
+ * default configuration file is "pint.ini", under the same directory with the executable file. 
  */
 int main(int argc, char* argv[]) {
     
@@ -11,33 +14,30 @@ int main(int argc, char* argv[]) {
     Driver driver;
     driver.init(argc, argv);
 
-    // get configuration information
+    // get init-ready system information
     PinT* conf = PinT::instance();
 
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
 
-    g->guardcell(g->u_end);
+    //driver.Abort("高次元テスト3D HEAT:%d\n", 1); // DEBUG
 
-    //g->output();
-    //driver.Abort("高次元テスト2D HEAT:%d\n", 5);
-
-    Solver *F = new HeatSolverF(conf,g);    
-    Solver *G = new HeatSolverC(conf,g);
+    Solver *F = new HeatSolverF(conf,g);   // fine solver 
+    Solver *G = new HeatSolverC(conf,g);   // coarse solver
 
     // run the parareal algorithm 
     driver.evolve(g, G, F);
 
-    // output result
-    // g->output_local(g->u_end, false);
+    // output result to disk and for post-processing 
+    g->output_local(g->u_end, false);
     g->output_global();
     
-    driver.finalize();  
+    driver.finalize();  // quit MPI 
 
-    delete F;
+    delete F;  
     delete G;
-    delete g;
+    delete g;  //free memory
 
     return 0;
 }

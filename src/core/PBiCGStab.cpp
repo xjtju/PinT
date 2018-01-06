@@ -41,7 +41,7 @@ void PBiCGStab::solve(){
        //}
 
         grid->guardcell(p);
-        preconditioner(p_, p, true); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
+        preconditioner(p_, p, isPrecond); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
 
         grid->guardcell(p_);
         cg_Xv(v,p_);        // v=Ap_    
@@ -54,7 +54,7 @@ void PBiCGStab::solve(){
         cg_avpy(s, alpha, r, v);  // s = r -alpha*v;
         grid->guardcell(s);
         // solve Ms_=s , in some algorithm description, s_ is also denoted by z
-        preconditioner(s_, s, true); 
+        preconditioner(s_, s, isPrecond); 
         
         grid->guardcell(s_);
         cg_Xv(t,s_); // t=Az
@@ -66,7 +66,6 @@ void PBiCGStab::solve(){
         grid->sp_allreduce(&tmp2);
         omega = tmp1 / tmp2;   
         
-        //printf("%d rho : %f, beta : %f, alpha : %f, omega : %f \n",i,  rho, beta, alpha, omega);
 
         cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z;   
         
@@ -84,6 +83,7 @@ void PBiCGStab::solve(){
         grid->bc(x);
     }
 
+    //printf("Iter: %d, rho : %f, beta : %f, alpha : %f, omega : %f, res : %e \n",i,  rho, beta, alpha, omega, res);
     grid->guardcell(x);
     update(); // update grid variables
 }
@@ -130,34 +130,41 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
     }
 }
 
+
 /**
-  preconditioner, in current version , there is no precondition
-  solve Mp_=p
-  M = M1*M2 ~ A, there is a simple method for decomposing the matrix A when A has some regular pattern, 
-  for example in HEAT diffusion:
-  if we set  M1=I, M2=A, where I is Identity matrix. 
-  than the preconditioner can be set to a light-weight but less precise solver than BiCG, and solving the same linear system: Ax=b, 
-  moreover the following calculations of BiCG will become : 
+ * preconditioner, in our original version ,the below idea was adapted. 
+ * solve Mp_=p
+ * M = M1*M2 ~ A, there is a simple method for decomposing the matrix A when A has some regular pattern, 
+ * for example in HEAT diffusion:
+ * if we set  M1=I, M2=A, where I is Identity matrix.  
+ * then the preconditioner can be set to a light-weight but less precise solver than BiCG, 
+ * and solving the same linear system: Ax=b, moreover the following calculations of BiCG will become : 
     ==  reverse(M1)*t=I*t=t and reverse(M1)*s=I*s=s ==  
-  so the matrix reverse and matrix multiplying vector calculations can also be skipped.      
-*/
+ * so the matrix reverse and matrix multiplying vector calculations can also be skipped.   
+ *
+ * BUT: the above approach did not worked, that is NO EFFECT, moreover, when iterations < 10, even become worse. 
+ * so we have to do matrix decomposition, and now there is no effective preconditioner in the current version.
+ */
 void PBiCGStab::preconditioner(double* p_, double* p, bool isPrecond){
-    if(isPrecond) {
-        int lc_max = 4;
-        sor2(p_, p, 4, false);
-    }
-    else  
+    if(!isPrecond)   
         blas_cp_(p_, p, &size);
+    else {  
+        sor2(p_, p, 10, false);
+    }
 }
 
-// color is not used 
+/**
+ * check convergency flag is not used. if used, the previous solution must be hold for comparing. 
+ */
 void PBiCGStab::sor2(double *p_, double *p, int lc_max, bool checkCnvg){
     int lc = 0;
     double res = 0.0;
+
     for(lc=1; lc<=lc_max; lc++) {
-
-        //sor2_core_1d_(nxyz, nguard, p_, p, b, res);
-
+        for(int color=0; color<2; color++) {
+            grid->guardcell(p_);
+            sor2_core(p_, p, &color);
+         }
         if(checkCnvg) {
             if( res < eps) break;
         }

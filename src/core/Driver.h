@@ -12,7 +12,11 @@
 #include "Grid.h"
 
 /**
- * the driver of the PinT process 
+ * The driver of the PinT process
+ * it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow.
+ * 
+ * the core function of the Driver is evolve(), it provides the template of Parareal algorithm, 
+ * and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
  */
 
 class Driver {
@@ -34,7 +38,7 @@ class Driver {
 
     void init(int argc, char* argv[]);
 
-    void evolve(Grid* g, Solver* G, Solver* F);
+    void evolve(Grid* g, Solver* G, Solver* F); // the algorithm framework of Parareal method
 
     void finalize();
 

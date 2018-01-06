@@ -159,12 +159,13 @@ public:
     inline long getOuterIdx(int ix, int iy, int iz){
         return sy*sx*iz + sx*iy + ix;
     }
-
+    
+    // get rid of guard cells and pack inner grid data into a buffer  
     inline void pack_data(double *p, double *buf){
         switch(ndim) {
-          case 1: pack_1d_(nxyz, &nguard, p, buf);
-          case 2: pack_2d_(nxyz, &nguard, p, buf);
-          case 3: printf("3D is not finished\n"); 
+          case 1: pack_1d_(nxyz, &nguard, p, buf); break;
+          case 2: pack_2d_(nxyz, &nguard, p, buf); break;
+          case 3: printf("3D is not finished\n");  break;
         }
     }
 
@@ -181,11 +182,14 @@ public:
     // the result is not important at current stage, so formal result output function is not yet provided,
     // such as HDF5 format output etc.  
 
-    // the basic output function, write grid local variable for debug, with or without border. 
-    void output_var(FILE *fp, double *p, bool inner); 
+    // the basic output function, write grid local variable for debug, 
+    // the caller must be responsible to judge whether the data is with or without border 
+    // and choose the proper output function.   
+    void output_var_inner(FILE *fp, double *data); 
+    void output_var_outer(FILE *fp, double *data); 
 
-    //the wrapper of output_var, writing the local variables into debug file only for the last time slice 
-    void output_local(double *p, bool inner);
+    //the wrapper of output_var_*, writing the local variables into debug file only for the last time slice 
+    void output_local(double *data, bool inner_only);
 
     // aggregate all the final results from all the grids within the same space domain and output 
     void output_global();

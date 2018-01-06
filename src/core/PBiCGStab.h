@@ -18,16 +18,18 @@
 class PBiCGStab : public Solver{
 
 protected:
-
-    double eps = 1.0e-6;
-    int itmax = 20; 
-
     double *r0_, *r ;  // 0 ... itmax  
     double *p, *p_ ;   // conjugated direction, out size
     double *v;         //direction
     double *s, *s_ ;   // out size 
     double *t;
     double *b;         //RHS
+
+    // these control parammeters can be over-writen by sub classes
+    double eps = 1.0e-6;
+    int itmax = 20; 
+    double sor_omg = 1.7;     // SOR : relaxation factor, used for preconditioner, 
+    bool   isPrecond = false; // in the current version, no preconditioner is GOOD.
 
 public:
 
@@ -62,15 +64,26 @@ public:
     }
 
 
-    // preconditioner: solve Mp_=p
-    void preconditioner(double *p_, double *p, bool isPrecond);
-    void sor2(double *p_, double *p, int lc_max, bool checkCnvg);
-    
     virtual double* fetch() = 0; // fetch physical variables into solver
     void update() ;  // update physical variables in grid, reserved blank functions. 
     
     // the template algorithm of PBiCBSTAB
     void solve();
+    
+    // preconditioner: solve Mp_=p, 
+    // if sub class uses preconditioner, they must implement the virtual stencil function.  
+    void preconditioner(double *p_, double *p, bool isPrecond);
+
+    // the wrapper red-black successive over-relaxation (sor2_core)
+    void sor2(double *p_, double *p, int lc_max, bool checkCnvg);
+
+    inline void sor2_core(double *p_, double *p, int *color){
+        if(ndim==1) sor2_core_1d(p_, p, color);
+        else if(ndim==2) sor2_core_2d(p_, p, color);
+        else if(ndim==3) printf("3D is not finished\n"); 
+    }
+    virtual void sor2_core_1d(double *p_, double *p, int *color) = 0;
+    virtual void sor2_core_2d(double *p_, double *p, int *color) = 0;
 
 
     /***** stencil related functions, problem-special class must implement them *****/

@@ -312,38 +312,50 @@ void Grid::allreduce(double *d, double *o, int op) {
  * it simply write the u_end to file, used only for debug ,not for massive running.
  * file name : mytid.mysid.txt 
  */
-void Grid::output_local(double *p, bool inner) {
+void Grid::output_local(double *p, bool inner_only) {
     if(ndim == 3) { printf("3D is not finished!"); return;}
-
-    if (mytid != (tsnum-1)) return;  //only output the last time slice
+    //if (mytid != (tsnum-1)) return;  //only output the last time slice
 
     FILE * fp;
     char fname[21];
     int ind = 0;   
+    double *buf;
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
     fp = fopen (fname,"w");
     
-    output_var(fp, p, inner); 
+    if(inner_only){
+        buf = alloc_mem(this->inner_size); 
+        pack_data(p, buf);  // get rid of the guard cell
+        output_var_inner(fp, buf);
+        free_mem(buf);
+    }else 
+        output_var_outer(fp, p);
 
     fclose (fp);
 }
 
-void Grid::output_var(FILE* fp, double *p, bool inner) {
+// used for grid data without guard cells
+void Grid::output_var_inner(FILE* fp, double *p) {
     int i,j, ind;
     if(ndim == 3) { printf("3D is not finished!"); return; }
 
-    if(inner) {
-        for(int j=ny-1; j>=0 ; j--) { 
-            for(int i = 0; i < nx ; i++){
-                ind = j*nx + i;
-                fprintf (fp,"  %10.5f  ", p[ind]);
-            }
-            fprintf(fp, "\n");
+    for(int j=ny-1; j>=0 ; j--) { 
+        for(int i = 0; i < nx ; i++){
+            ind = j*nx + i;
+            fprintf (fp,"  %10.5f  ", p[ind]);
         }
-        fprintf(fp,"\n\n");
-    } else {
-        for(int j=sy-1; j>=0 ; j--) { 
+        fprintf(fp, "\n");
+    }
+    fprintf(fp,"\n\n");
+}
+
+// used for grid data with guard cells
+void Grid::output_var_outer(FILE* fp, double *p) {
+    int i, j, ind;
+    if(ndim == 3) { printf("3D is not finished!"); return; }
+
+    for(int j=sy-1; j>=0 ; j--) { 
         if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
         for(int i = 0; i < sx ; i++){
             ind = j*sx + i;
@@ -351,15 +363,13 @@ void Grid::output_var(FILE* fp, double *p, bool inner) {
             fprintf (fp, "  %10.5f  ", p[ind]);
         }
         fprintf(fp,"\n"); 
-        }
-        fprintf(fp,"\n"); 
     }
+    fprintf(fp,"\n"); 
 }
 
 void Grid::output_global(){
     if (mytid != (tsnum-1)) return;  //only output the last time slice
     
-
     MPI_Request req, req_p;
     MPI_Status sta, sta_p;
     int ierr ;
@@ -374,14 +384,14 @@ void Grid::output_global(){
 
     dest = spnum - 1;
     if( mysid != dest ){ //is not the last space grid 
-        printf("[%d] is sending to the last grid [%d]\n", mysid, dest);
+        printf("[%d.%d] is sending data to the last grid [%d.%d]\n", mytid, mysid,mytid, dest);
         pack_data(u_end, sendrecv_buf);
         ierr = MPI_Isend(sendrecv_buf, inner_size, MPI_DOUBLE, dest, 9999, *sp_comm, &req); 
         MPI_Wait(&req, &sta);
-       return;
+        return;
     }
 
-
+    // the output task is left to the last space grid 
     sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
     fp = fopen (fname,"w");
     for(int k=0; k<spnumz; k++)
@@ -389,17 +399,18 @@ void Grid::output_global(){
     for(int i=0; i<spnumx; i++) {
         source = i + j*spnumx + k*spnumy*spnumx;
         if(source == mysid) continue;
-        printf("[%d] is aggregating from the front grid [%d]\n", mysid, source);
+        printf("[%d.%d] is aggregating data from the front grid [%d.%d]\n", mytid, mysid, mytid, source);
         MPI_Irecv(sendrecv_buf, inner_size, MPI_DOUBLE, source, 9999, *sp_comm, &req_p);
         MPI_Wait(&req_p, &sta_p);
 
         MPI_Cart_coords(st_comm, source, ndim, coords_);
         printf_coord(fp, coords_);
-        output_var(fp,sendrecv_buf, true);
+        output_var_inner(fp,sendrecv_buf);
     }
-    
+    // output itself 
     printf_coord(fp, coords);
-    output_var(fp,u_end, true);
+    pack_data(u_end, sendrecv_buf); // get rid of guard cell
+    output_var_inner(fp,sendrecv_buf);
 
     fclose(fp);
 

@@ -11,7 +11,7 @@ class HeatSolver : public PBiCGStab {
 
 public:
     double k = 0.061644; // diffuse coefficient
-    
+
     // lamda = k*dt/dx^2   
     // when dx, dy, dz are not equal with each other, the lamdas are unequall neither.
     double lamda_x;
@@ -31,6 +31,15 @@ public:
 
     void cg_b1d(double *x);
     void cg_b2d(double *x);
+
+    inline void sor2_core_1d(double *p_, double *p, int *color){
+         sor2_core_1d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;
+    }
+
+    // SOR for  Ap_=p
+    inline void sor2_core_2d(double *p_, double *p, int *color) {
+         sor2_core_2d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;
+    }
 };
 
 #endif

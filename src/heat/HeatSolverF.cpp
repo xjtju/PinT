@@ -1,5 +1,7 @@
 #include "HeatSolverF.h"
-
+//
+// the example for Fine solver and Coarse solver for heat equation.
+//
 
 HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g) {
 
@@ -13,9 +15,9 @@ HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g) {
 
     this->steps = conf->f_steps;  
 
-    this->itmax = 10;  // For DEBUG
+    //this->itmax = 10;  // For DEBUG
     //this->steps = 10;  // For DEBUG
-
+    if(0 == grid->myid)
     printf("fine   : lamdax=%f, lamday=%f \n", lamda_x, lamda_y);
 }
 
@@ -34,9 +36,9 @@ HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g){
 
     this->steps = conf->c_steps; 
 
-    this->itmax = 10;  // For DEBUG
-    //this->steps = 10;  // For DEBUG
-
+    //this->itmax = 10;  // For DEBUG
+    //this->steps = 100;  // For DEBUG
+    if(0 == grid->myid)
     printf("Coarse : lamdax=%f, lamday=%f \n", lamda_x, lamda_y);
 }
 double* HeatSolverC::fetch(){

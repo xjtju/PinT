@@ -9,5 +9,8 @@ extern "C" {
 
     void cg_b2d_(int* nxyz, double* lamdaxyz, int *ng, double *x, double *b);
 
+    void sor2_core_1d_(int* nxyz, double* lamdaxyz, int *ng, double *p_, double *p, int *color, double *omg) ;
+
+    void sor2_core_2d_(int* nxyz, double* lamdaxyz, int *ng, double *p_, double *p, int *color, double *omg) ;
 }
 #endif
