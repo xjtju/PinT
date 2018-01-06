@@ -15,10 +15,10 @@ At the current stage, only 1D or 2D can be automatically supported, 3D functions
 ## Design and implementation 
 
 There are four main objects in the framework.
-- PinT: for ini configuration, see the pint.ini sample
-- Grid: managing the unifor mesh, holding the physical variables, iniializing variables and automaticaly applying boundary conditions, synchonizing guard cells, output result, and so on. 
-- Driver: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
-- Solver: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
+- **PinT**: for ini configuration, see the pint.ini sample
+- **Grid**: managing the unifor mesh, holding the physical variables, iniializing variables and automaticaly applying boundary conditions, synchonizing guard cells, output result, and so on. 
+- **Driver**: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
+- **Solver**: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
 ## DEMO
 
