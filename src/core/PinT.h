@@ -87,6 +87,7 @@ public:
     MPI_Comm *sp_comm; //space within the same time slice
 
     double converge_eps = 1.0e-6;
+    double smlr = 1.0e-15;
 
     char* debug_pre;
     char* monitor_pre;

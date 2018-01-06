@@ -25,10 +25,15 @@ void PinT::init(){
     kpar_limit = tsnum;
 }
 
+//check the configuration is consist with the real run time
 bool PinT::check(){
     bool flag = true;
+    
+    if(ndim>=4) {
+        flag = false;
+        fprintf(stderr, "ERROR : 4D or higher space is not supported.\n");
+    }
 
-    //check the configuration is consist with the real run time
     if(tsnum != (numprocs/spnum)) {
         flag = false;
         fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
@@ -76,7 +81,8 @@ void PinT::print() {
     printf("  coarse dt        : %f\n", c_dt);
     printf("  rfc_ (steps )    : %d\n", rfc_);
     printf("  kpar_limit       : %d\n", kpar_limit);
-    printf("  converge eps     : %f\n", converge_eps);
+    printf("  converge eps     : %e\n", converge_eps);
+    printf("  small residual   : %e\n", smlr);
 
     printf("  debug out prefix : %s\n", debug_pre);
     printf("  monitor   prefix : %s\n", monitor_pre);
@@ -116,6 +122,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
 
     else if (MATCH("parareal", "converge_eps")) { conf->converge_eps = atof(value); } 
+    else if (MATCH("parareal", "sml_res")) { conf->smlr = atof(value); } 
     
     else if (MATCH("monitor", "debug_pre")) { conf->debug_pre = strdup(value); } 
     else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 

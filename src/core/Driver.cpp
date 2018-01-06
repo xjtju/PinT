@@ -29,6 +29,7 @@ void Driver::init(int argc, char* argv[]){
     conf->numprocs = numprocs;
     spnum = conf->spnum;
     tsnum = conf->tsnum;
+    smlr  = conf->smlr;
     mytid = myid / spnum;
 
     //check the configuration is consist with the real run time

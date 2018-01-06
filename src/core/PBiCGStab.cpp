@@ -41,7 +41,7 @@ void PBiCGStab::solve(){
        //}
 
         grid->guardcell(p);
-        preconditioner(p_,p); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
+        preconditioner(p_, p, true); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
 
         grid->guardcell(p_);
         cg_Xv(v,p_);        // v=Ap_    
@@ -54,7 +54,7 @@ void PBiCGStab::solve(){
         cg_avpy(s, alpha, r, v);  // s = r -alpha*v;
         grid->guardcell(s);
         // solve Ms_=s , in some algorithm description, s_ is also denoted by z
-        preconditioner(s_,s); 
+        preconditioner(s_, s, true); 
         
         grid->guardcell(s_);
         cg_Xv(t,s_); // t=Az
@@ -90,6 +90,7 @@ void PBiCGStab::solve(){
 
 //
 // vector operations can be accelerated by SIMD. 
+// NOTE: the following 1d functions are for test only, in practice, their fortran counterparts are used instead 
 //
 
 //p = r + beta * ( p - omg * v )
@@ -140,8 +141,27 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
     ==  reverse(M1)*t=I*t=t and reverse(M1)*s=I*s=s ==  
   so the matrix reverse and matrix multiplying vector calculations can also be skipped.      
 */
-void PBiCGStab::preconditioner(double* p_, double* p){
-    blas_cp_(p_, p, &size);
+void PBiCGStab::preconditioner(double* p_, double* p, bool isPrecond){
+    if(isPrecond) {
+        int lc_max = 4;
+        sor2(p_, p, 4, false);
+    }
+    else  
+        blas_cp_(p_, p, &size);
+}
+
+// color is not used 
+void PBiCGStab::sor2(double *p_, double *p, int lc_max, bool checkCnvg){
+    int lc = 0;
+    double res = 0.0;
+    for(lc=1; lc<=lc_max; lc++) {
+
+        //sor2_core_1d_(nxyz, nguard, p_, p, b, res);
+
+        if(checkCnvg) {
+            if( res < eps) break;
+        }
+    }
 }
 
 void PBiCGStab::update() {

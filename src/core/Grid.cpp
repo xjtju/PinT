@@ -75,6 +75,10 @@ Grid::Grid(PinT *conf) {
     this->tsnum = conf->tsnum;
 
     this->coords = new int[ndim]; 
+    this->coords_= new int[ndim]; 
+    this->periods= new int[ndim];
+    this->dims   = new int[ndim];  
+
     create_topology();
 
     // after the topology is determined, the coordinate can also be fixed 
@@ -124,9 +128,7 @@ void Grid::create_topology() {
  * create virtual space topology
  */
 void Grid::create_topology_1d(){
-    int periods[1] ={0};
-    int dims[1];
-
+    periods[0] = 0;
     dims[0] = spnumx; 
 
     MPI_Cart_create(*sp_comm, ndim, dims, periods, 1, &st_comm);
@@ -137,9 +139,8 @@ void Grid::create_topology_1d(){
 }
 
 void Grid::create_topology_2d(){
-    int periods[2] = {0,0};
-    int dims[2];
-
+    periods[0] = 0;
+    periods[1] = 0;
     dims[0] = spnumx; 
     dims[1] = spnumy;
 
@@ -392,9 +393,12 @@ void Grid::output_global(){
         MPI_Irecv(sendrecv_buf, inner_size, MPI_DOUBLE, source, 9999, *sp_comm, &req_p);
         MPI_Wait(&req_p, &sta_p);
 
+        MPI_Cart_coords(st_comm, source, ndim, coords_);
+        printf_coord(fp, coords_);
         output_var(fp,sendrecv_buf, true);
     }
-     
+    
+    printf_coord(fp, coords);
     output_var(fp,u_end, true);
 
     fclose(fp);
@@ -403,3 +407,4 @@ void Grid::output_global(){
 
     printf("All the data has been aggregated into the file : %s \n", fname);
 }
+

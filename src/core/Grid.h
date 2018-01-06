@@ -77,7 +77,11 @@ public:
     MPI_Comm *sp_comm; //space within the same time slice
     int st_rank;       // topology rank 
     MPI_Comm st_comm;  // topology comm
-    int* coords;     // topology coordinates 
+    int* coords;      // topology coordinates 
+    int* coords_;     // used for hold coordinates of other grids 
+    int* dims;
+    int* periods;
+
     // for guardcell send and receive in one direction 
     double *gcell_sendx; // left & right
     double *gcell_sendy; // front & back
@@ -185,6 +189,13 @@ public:
 
     // aggregate all the final results from all the grids within the same space domain and output 
     void output_global();
+
+    inline void printf_coord(FILE *fp, int *cds) {
+        fprintf(fp, "[ %d ", cds[0]); 
+        if(ndim>=2) fprintf(fp, ", %d ", cds[1]); 
+        if(ndim>=3) fprintf(fp, ", %d ", cds[2]); 
+        fprintf(fp, "]\n"); 
+    }
 
 };
 #endif

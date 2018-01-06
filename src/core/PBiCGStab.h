@@ -63,7 +63,8 @@ public:
 
 
     // preconditioner: solve Mp_=p
-    void preconditioner(double *p_, double *p);
+    void preconditioner(double *p_, double *p, bool isPrecond);
+    void sor2(double *p_, double *p, int lc_max, bool checkCnvg);
     
     virtual double* fetch() = 0; // fetch physical variables into solver
     void update() ;  // update physical variables in grid, reserved blank functions. 
