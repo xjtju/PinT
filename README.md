@@ -56,29 +56,23 @@ void HeatSolver::setup(){
 
 //calcaluate the residual r = b - Ax
 void HeatSolver::cg_rk1d(double *r, double *x, double *b){
-    int ind;
     for(int i=nguard; i<nx+nguard; i++){
-        ind = grid->getInnerIdx(i);
         double ax = -lamda*x[i-1] + (1+2*lamda)*x[i] - lamda*x[i+1];  
-        r[ind] = b[ind] - ax;
+        r[i] = b[i] - ax;
     }
 }
 
 // matrix * vector,  the stencil matrix , v = Ay
 void HeatSolver::cg_Xv1d(double* v, double *y) {
-    int ind;
     for(int i=nguard; i<nx+nguard; i++){
-        ind = grid->getInnerIdx(i);
-        v[ind] = -lamda*y[i-1] + (1+2*lamda)*y[i] - lamda*y[i+1];
+        v[i] = -lamda*y[i-1] + (1+2*lamda)*y[i] - lamda*y[i+1];
     }
 }
 
 // calcaluate b of Ax=b,  RHS
 void HeatSolver::cg_b1d(double *x){
-    int ind;
     for(int i=nguard; i<nx+nguard; i++){
-        ind = grid->getInnerIdx(i);
-        b[ind] = lamda*x[i-1] + (1-2*lamda)*x[i] + lamda*x[i+1]; 
+        b[i] = lamda*x[i-1] + (1-2*lamda)*x[i] + lamda*x[i+1]; 
     }
 }
 
