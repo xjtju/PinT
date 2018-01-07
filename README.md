@@ -126,7 +126,9 @@ int main(int argc, char* argv[]) {
 ```
 5. changes the .ini file according to the real run time envirement and the test request. See pint.ini sample for details, and the .INI file is very direct and simple. 
 
-    From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself.  
+
+
+From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself.  
 
 ## Notice 
 
