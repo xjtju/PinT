@@ -93,7 +93,7 @@ HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g, true) {
 }
 
 HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g, false){
-    lamda_x = k * conf->c_dt / (2*g->dx*g->dx);
+    lamda = k * conf->c_dt / (2*g->dx*g->dx);
 }
 ```
 4. combines the HeatGrid and the fine/coarse solver in the main program.
