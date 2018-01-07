@@ -37,15 +37,13 @@ void HeatGrid::init(){
         x = this->getX();  // global coordincate of the cell
         unk = cos(2*x);    // set the initial temperature
         // set the variables used by Parareal method 
-        u_f[ind] = unk;      // for fine solver current time slice 
-        u_c[ind] = unk;      // for coarse solver current time slice 
-        u_cprev[ind] = unk;  // for coarse solver previous time slice
         u_start[ind] = unk;  // for start point of the current time slice
-        u_end[ind] = unk;    // for end point of the current time slice
+        u_f[ind] = unk;      // for fine solver, not necessary, it will be also set automatically   
+        u_c[ind] = unk;      // for coarse solver, not necessary, it will be also set automatically    
     }
 }
 ```
-2. creates a sub class (HeatSolver) of the default linear solver (PBiCGStab), performs the stencil operations, the sample code uses the classic Crank–Nicolson method for deducing the stencil of heat equation.
+2. creates a sub class (HeatSolver) of the default linear solver (PBiCGStab), performs the stencil operations, the sample code uses the classic [Crank–Nicolson method](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method) for deducing the stencil of heat equation.
 
 ```c++
 // set diffuse coefficient and tune the default parameter, problem specific
@@ -138,6 +136,7 @@ int main(int argc, char* argv[]) {
 
 The framework is designed for performance test originally, not for the high accuracy scientific computing or numerical simulations. There are not any assumptions about the measurement unit standard for all the physical variables used in the program. You must be careful to make sure the physical UNIT consistency for specific problem.  
 
+In the current version, in order to make the framework usable as earlier as possible to verify our design ideas, no special get/set methods are provided for most grid variables and configuration parameters. You must be careful when directly changing these values in some cases.     
 
 ## My consideration about Parareal
 

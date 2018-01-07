@@ -16,9 +16,9 @@ void HeatGrid::init1d(){
         unk = cos(2*x);
         
         // set the variables used by Parareal method 
-        u_f[ind] = unk;      // for fine solver current time slice 
-        u_c[ind] = unk;      // for coarse solver current time slice 
-        u_cprev[ind] = unk;  // for coarse solver previous time slice
+        u_f[ind] = unk;      // for fine solver  
+        u_c[ind] = unk;      // for coarse solver  
+        u_cprev[ind] = unk;  // for coarse solver previous time iteration  
         u_start[ind] = unk;  // for start point of the current time slice
         u_end[ind] = unk;    // for end point of the current time slice
     }
@@ -40,9 +40,9 @@ void HeatGrid::init2d(){
        else unk = 0.0; 
        
        // set the variables used by Parareal method 
-       u_f[ind] = unk;      // for fine solver current time slice 
-       u_c[ind] = unk;      // for coarse solver current time slice 
-       u_cprev[ind] = unk;  // for coarse solver previous time slice
+       u_f[ind] = unk;      // for fine solver  
+       u_c[ind] = unk;      // for coarse solver  
+       u_cprev[ind] = unk;  // for coarse solver previous time iteration 
        u_start[ind] = unk;  // for start point of the current time slice
        u_end[ind] = unk;    // for end point of the current time slice
     }
