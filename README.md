@@ -24,7 +24,7 @@ There are four main objects in the framework.
 
 For example, [1D/2D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
 
-1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the iniialization value to variables.
+1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables.
 
 ```c++
 HeatGrid::HeatGrid(PinT *conf) : Grid(conf){ } 
@@ -34,8 +34,8 @@ void HeatGrid::init(){
     double x, unk;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        x = this->getX();  // global coordincate of the cell
-        unk = cos(2*x);    // set the initial temperature
+        x = this->getX();    // global coordincate of the cell
+        unk = cos(2*x);      // set the initial temperature
         // set the variables used by Parareal method 
         u_start[ind] = unk;  // for start point of the current time slice
         u_f[ind] = unk;      // for fine solver, not necessary, it will be also set automatically   
@@ -48,8 +48,8 @@ void HeatGrid::init(){
 ```c++
 // set diffuse coefficient and tune the default parameter, problem specific
 void HeatSolver::setup(){
-    this->eps = 1.0e-6;
-    k = 0.061644; // diffuse coefficient 
+    this->eps = 1.0e-6;  // change the default value of the super class
+    k = 0.061644;        // diffuse coefficient 
 }
 
 // 1D, not used Fortran
@@ -77,7 +77,7 @@ void HeatSolver::cg_b1d(double *x){
 }
 
 ```
-3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. 
+3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. For the Fine and Coarse solver, the only thing is to set their specific variables in most cases. 
 
 ```c++
 HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g, true) {
@@ -88,6 +88,7 @@ HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g, false){
     lamda = k * conf->c_dt / (2*g->dx*g->dx);
 }
 ```
+
 4. combines the HeatGrid and the fine/coarse solver in the main program.
 
 ```c++
@@ -100,7 +101,7 @@ int main(int argc, char* argv[]) {
     // get init-ready system information
     PinT* conf = PinT::instance();
 
-    // create the grid/mesh and solver 
+    // create and init the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
     Solver *F = new HeatSolverF(conf,g);   // fine solver 
@@ -109,9 +110,9 @@ int main(int argc, char* argv[]) {
     // run the parareal algorithm 
     driver.evolve(g, G, F);
 
-    // output result to disk for debug or post-processing 
-    g->output_local(g->u_end, false); // for each process, create a unique file
-    g->output_global();  // aggregates the result from all the process, and dumps out one file.
+    // output result to disk for debug or post-processing, the two steps is not necessary for performance test. 
+    g->output_local(g->u_end, false); // for each process, it will create a unique file
+    g->output_global();  // aggregates the result from all the process, and dumps out to one file.
     
     driver.finalize();  // quit MPI 
 
@@ -125,6 +126,7 @@ int main(int argc, char* argv[]) {
 ```
 5. changes the .ini file according to the real run time envirement and the test request. See pint.ini sample for details, and the .INI file is very direct and simple. 
 
+    From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself.  
 
 ## Notice 
 
