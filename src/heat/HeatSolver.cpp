@@ -1,16 +1,23 @@
 #include "HeatSolver.h"
 
 HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){
+    setup();
+}
 
+HeatSolver::HeatSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
+    setup();
+}
+
+// set diffuse coefficient and tune the default parameter, problem specific
+void HeatSolver::setup(){
     this->eps = 1.0e-6;
 
-    // diffuse coefficient, problem specific
     if(ndim==1) k = 0.061644; 
     if(ndim==2) k = 0.061644;
 }
 
 //
-// 1D, not used fortran
+// 1D, not used Fortran
 //
 
 //calcaluate the residual r = b - Ax
@@ -42,7 +49,7 @@ void HeatSolver::cg_b1d(double *x){
 }
 
 //
-// 2D
+// 2D, used Fortran
 //
 
 void HeatSolver::cg_rk2d(double *r, double *x, double *b){

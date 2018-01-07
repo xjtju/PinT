@@ -1,5 +1,18 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
+void PBiCGStab::init() {
+    b   = alloc_mem(size);
+
+    r0_ = alloc_mem(size);
+    r   = alloc_mem(size);
+    v   = alloc_mem(size);
+    t   = alloc_mem(size);
+
+    p   = alloc_mem(size);
+    p_  = alloc_mem(size);
+    s   = alloc_mem(size);
+    s_  = alloc_mem(size);
+}
 
 void PBiCGStab::solve(){
 

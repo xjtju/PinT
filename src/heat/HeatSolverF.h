@@ -6,14 +6,11 @@
 class HeatSolverF : public HeatSolver {
 public:
     HeatSolverF(PinT *conf, Grid *g);
-    
-    double* fetch();
 };
 
 class HeatSolverC : public HeatSolver {
 public:
     HeatSolverC(PinT *conf, Grid *g);
-    double* fetch();
 };
 
 #endif

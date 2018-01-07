@@ -9,6 +9,9 @@
 
 class HeatSolver : public PBiCGStab {
 
+protected:
+
+    void setup();
 public:
     double k = 0.061644; // diffuse coefficient
 
@@ -22,6 +25,7 @@ public:
     double lamdaxyz[3];
 
     HeatSolver(PinT *c, Grid *g); 
+    HeatSolver(PinT *c, Grid *g, bool isFS); 
     
     void cg_rk1d(double *r, double *x, double *b);
     void cg_rk2d(double *r, double *x, double *b);

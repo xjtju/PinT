@@ -9,16 +9,18 @@ int HeatGrid::init() {
 }
 void HeatGrid::init1d(){
     long ind = 0;
+    double x, unk;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        int gxi = (idx+i-nguard); // global coordincate of the cell
-        double unk = cos(2*gxi*dx);
+        x = this->getX();  // global coordincate of the cell
+        unk = cos(2*x);
         
-        u_f[ind] = unk; 
-        u_c[ind] = unk; 
-        u_cprev[ind] = unk; 
-        u_start[ind] = unk;
-        u_end[ind] = unk;
+        // set the variables used by Parareal method 
+        u_f[ind] = unk;      // for fine solver current time slice 
+        u_c[ind] = unk;      // for coarse solver current time slice 
+        u_cprev[ind] = unk;  // for coarse solver previous time slice
+        u_start[ind] = unk;  // for start point of the current time slice
+        u_end[ind] = unk;    // for end point of the current time slice
     }
 }
 
@@ -27,22 +29,21 @@ void HeatGrid::init2d(){
     double xdist, ydist, unk;
     for(int j = nguard; j<ny+nguard; j++)
     for(int i = nguard; i<nx+nguard; i++){
+       // get distance from the center of the whole geographical domain
+       xdist = this->getX(i) -  conf->Xspan/2 ; 
+       ydist = this->getY(j) -  conf->Yspan/2 ;
 
-        xdist = this->getX(i) -  conf->Xspan/2 ;
-        ydist = this->getY(j) -  conf->Yspan/2 ;
-
-        ind = this->getOuterIdx(i, j); 
-
+       ind = this->getOuterIdx(i, j);  // get the index including the guard cell 
+        
        if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
-            unk = 100.0; 
+           unk = 100.0; 
        else unk = 0.0; 
-
-        //unk = 0;
-
-        u_f[ind] = unk; 
-        u_c[ind] = unk; 
-        u_cprev[ind] = unk; 
-        u_start[ind] = unk;
-        u_end[ind] = unk;
+       
+       // set the variables used by Parareal method 
+       u_f[ind] = unk;      // for fine solver current time slice 
+       u_c[ind] = unk;      // for coarse solver current time slice 
+       u_cprev[ind] = unk;  // for coarse solver previous time slice
+       u_start[ind] = unk;  // for start point of the current time slice
+       u_end[ind] = unk;    // for end point of the current time slice
     }
 }

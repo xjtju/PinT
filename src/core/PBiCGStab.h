@@ -7,7 +7,7 @@
  *
  * Stencil related routines are declared by virtual functions, the concrete class must implement them  
  * 
- * For easy readning, most functions pass parameter explicitly though it is not necessary because all variables are shared within class
+ * For easy reading, most functions pass parameter explicitly, though it is not necessary because all variables are shared within class
  */
 
 #include "common.h"
@@ -16,6 +16,9 @@
 #include "Solver.h"
 
 class PBiCGStab : public Solver{
+
+private:
+    void init(); // init the BiCG-specific variables
 
 protected:
     double *r0_, *r ;  // 0 ... itmax  
@@ -30,6 +33,8 @@ protected:
     int itmax = 20; 
     double sor_omg = 1.7;     // SOR : relaxation factor, used for preconditioner, 
     bool   isPrecond = false; // in the current version, no preconditioner is GOOD.
+    
+    bool isFine = true;  // is fine solver or coarse solver, default is true
 
 public:
 
@@ -37,18 +42,17 @@ public:
     inline void set_itmax(int iter) { this->itmax = iter;}
 
     PBiCGStab(PinT* c, Grid *g):Solver(c,g){
-        b   = alloc_mem(size);
-
-        r0_ = alloc_mem(size);
-        r   = alloc_mem(size);
-        v   = alloc_mem(size);
-        t   = alloc_mem(size);
-
-        p   = alloc_mem(size);
-        p_  = alloc_mem(size);
-        s   = alloc_mem(size);
-        s_  = alloc_mem(size);
+        init();
     }
+    
+    PBiCGStab(PinT* c, Grid *g, bool isFS):Solver(c,g){ 
+        init(); 
+        // set the steps for time integrating (evolving)
+        this->isFine = isFS;
+        if(isFine)
+            this->steps = conf->f_steps;  
+        else this->steps = conf->c_steps;
+   }
 
     ~PBiCGStab() {
        free_mem(r0_);
@@ -63,8 +67,12 @@ public:
        free_mem(b);
     }
 
+    // fetch physical variables into solver
+    inline double* fetch() {
+        if(isFine) return grid->u_f;
+        else return grid->u_c;
+    }
 
-    virtual double* fetch() = 0; // fetch physical variables into solver
     void update() ;  // update physical variables in grid, reserved blank functions. 
     
     // the template algorithm of PBiCBSTAB

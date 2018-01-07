@@ -4,9 +4,9 @@ A performance and convergency testing framework for Parallel-in-Time methods, es
 
 ## Description
 
-The framework is heavily inspired by Seigo Imamura's master dissertation "Hybrid-Parallel Performance Evaluation of Domain Decomposition and Parareal methods for Diffusion Problem" at Kobe University, Japan. It aims at facilitating the performance test of time-space hybrid parallel methodology in massive scientific computing or numerical simulation domain, especially Parareal,which is obtained more and more attention and research in the recent ten years since it was fully introduced by Martin J. Gander and Stefan Vandewalle in their paper "analysis of the parareal time-parallel time-integration method" at 2007.
+The framework is heavily inspired by Seigo Imamura's master dissertation *"Hybrid-Parallel Performance Evaluation of Domain Decomposition and Parareal methods for Diffusion Problem"* at Kobe University, Japan. It aims at facilitating the performance test of time-space hybrid parallel methodology in massive scientific computing or numerical simulation domain, especially Parareal,which is obtained more and more attention and research in the recent ten years since it was fully introduced by Martin J. Gander and Stefan Vandewalle in their paper *"analysis of the parareal time-parallel time-integration method"* at 2007.
 
-The framework has implemented the Parareal algorithm skeleton in an uniform mesh, and also a linear system solver based on biconjugate gradient stabilized method, for running a test, the users only need to provide problem-specific stencil code, for example, the 2D heat equation's 5-point stencil. All the parameters controlling the time-space domain division, convergency, time-step etc. can be  predefined through an .INI file, easily be changed and tuned. If the default funtionality of it cannot be able to support some specific problem, it can be easily be extended by writting a new implementation in problem-specific sub classes. 
+The framework has implemented the **Parareal algorithm skeleton** in an uniform mesh, and also a linear system solver based on biconjugate gradient stabilized method, for running a test, the users only need to provide problem-specific stencil code, for example, the 2D heat equation's 5-point stencil. All the parameters controlling the time-space domain division, convergency, time-step etc. can be  predefined through an .INI file, easily be changed and tuned. If the default funtionality of it cannot be able to support some specific problem, it can be easily be extended by writting a new implementation in problem-specific sub classes. 
 
 The framework is mainly written by C++ for good template and extension, most BLAS related calculations is performed by Fortran for performance reason and easy matrix manipulation. It is very light-weight, the only third library it used is [inih](https://github.com/benhoyt/inih), a small but excellent .INI file parser. 
 
@@ -15,22 +15,88 @@ At the current stage, only 1D or 2D can be automatically supported, 3D functions
 ## Design and implementation 
 
 There are four main objects in the framework.
-- **PinT**: for ini configuration, see the pint.ini sample
-- **Grid**: managing the unifor mesh, holding the physical variables, iniializing variables and automaticaly applying boundary conditions, synchonizing guard cells, output result, and so on. 
+- **PinT**: for ini configuration, see the pint.ini sample file for details
+- **Grid**: manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
 - **Driver**: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
 - **Solver**: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
 ## DEMO
 
-For example, 2D heat equation, sample codes are under the src/heat directory.
+For example, [1D/2D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
 
 1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the iniialization value to variables.
-2. creates a sub class (HeatSolver) of the default linear solver (PBiCGStab), performs the stencil operations, the sample code uses the classic Crank–Nicolson method for deducing the stencil of heat equation.
-3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. 
-4. combines the HeatGrid and the fine/coarse solver in the main program.
-5. changes the .ini file according to the real run time envirement and the test request.
 
-The main program sample for heat equation:
+```c++
+HeatGrid::HeatGrid(PinT *conf) : Grid(conf){ } 
+
+void HeatGrid::init(){
+    long ind = 0;
+    double x, unk;
+    for(int i = nguard; i<nx+nguard ; i++){
+        ind = i;
+        x = this->getX();  // global coordincate of the cell
+        unk = cos(2*x);    // set the initial temperature
+        // set the variables used by Parareal method 
+        u_f[ind] = unk;      // for fine solver current time slice 
+        u_c[ind] = unk;      // for coarse solver current time slice 
+        u_cprev[ind] = unk;  // for coarse solver previous time slice
+        u_start[ind] = unk;  // for start point of the current time slice
+        u_end[ind] = unk;    // for end point of the current time slice
+    }
+}
+```
+2. creates a sub class (HeatSolver) of the default linear solver (PBiCGStab), performs the stencil operations, the sample code uses the classic Crank–Nicolson method for deducing the stencil of heat equation.
+
+```c++
+// set diffuse coefficient and tune the default parameter, problem specific
+void HeatSolver::setup(){
+    this->eps = 1.0e-6;
+    k = 0.061644; // diffuse coefficient 
+}
+
+// 1D, not used Fortran
+
+//calcaluate the residual r = b - Ax
+void HeatSolver::cg_rk1d(double *r, double *x, double *b){
+    int ind;
+    for(int i=nguard; i<nx+nguard; i++){
+        ind = grid->getInnerIdx(i);
+        double ax = -lamda*x[i-1] + (1+2*lamda)*x[i] - lamda*x[i+1];  
+        r[ind] = b[ind] - ax;
+    }
+}
+
+// matrix * vector,  the stencil matrix , v = Ay
+void HeatSolver::cg_Xv1d(double* v, double *y) {
+    int ind;
+    for(int i=nguard; i<nx+nguard; i++){
+        ind = grid->getInnerIdx(i);
+        v[ind] = -lamda*y[i-1] + (1+2*lamda)*y[i] - lamda*y[i+1];
+    }
+}
+
+// calcaluate b of Ax=b,  RHS
+void HeatSolver::cg_b1d(double *x){
+    int ind;
+    for(int i=nguard; i<nx+nguard; i++){
+        ind = grid->getInnerIdx(i);
+        b[ind] = lamda*x[i-1] + (1-2*lamda)*x[i] + lamda*x[i+1]; 
+    }
+}
+
+```
+3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. 
+
+```c++
+HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g, true) {
+    lamda = k * conf->f_dt / (2*g->dx*g->dx); // provides the lamda's value
+}
+
+HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g, false){
+    lamda_x = k * conf->c_dt / (2*g->dx*g->dx);
+}
+```
+4. combines the HeatGrid and the fine/coarse solver in the main program.
 
 ```c++
 int main(int argc, char* argv[]) {
@@ -65,4 +131,16 @@ int main(int argc, char* argv[]) {
 }
 
 ```
+5. changes the .ini file according to the real run time envirement and the test request. See pint.ini sample for details, and the .INI file is very direct and simple. 
+
+
+## Notice 
+
+The framework is designed for performance test originally, not for the high accuracy scientific computing or numerical simulations. There are not any assumptions about the measurement unit standard for all the physical variables used in the program. You must be careful to make sure the physical UNIT consistency for specific problem.  
+
+
+## My consideration about Parareal
+
+1. It uses more system memory (perhaps 5 times) than the traditional pure space parallel methodology. 
+2. In practice, for many real-world multi-physical simulations, it is hard to pack all the related solvers into Parareal algorithm framework. How to do ?   
 

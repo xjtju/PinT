@@ -6,6 +6,7 @@
 
 /**
  * the abstract interface of all solvers for PinT framework
+ * the interface is designed as simple as possible to adapt to more problem-specific calcaluations.
  */
 class Solver {
 protected:
@@ -29,7 +30,7 @@ protected:
     size_t inner_size; // guard cells not included 
     size_t outer_size; // guard cells included
     size_t &size = outer_size;      // alias of outer_size 
-
+    
     int steps;     // the number of time steps in one time slice
 
 public:
