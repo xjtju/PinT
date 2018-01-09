@@ -44,6 +44,7 @@ extern "C" {
     void unpackgc_2d_f_(int* nxyz, int *ng, double* p, double* gdata);
     void unpackgc_2d_b_(int* nxyz, int *ng, double* p, double* gdata);
 
+
     // 
     // 3D : 6 directions. left<->right; front<->back; down<->up 
     
@@ -57,8 +58,6 @@ extern "C" {
     void bc_val_3d_r_(int* sxyz, int *ng, double* p, double *val);
     void bc_ref_3d_l_(int* sxyz, int *ng, double* p );
     void bc_ref_3d_r_(int* sxyz, int *ng, double* p );
-
-
 
     // front back : Y
     void packgc_3d_f_(int* sxyz, int *ng, double* p, double* gdata);
@@ -78,6 +77,12 @@ extern "C" {
     void unpackgc_3d_d_(int* sxyz, int *ng, double* p, double* gdata);
     void unpackgc_3d_u_(int* sxyz, int *ng, double* p, double* gdata);
    
+
+    void bc_val_3d_d_(int* sxyz, int *ng, double* p, double *val);
+    void bc_val_3d_u_(int* sxyz, int *ng, double* p, double *val);
+    void bc_ref_3d_d_(int* sxyz, int *ng, double* p );
+    void bc_ref_3d_u_(int* sxyz, int *ng, double* p );
+
 
 
     // for pack and unpack all inner grid data for aggregating result 

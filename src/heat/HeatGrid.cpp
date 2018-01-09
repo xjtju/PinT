@@ -66,7 +66,7 @@ void HeatGrid::init3d(){
            unk = 100.0; 
        else unk = 0.0; 
        */ 
-       unk = cos(ind+this->idy);
+       unk = cos(ind+this->idz);
        // set the variables used by Parareal method 
        u_f[ind] = unk;      // for fine solver  
        u_c[ind] = unk;      // for coarse solver  
