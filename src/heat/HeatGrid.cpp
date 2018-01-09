@@ -12,7 +12,7 @@ void HeatGrid::init1d(){
     double x, unk;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        x = this->getX();  // global coordincate of the cell
+        x = this->getX(i);  // global coordincate of the cell
         unk = cos(2*x);
         
         // set the variables used by Parareal method 
