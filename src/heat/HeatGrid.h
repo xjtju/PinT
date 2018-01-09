@@ -15,5 +15,6 @@ public:
     int init();
     void init1d();
     void init2d();
+    void init3d();
 };
 #endif

@@ -41,19 +41,19 @@ public:
 
     long size;  // size including guard cells
     int sxyz[3];
-    int sx; //grid size with guard cells
+    int sx;     // grid size with guard cells
     int sy;
     int sz;
 
-    int gcsx; //guard cell size 
-    int gcsy;
+    int gcsx;  // guard cells size, NOTE : it is different with nguard
+    int gcsy;   
     int gcsz;
 
-    double dx; //grid cell size   
+    double dx; // grid cell size, geographical size   
     double dy;
     double dz;
 
-    long idx; //global coord idx of the left-back-bottom point  
+    long idx; //for recording the global coord of the grid, start point is the most left-back-bottom point  
     long idy;
     long idz;
 
@@ -74,18 +74,19 @@ public:
     int spnumx;
     int spnumy;
     int spnumz;
+
     MPI_Comm *sp_comm; //space within the same time slice
     int st_rank;       // topology rank 
     MPI_Comm st_comm;  // topology comm
     int* coords;      // topology coordinates 
     int* coords_;     // used for hold coordinates of other grids 
-    int* dims;
-    int* periods;
+    int* dims;        // topology's dim
+    int* periods;     // topology's period
 
-    // for guardcell send and receive in one direction 
-    double *gcell_sendx; // left & right
+    // for guardcells send and receive in one direction 
+    double *gcell_sendx; // left  & right
     double *gcell_sendy; // front & back
-    double *gcell_sendz; // top & bottom
+    double *gcell_sendz; // down  & up 
 
     double *gcell_recvx;
     double *gcell_recvy;
@@ -106,20 +107,23 @@ public:
     void bc(double *d); 
     void bc_1d(double *d); 
     void bc_2d(double *d); 
+    void bc_3d(double *d); 
 
     // create the grid topology
     void create_topology(); 
     void create_topology_1d();
     void create_topology_2d();
+    void create_topology_3d();
 
     // guardcell exchange  
     void guardcell();
     void guardcell(double *d);
     void guardcell_1d(double *d);
     void guardcell_2d(double *d);
+    void guardcell_3d(double *d);
 
-    // grid topology. left:X:right; front:Y:back; top:Z:bottom
-    int left, right, front, back, top, bottom;
+    // grid topology. left:X:right; front:Y:back; down:Z:up
+    int left, right, front, back, down, up;
   
     /**
      * get the XYZ global geographical value from their local outer index,
@@ -140,24 +144,16 @@ public:
     }
 
     // get the linear index of the 1-2-3D index, the set of functions are not frequently used.
-    inline long getInnerIdx(int ix){
-        return ix-nguard;
-    }
-    inline long getInnerIdx(int ix, int iy){
-        return nx*(iy-nguard)+(ix-nguard);
-    }
     inline long getInnerIdx(int ix, int iy, int iz){
-        return ny*nx*(iz-nguard)+nx*(iy-nguard)+(ix-nguard);
+        if(ndim==3) return ny*nx*(iz-nguard)+nx*(iy-nguard)+(ix-nguard);
+        else if(ndim==2) return nx*(iy-nguard)+(ix-nguard);
+        else return ix-nguard;
     }
 
-    inline long getOuterIdx(int ix){
-        return ix;
-    }
-    inline long getOuterIdx(int ix, int iy){
-        return sx*iy + ix;
-    }
     inline long getOuterIdx(int ix, int iy, int iz){
-        return sy*sx*iz + sx*iy + ix;
+        if(ndim==3) return sy*sx*iz + sx*iy + ix;
+        else if(ndim==2) return sx*iy + ix;
+        else return ix;
     }
     
     // get rid of guard cells and pack inner grid data into a buffer  
@@ -187,6 +183,8 @@ public:
     // and choose the proper output function.   
     void output_var_inner(FILE *fp, double *data); 
     void output_var_outer(FILE *fp, double *data); 
+    void output_var_outer_X(FILE *fp, double *data); 
+    void output_var_outer_Z(FILE *fp, double *data); 
 
     //the wrapper of output_var_*, writing the local variables into debug file only for the last time slice 
     void output_local(double *data, bool inner_only);

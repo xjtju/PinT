@@ -45,14 +45,37 @@ extern "C" {
     void unpackgc_2d_b_(int* nxyz, int *ng, double* p, double* gdata);
 
     // 
-    // 3D : 6 directions
-    //
-
-    // left  right 
-    // front back
-    // top   bottom/under
-    //
+    // 3D : 6 directions. left<->right; front<->back; down<->up 
     
+    // left right : X
+    void packgc_3d_l_(int* sxyz, int *ng, double* p, double* gdata);
+    void packgc_3d_r_(int* sxyz, int *ng, double* p, double* gdata);
+    void unpackgc_3d_l_(int* sxyz, int *ng, double* p, double* gdata);
+    void unpackgc_3d_r_(int* sxyz, int *ng, double* p, double* gdata);
+
+    void bc_val_3d_l_(int* sxyz, int *ng, double* p, double *val);
+    void bc_val_3d_r_(int* sxyz, int *ng, double* p, double *val);
+    void bc_ref_3d_l_(int* sxyz, int *ng, double* p, double *val);
+    void bc_ref_3d_r_(int* sxyz, int *ng, double* p, double *val);
+
+
+
+    // front back : Y
+    void packgc_3d_f_(int* nxyz, int *ng, double* p, double* gdata);
+    void packgc_3d_b_(int* nxyz, int *ng, double* p, double* gdata);
+
+    void unpackgc_3d_f_(int* nxyz, int *ng, double* p, double* gdata);
+    void unpackgc_3d_b_(int* nxyz, int *ng, double* p, double* gdata);
+   
+    // down up : Z
+    void packgc_3d_d_(int* nxyz, int *ng, double* p, double* gdata);
+    void packgc_3d_u_(int* nxyz, int *ng, double* p, double* gdata);
+
+    void unpackgc_3d_d_(int* nxyz, int *ng, double* p, double* gdata);
+    void unpackgc_3d_u_(int* nxyz, int *ng, double* p, double* gdata);
+   
+
+
     // for pack and unpack all inner grid data for aggregating result 
 
     void pack_1d_(int* nxyz, int *ng, double* p, double* gdata);

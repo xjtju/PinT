@@ -129,7 +129,7 @@ void PBiCGStab::cg_direct2d(double* p, double* r, double* v, double beta, double
     long idx;
     for(int j=nguard; j<ny+nguard; j++)
         for(int i=nguard; i<nx+nguard; i++) {
-            idx = grid->getOuterIdx(i,j);
+            idx = grid->getOuterIdx(i,j,0);
             p[idx] = r[idx] + beta*(p[idx] - omega*v[idx]);
     }
 }
@@ -138,7 +138,7 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
     long idx;
     for(int j=nguard; j<ny+nguard; j++) 
         for(int i=nguard; i<nx+nguard; i++) {
-            idx = grid->getOuterIdx(i,j); 
+            idx = grid->getOuterIdx(i,j,0); 
             x[idx] = x[idx] + alpha*y[idx] + omega*z[idx];
     }
 }

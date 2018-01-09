@@ -34,7 +34,7 @@ void HeatGrid::init(){
     double x, unk;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        x = this->getX();    // global coordincate of the cell
+        x = this->getX(ind);   // global coordincate of the cell
         unk = cos(2*x);      // set the initial temperature
         // set the variables used by Parareal method 
         u_start[ind] = unk;  // for start point of the current time slice

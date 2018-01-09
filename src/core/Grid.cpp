@@ -2,7 +2,7 @@
 /**
  * X (0 ... i) : left          right 
  * Y (0 ... j) : front         back 
- * Z (0 ... k) : bottom(under) top     
+ * Z (0 ... k) : down(under) up     
  */
 Grid::Grid(PinT *conf) {
     this->conf = conf; 
@@ -56,6 +56,15 @@ Grid::Grid(PinT *conf) {
     if(ndim==3) {
         this->inner_size = nx*ny*nz;
         this->size = sx * sy * sz;
+        this->gcsx = this->sz*this->sy*nguard;
+        this->gcsy = this->sz*this->sx*nguard;
+        this->gcsz = this->sy*this->sx*nguard;
+        this->gcell_sendx = alloc_mem(this->gcsx);
+        this->gcell_recvx = alloc_mem(this->gcsx);
+        this->gcell_sendy = alloc_mem(this->gcsy);
+        this->gcell_recvy = alloc_mem(this->gcsy);
+        this->gcell_sendz = alloc_mem(this->gcsz);
+        this->gcell_recvz = alloc_mem(this->gcsz);
     }
 
     this->sxyz[0] = sx;
@@ -121,8 +130,7 @@ Grid:: ~Grid(){
 void Grid::create_topology() {
     if(ndim == 1) create_topology_1d();
     if(ndim == 2) create_topology_2d();
-    if(ndim == 3) 
-        printf("WARNING : not completed for 3D !");
+    if(ndim == 3) create_topology_3d();
 }
 /**
  * create virtual space topology
@@ -150,11 +158,28 @@ void Grid::create_topology_2d(){
 
     MPI_Cart_shift(st_comm, 0, 1, &left,  &right);
     MPI_Cart_shift(st_comm, 1, 1, &front, &back);
-
-//    printf("I am %d: (%d,%d); originally %d. dim0 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, left, st_rank, right);
-//    printf("I am %d: (%d,%d); originally %d. dim1 : %d | %d | %d \n",st_rank,coord[0],coord[1], mysid, front, st_rank, back);
 }
 
+void Grid::create_topology_3d(){
+    periods[0] = 0;
+    periods[1] = 0;
+    periods[2] = 0;
+    dims[0] = spnumx; 
+    dims[1] = spnumy;
+    dims[2] = spnumz;
+
+    MPI_Cart_create(*sp_comm, ndim, dims, periods, 3, &st_comm);
+    MPI_Cart_coords(st_comm, mysid, ndim, coords);
+    MPI_Cart_rank(st_comm, coords, &st_rank);
+
+    MPI_Cart_shift(st_comm, 0, 1, &left,   &right);
+    MPI_Cart_shift(st_comm, 1, 1, &front,  &back);
+    MPI_Cart_shift(st_comm, 2, 1, &down, &up);
+
+    //printf("I am %d: (%d, %d, %d); originally %d. X : %d | %d | %d \n",st_rank,coords[0],coords[1], coords[2], mysid, left, st_rank, right);
+    //printf("I am %d: (%d, %d, %d); originally %d. Y : %d | %d | %d \n",st_rank,coords[0],coords[1], coords[2], mysid, front, st_rank, back);
+    //printf("I am %d: (%d, %d, %d); originally %d. Z : %d | %d | %d \n",st_rank,coords[0],coords[1], coords[2], mysid, down, st_rank, up);
+}
 /*
  * In topology, the guard cells also include boundary cells locating the whole space domain border. 
  * But the guard cell function will not automatically call the bc function at the end of it,
@@ -162,7 +187,8 @@ void Grid::create_topology_2d(){
  */
 void Grid::guardcell(double* d) {
     if(ndim == 1) guardcell_1d(d);
-    if(ndim == 2) guardcell_2d(d);
+    else if(ndim == 2) guardcell_2d(d);
+    else if(ndim == 3) guardcell_3d(d);
 }
 
 void Grid::guardcell_1d(double* d) {
@@ -231,6 +257,67 @@ void Grid::guardcell_2d(double* d) {
    //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
 }
 
+// NOTE : 3D guardcell uses sxyz not nxyz !!
+void Grid::guardcell_3d(double* d) {
+   MPI_Request req;
+   MPI_Status stat;
+   int sg;
+ 
+   // X: left - right : sy * nguard  
+   sg = this->gcsx; 
+   if(MPI_PROC_NULL!=right)  // not right border
+       packgc_3d_r_(sxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
+                gcell_recvx, sg, MPI_DOUBLE, left, 8008, st_comm, &stat);
+   if(MPI_PROC_NULL!=left)  // not left border
+   {
+       unpackgc_3d_l_(sxyz,&nguard,d,gcell_recvx);
+   }
+    
+   if(MPI_PROC_NULL!=left)  // not left border
+       packgc_3d_l_(sxyz, &nguard, d, gcell_sendx);
+   MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, left, 9009, 
+                gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
+   if(MPI_PROC_NULL!=right)  // not right border
+       unpackgc_3d_r_(sxyz, &nguard, d, gcell_recvx);
+
+   /*
+   // Y: front - back  
+   sg = this->gcsy;
+   if(MPI_PROC_NULL!=back)  
+       packgc_3d_b_(nxyz, &nguard, d, gcell_sendy);
+   MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, back,  6006, 
+                gcell_recvy, sg, MPI_DOUBLE, front, 6006, st_comm, &stat);
+   if(MPI_PROC_NULL!=front)  
+       unpackgc_3d_f_(nxyz,&nguard,d,gcell_recvy);
+    
+   if(MPI_PROC_NULL!=front)  
+       packgc_3d_f_(nxyz, &nguard, d, gcell_sendy);
+   MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, front, 7007, 
+                gcell_recvy, sg, MPI_DOUBLE, back,  7007, st_comm, &stat);
+   if(MPI_PROC_NULL!=back)  
+       unpackgc_3d_b_(nxyz, &nguard, d, gcell_recvy);
+    
+   // Z: down - up 
+   
+   sg = this->gcsz;
+   if(MPI_PROC_NULL!=up)  
+       packgc_3d_u_(nxyz, &nguard, d, gcell_sendz);
+   MPI_Sendrecv(gcell_sendz, sg, MPI_DOUBLE, up,  4004, 
+                gcell_recvz, sg, MPI_DOUBLE, down, 4004, st_comm, &stat);
+   if(MPI_PROC_NULL!=down)  
+       unpackgc_3d_d_(nxyz,&nguard,d,gcell_recvz);
+    
+   if(MPI_PROC_NULL!=down)  
+       packgc_3d_d_(nxyz, &nguard, d, gcell_sendz);
+   MPI_Sendrecv(gcell_sendz, sg, MPI_DOUBLE, down, 5005, 
+                gcell_recvz, sg, MPI_DOUBLE, up,  5005, st_comm, &stat);
+   if(MPI_PROC_NULL!=up)  
+       unpackgc_3d_u_(nxyz, &nguard, d, gcell_recvz);
+   */
+   //printf("sg=%d, size=%d, ng=%d, nx=%d, ny=%d, gsbx=%f.\n", sg,size,nguard,nxyz[0], nxyz[1], gcell_sendx[sg-1]);
+}
+
 /**
  * Deprecated.
  * Usually it is not necessary to synchonize guard cells for all the variables.
@@ -257,6 +344,7 @@ void Grid::bc(){
 void Grid::bc(double* d){
     if(ndim == 1) bc_1d(d);
     if(ndim == 2) bc_2d(d);
+    if(ndim == 3) bc_3d(d);
 }
 // nguard = 1, now space parallel is not considered
 void Grid::bc_1d(double* d) {
@@ -289,7 +377,17 @@ void Grid::bc_2d(double* d) {
        if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
 }
-
+void Grid::bc_3d(double *d){
+    int ng = nguard;
+    if( 0==bc_type) {
+        if(MPI_PROC_NULL==left)   bc_val_3d_l_(sxyz, &ng, d, &bc_val);
+        if(MPI_PROC_NULL==right)  bc_val_3d_r_(sxyz, &ng, d, &bc_val);
+    }
+    else if( 1==bc_type ){
+        if(MPI_PROC_NULL==left)   bc_ref_3d_l_(sxyz, &ng, d, &bc_val);
+        if(MPI_PROC_NULL==right)  bc_ref_3d_r_(sxyz, &ng, d, &bc_val);
+    }
+}
 /**
  * MPI_Allreduce double
  */
@@ -313,8 +411,7 @@ void Grid::allreduce(double *d, double *o, int op) {
  * file name : mytid.mysid.txt 
  */
 void Grid::output_local(double *p, bool inner_only) {
-    if(ndim == 3) { printf("3D is not finished!"); return;}
-    //if (mytid != (tsnum-1)) return;  //only output the last time slice
+    if (mytid != (tsnum-1)) return;  //only output the last time slice
 
     FILE * fp;
     char fname[21];
@@ -330,9 +427,59 @@ void Grid::output_local(double *p, bool inner_only) {
         output_var_inner(fp, buf);
         free_mem(buf);
     }else 
-        output_var_outer(fp, p);
+        output_var_outer_X(fp, p);
 
     fclose (fp);
+}
+/*
+// output from all directions
+void Grid::output_var_outer(FILE *fp, double *p) { 
+    output_var_outer_Z(fp, *p);
+    if(ndim==3) {
+        //output_var_outer_Y(fp, *p)
+        //output_var_outer_X(fp, *p)
+    }
+}
+*/
+/**
+ * 3D
+ * it is hard to express 3D data to an ASCII file, so
+ * the func outputs all cross surfaces(section) orderly from one direction.   
+ * direction: 0-X (the YZ surface), 1-Y, 2-Z
+ */
+void Grid::output_var_outer_Z(FILE* fp, double *p) {
+    int i, j, k, ind;
+    for(int k=sz-1; k>=0; k--) {
+        if( (k==nguard-1) || (k==sz-nguard-1)) fprintf(fp, "  ===========================  ===========================\n");
+        fprintf(fp, " z global index : %d \n", idz + k - nguard);
+        for(int j=sy-1; j>=0 ; j--) { 
+            if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
+            for(int i = 0; i < sx ; i++){
+                ind = getOuterIdx(i, j, k); 
+                if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
+                fprintf (fp, "  %10.5f  ", p[ind]);
+            }
+            fprintf(fp,"\n"); 
+        }
+        fprintf(fp,"\n"); 
+    }
+}
+void Grid::output_var_outer_X(FILE* fp, double *p) {
+    int i, j, k, ind;
+    for(int i=sx-1; i>=0; i--) {
+        if( (i==nguard-1) || (i==sx-nguard-1)) fprintf(fp, "  ===========================  ===========================\n");
+        fprintf(fp, " x global index : %d \n", idx + i - nguard);
+        for(int k=sz-1; k>=0 ; k--) { 
+            if( (k==nguard-1) || (k==sz-nguard-1)) fprintf(fp, "  ----------  \n");
+            for(int j = 0; j < sy ; j++){
+                ind = getOuterIdx(i, j, k); 
+                if( (j==nguard) || (j==sy-nguard)) fprintf(fp, " | ");
+                fprintf (fp, "  %10.5f  ", p[ind]);
+            }
+            fprintf(fp,"\n"); 
+        }
+        fprintf(fp,"\n"); 
+    }
 }
 
 // used for grid data without guard cells

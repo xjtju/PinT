@@ -18,7 +18,7 @@ void PinT::init(){
         dy = Yspan / Ny; 
     }
     if(ndim==3) {
-        nz = Ny / spnumz;
+        nz = Nz / spnumz;
         dz = Zspan / Nz; 
     }
 
