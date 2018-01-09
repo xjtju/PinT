@@ -1,6 +1,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!
-!! 3D boundary fix value!!
+!! 3D boundary conditon and guard cell
+!!
 
+!! X direction, X-Z surface
+!!
 subroutine bc_val_3d_l(sxyz, ng, p, val)
 implicit none
     integer :: ng, sy, sz
@@ -26,24 +29,22 @@ implicit none
     p(nx+1:nx+ng, 1:sy, 1:sz) = val 
 end subroutine bc_val_3d_r
 
-subroutine bc_ref_3d_l(sxyz, ng, p, val)
+subroutine bc_ref_3d_l(sxyz, ng, p)
 implicit none
     integer :: ng, sy, sz
     integer, dimension(3) :: sxyz
     real, dimension(1-ng:sxyz(1)-ng, 1:sxyz(2), 1:sxyz(3)) :: p
-    real :: val
 
     sy = sxyz(2) 
     sz = sxyz(3) 
     p(1-ng:0, 1:sy, 1:sz) = p(1:ng, 1:sy, 1:sz); 
 end subroutine bc_ref_3d_l
 
-subroutine bc_ref_3d_r(sxyz, ng, p, val)
+subroutine bc_ref_3d_r(sxyz, ng, p)
 implicit none
     integer :: ng, sy, sz, nx
     integer, dimension(3) :: sxyz
     real, dimension(1-ng:sxyz(1)-ng, 1:sxyz(2), 1:sxyz(3)) :: p
-    real :: val
 
     nx = sxyz(1) - 2*ng 
     sy = sxyz(2) 
@@ -51,11 +52,7 @@ implicit none
     p(nx+1:nx+ng, 1:sy, 1:sz) = p(nx-ng+1:nx, 1:sy, 1:sz)  
 end subroutine bc_ref_3d_r
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! 3D pack and unpack !!
-
-!! 3D left guard X - Y
-!! 3D's guard cell of X direction is a cuboid (ng:Y:Z) 
+!! 3D's guard cell of X direction is a cuboid (ng:Y:Z), Y-Z cross section 
 subroutine packgc_3d_l(sxyz, ng, p, gdata)
 implicit none
     integer :: ng, sy, sz 
@@ -68,7 +65,18 @@ implicit none
     gdata(1:ng, 1:sy, 1:sz) = p(1:ng, 1:sy, 1:sz)
 end subroutine packgc_3d_l
 
-!! 3D right guard
+subroutine unpackgc_3d_l(sxyz, ng, p, gdata)
+implicit none
+    integer :: ng, sy, sz 
+    integer, dimension(3) :: sxyz
+    real, dimension(1-ng:sxyz(1)-ng, 1:sxyz(2), 1:sxyz(3)) :: p
+    real, dimension(1:ng,            1:sxyz(2), 1:sxyz(3)) :: gdata
+
+    sy = sxyz(2)  
+    sz = sxyz(3) 
+    p(1-ng:0, 1:sy, 1:sz) = gdata(1:ng, 1:sy, 1:sz) 
+end subroutine unpackgc_3d_l
+
 subroutine packgc_3d_r(sxyz, ng, p, gdata)
 implicit none
     integer :: ng, sy, nx, sz
@@ -82,20 +90,6 @@ implicit none
     gdata(1:ng, 1:sy, 1:sz) = p(nx-ng+1:nx, 1:sy, 1:sz)
 end subroutine packgc_3d_r
 
-!! 3D left guard X - Y
-subroutine unpackgc_3d_l(sxyz, ng, p, gdata)
-implicit none
-    integer :: ng, sy, sz 
-    integer, dimension(3) :: sxyz
-    real, dimension(1-ng:sxyz(1)-ng, 1:sxyz(2), 1:sxyz(3)) :: p
-    real, dimension(1:ng,            1:sxyz(2), 1:sxyz(3)) :: gdata
-
-    sy = sxyz(2)  
-    sz = sxyz(3) 
-    p(1-ng:0, 1:sy, 1:sz) = gdata(1:ng, 1:sy, 1:sz) 
-end subroutine unpackgc_3d_l
-
-!! 3D right guard
 subroutine unpackgc_3d_r(sxyz, ng, p, gdata)
 implicit none
     integer :: ng, sy, sz, nx
@@ -109,60 +103,111 @@ implicit none
     p(nx+1:nx+ng, 1:sy, 1:sz) = gdata(1:ng, 1:sy, 1:sz) 
 end subroutine unpackgc_3d_r
 
+!! 
+!! Y direction, X-Z surface
+!!
 
-
-
-
-
-
-!! 2D front
-subroutine packgc_3d_f(nxyz, ng, p, gdata)
+subroutine bc_val_3d_f(sxyz, ng, p, val)
 implicit none
-    integer :: ng, sx
-    integer, dimension(3) :: nxyz
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
-    real, dimension(1:nxyz(1)+2*ng , 1:ng) :: gdata
-    
-    sx = nxyz(1)+2*ng
-    gdata(1:sx , 1:ng) = p(1-ng:sx-ng , 1:ng);
-end subroutine packgc_3d_f    
-!! 2D back
-subroutine packgc_3d_b(nxyz, ng, p, gdata)
+    integer :: ng, sx, sz
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real :: val
+
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, 1-ng:0, 1:sz) = val 
+end subroutine bc_val_3d_f
+
+subroutine bc_val_3d_b(sxyz, ng, p, val)
 implicit none
-    integer :: ng, sx, ny
-    integer, dimension(3) :: nxyz
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
-    real, dimension(1:ng, 1:nxyz(2)+2*ng ) :: gdata
+    integer :: ng, sx, sz, ny
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real :: val
 
-    sx = nxyz(1)+2*ng
-    ny = nxyz(2)
-    gdata(1:sx , 1:ng) = p(1-ng:sx-ng , ny-ng+1:ny);
-end subroutine packgc_3d_b    
+    ny = sxyz(2) - 2*ng
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, ny+1:ny+ng, 1:sz) = val 
+end subroutine bc_val_3d_b
 
-!! 2D front
-subroutine unpackgc_3d_f(nxyz, ng, p, gdata)
+subroutine bc_ref_3d_f(sxyz, ng, p)
 implicit none
-    integer :: ng, sx
-    integer, dimension(3) :: nxyz
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
-    real, dimension(1:nxyz(1)+2*ng , 1:ng) :: gdata
-    
-    sx = nxyz(1)+2*ng
-    p(1-ng:sx-ng , 1-ng:0) = gdata(1:sx , 1:ng) 
-end subroutine unpackgc_3d_f    
+    integer :: ng, sx, sz
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real :: val
 
-!! 2D back
-subroutine unpackgc_3d_b(nxyz, ng, p, gdata)
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, 1-ng:0, 1:sz) = p(1:sx, 1:ng, 1:sz) 
+end subroutine bc_ref_3d_f
+
+subroutine bc_ref_3d_b(sxyz, ng, p)
 implicit none
-    integer :: ng, sx, ny
-    integer, dimension(3) :: nxyz
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
-    real, dimension(1:ng, 1:nxyz(2)+2*ng ) :: gdata
+    integer :: ng, sx, sz, ny
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real :: val
 
-    sx = nxyz(1)+2*ng
-    ny = nxyz(2)
-    p(1-ng:sx-ng , ny+1:ny+ng) = gdata(1:sx , 1:ng) 
-end subroutine unpackgc_3d_b    
+    ny = sxyz(2) - 2*ng
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, ny+1:ny+ng, 1:sz) = p(1:sx, ny-ng+1:ny, 1:sz) 
+end subroutine bc_ref_3d_b
+
+subroutine packgc_3d_f(sxyz, ng, p, gdata)
+implicit none
+    integer :: ng, sx, sz  
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real, dimension(1:sxyz(1), 1:ng,            1:sxyz(3)) :: gdata
+
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    gdata(1:sx, 1:ng, 1:sz) = p(1:sx, 1:ng, 1:sz)
+end subroutine packgc_3d_f
+
+subroutine unpackgc_3d_b(sxyz, ng, p, gdata)
+implicit none
+    integer :: ng, sx, sz, ny 
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real, dimension(1:sxyz(1), 1:ng,            1:sxyz(3)) :: gdata
+
+    ny = sxyz(2) - 2*ng
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, ny+1:ny+ng, 1:sz) = gdata(1:sx, 1:ng, 1:sz) 
+end subroutine unpackgc_3d_b
+
+subroutine packgc_3d_b(sxyz, ng, p, gdata)
+implicit none
+    integer :: ng, sx, sz, ny 
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real, dimension(1:sxyz(1), 1:ng,            1:sxyz(3)) :: gdata
+
+    ny = sxyz(2) - 2*ng
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    gdata(1:sx, 1:ng, 1:sz) = p(1:sx, ny-ng+1::ny, 1:sz)
+end subroutine packgc_3d_b
+
+subroutine unpackgc_3d_f(sxyz, ng, p, gdata)
+implicit none
+    integer :: ng, sx, sz  
+    integer, dimension(3) :: sxyz
+    real, dimension(1:sxyz(1), 1-ng:sxyz(2)-ng, 1:sxyz(3)) :: p
+    real, dimension(1:sxyz(1), 1:ng,            1:sxyz(3)) :: gdata
+
+    sx = sxyz(1) 
+    sz = sxyz(3) 
+    p(1:sx, 1-ng:0, 1:sz) = gdata(1:sx, 1:ng, 1:sz) 
+end subroutine unpackgc_3d_f
+
+
 
 !! pull out the inner data of one grid
 subroutine pack_3d(nxyz, ng, p, gdata)

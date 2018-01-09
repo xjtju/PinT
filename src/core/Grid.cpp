@@ -263,16 +263,14 @@ void Grid::guardcell_3d(double* d) {
    MPI_Status stat;
    int sg;
  
-   // X: left - right : sy * nguard  
+   // X: left - right : Y-Z surface  
    sg = this->gcsx; 
    if(MPI_PROC_NULL!=right)  // not right border
        packgc_3d_r_(sxyz, &nguard, d, gcell_sendx);
    MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, right,  8008, 
                 gcell_recvx, sg, MPI_DOUBLE, left, 8008, st_comm, &stat);
    if(MPI_PROC_NULL!=left)  // not left border
-   {
        unpackgc_3d_l_(sxyz,&nguard,d,gcell_recvx);
-   }
     
    if(MPI_PROC_NULL!=left)  // not left border
        packgc_3d_l_(sxyz, &nguard, d, gcell_sendx);
@@ -281,23 +279,24 @@ void Grid::guardcell_3d(double* d) {
    if(MPI_PROC_NULL!=right)  // not right border
        unpackgc_3d_r_(sxyz, &nguard, d, gcell_recvx);
 
-   /*
-   // Y: front - back  
+   
+   // Y: front - back : X-Z surface 
    sg = this->gcsy;
    if(MPI_PROC_NULL!=back)  
-       packgc_3d_b_(nxyz, &nguard, d, gcell_sendy);
+       packgc_3d_b_(sxyz, &nguard, d, gcell_sendy);
    MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, back,  6006, 
                 gcell_recvy, sg, MPI_DOUBLE, front, 6006, st_comm, &stat);
    if(MPI_PROC_NULL!=front)  
-       unpackgc_3d_f_(nxyz,&nguard,d,gcell_recvy);
+       unpackgc_3d_f_(sxyz,&nguard,d,gcell_recvy);
     
    if(MPI_PROC_NULL!=front)  
-       packgc_3d_f_(nxyz, &nguard, d, gcell_sendy);
+       packgc_3d_f_(sxyz, &nguard, d, gcell_sendy);
    MPI_Sendrecv(gcell_sendy, sg, MPI_DOUBLE, front, 7007, 
                 gcell_recvy, sg, MPI_DOUBLE, back,  7007, st_comm, &stat);
    if(MPI_PROC_NULL!=back)  
-       unpackgc_3d_b_(nxyz, &nguard, d, gcell_recvy);
-    
+       unpackgc_3d_b_(sxyz, &nguard, d, gcell_recvy);
+
+  /*  
    // Z: down - up 
    
    sg = this->gcsz;
@@ -377,15 +376,21 @@ void Grid::bc_2d(double* d) {
        if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
 }
+
 void Grid::bc_3d(double *d){
     int ng = nguard;
     if( 0==bc_type) {
         if(MPI_PROC_NULL==left)   bc_val_3d_l_(sxyz, &ng, d, &bc_val);
         if(MPI_PROC_NULL==right)  bc_val_3d_r_(sxyz, &ng, d, &bc_val);
+        if(MPI_PROC_NULL==front)  bc_val_3d_f_(sxyz, &ng, d, &bc_val);
+        if(MPI_PROC_NULL==back)   bc_val_3d_b_(sxyz, &ng, d, &bc_val);
     }
     else if( 1==bc_type ){
-        if(MPI_PROC_NULL==left)   bc_ref_3d_l_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==right)  bc_ref_3d_r_(sxyz, &ng, d, &bc_val);
+        if(MPI_PROC_NULL==left)   bc_ref_3d_l_(sxyz, &ng, d);
+        if(MPI_PROC_NULL==right)  bc_ref_3d_r_(sxyz, &ng, d);
+        if(MPI_PROC_NULL==front)  bc_ref_3d_f_(sxyz, &ng, d);
+        if(MPI_PROC_NULL==back)   bc_ref_3d_b_(sxyz, &ng, d);
+        
     }
 }
 /**
@@ -426,21 +431,12 @@ void Grid::output_local(double *p, bool inner_only) {
         pack_data(p, buf);  // get rid of the guard cell
         output_var_inner(fp, buf);
         free_mem(buf);
-    }else 
-        output_var_outer_X(fp, p);
+    }else { 
+        output_var_outer_Y(fp, p);
+    }
 
     fclose (fp);
 }
-/*
-// output from all directions
-void Grid::output_var_outer(FILE *fp, double *p) { 
-    output_var_outer_Z(fp, *p);
-    if(ndim==3) {
-        //output_var_outer_Y(fp, *p)
-        //output_var_outer_X(fp, *p)
-    }
-}
-*/
 /**
  * 3D
  * it is hard to express 3D data to an ASCII file, so
@@ -448,7 +444,7 @@ void Grid::output_var_outer(FILE *fp, double *p) {
  * direction: 0-X (the YZ surface), 1-Y, 2-Z
  */
 void Grid::output_var_outer_Z(FILE* fp, double *p) {
-    int i, j, k, ind;
+    int ind;
     for(int k=sz-1; k>=0; k--) {
         if( (k==nguard-1) || (k==sz-nguard-1)) fprintf(fp, "  ===========================  ===========================\n");
         fprintf(fp, " z global index : %d \n", idz + k - nguard);
@@ -464,8 +460,25 @@ void Grid::output_var_outer_Z(FILE* fp, double *p) {
         fprintf(fp,"\n"); 
     }
 }
+void Grid::output_var_outer_Y(FILE* fp, double *p) {
+    int ind;
+    for(int j=sy-1; j>=0; j--) {
+        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ===========================  ===========================\n");
+        fprintf(fp, " y global index : %d \n", idy + j - nguard);
+        for(int k=sz-1; k>=0 ; k--) { 
+            if( (k==nguard-1) || (k==sz-nguard-1)) fprintf(fp, "  ----------  \n");
+            for(int i = 0; i < sx ; i++){
+                ind = getOuterIdx(i, j, k); 
+                if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
+                fprintf (fp, "  %10.5f  ", p[ind]);
+            }
+            fprintf(fp,"\n"); 
+        }
+        fprintf(fp,"\n"); 
+    }
+}
 void Grid::output_var_outer_X(FILE* fp, double *p) {
-    int i, j, k, ind;
+    int ind;
     for(int i=sx-1; i>=0; i--) {
         if( (i==nguard-1) || (i==sx-nguard-1)) fprintf(fp, "  ===========================  ===========================\n");
         fprintf(fp, " x global index : %d \n", idx + i - nguard);

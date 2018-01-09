@@ -182,8 +182,10 @@ public:
     // the caller must be responsible to judge whether the data is with or without border 
     // and choose the proper output function.   
     void output_var_inner(FILE *fp, double *data); 
+    // output outer mainly used for debug
     void output_var_outer(FILE *fp, double *data); 
     void output_var_outer_X(FILE *fp, double *data); 
+    void output_var_outer_Y(FILE *fp, double *data); 
     void output_var_outer_Z(FILE *fp, double *data); 
 
     //the wrapper of output_var_*, writing the local variables into debug file only for the last time slice 
