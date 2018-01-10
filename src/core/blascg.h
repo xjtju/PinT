@@ -26,6 +26,10 @@ extern "C" {
     // 
     // 3D
     //
+    void blas_avpy_3d_( int *nxyz, int *ng, double *alpha, double *s, double *r, double *v);
+    void cg_xi_3d_( int *nxyz, int *ng, double *x, double *y, double *z, double *alpha, double *omega);
+    void cg_direct_3d_( int *nxyz, int *ng, double* p, double* r, double* v, double* beta, double* omega);
+
 }
 #endif
 

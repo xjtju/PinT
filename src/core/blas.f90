@@ -49,6 +49,26 @@ implicit none
     end do
 end subroutine blas_dot_2d
 
+subroutine blas_dot_3d(nxyz, ng, t, s, val)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: s, t
+    real :: val
+
+    val = 0.0
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+      val = val + t(i,j,k)*s(i,j,k)
+    end do
+    end do
+    end do
+end subroutine blas_dot_3d
+
 subroutine blas_vdist_1d(nxyz, ng, d, s, val)
 implicit none
     integer, dimension(3) :: nxyz 
@@ -84,6 +104,27 @@ implicit none
     val = sqrt(val)
 end subroutine blas_vdist_2d
 
+subroutine blas_vdist_3d(nxyz, ng, d, s, val)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: d, s
+    real :: d2, val
+
+    val = 0.0
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+      d2 = d(i,j,k) - s(i,j,k) 
+      val = val + d2*d2 
+    end do
+    end do
+    end do
+    val = sqrt(val)
+end subroutine blas_vdist_3d
 
 !! PinT F = G + F - G  
 subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, res, sml)
@@ -133,3 +174,32 @@ implicit none
         res = 0.0
     end if
 end subroutine blas_pint_sum_2d
+
+
+subroutine blas_pint_sum_3d(nxyz, ng, u, f, g, g_, res, sml)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: u, f, g, g_ 
+    real :: res, sml, tmp1, tmp2 
+
+    tmp1 = 0.0
+    tmp2 = 0.0
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        tmp1 = f(i,j,k) + ( g(i,j,k) - g_(i,j,k) )
+        tmp2 = u(i,j,k) -tmp1
+        res = res + tmp2*tmp2
+        u(i,j,k) = tmp1
+    end do
+    end do
+    end do
+    if( res < sml ) then 
+        res = 0.0
+    end if
+end subroutine blas_pint_sum_3d

@@ -58,15 +58,14 @@ void HeatGrid::init3d(){
        // get distance from the center of the whole geographical domain
        xdist = this->getX(i) -  conf->Xspan/2 ; 
        ydist = this->getY(j) -  conf->Yspan/2 ;
-       zdist = this->getZ(j) -  conf->Zspan/2 ;
+       zdist = this->getZ(k) -  conf->Zspan/2 ;
 
        ind = this->getOuterIdx(i, j, k);  // get the index including the guard cell 
-       /* 
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
+        
+       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 && abs(zdist)<=0.2 )
            unk = 100.0; 
        else unk = 0.0; 
-       */ 
-       unk = cos(ind+this->idz);
+        
        // set the variables used by Parareal method 
        u_f[ind] = unk;      // for fine solver  
        u_c[ind] = unk;      // for coarse solver  

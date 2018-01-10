@@ -61,7 +61,7 @@ class Driver {
         switch(grid->ndim) {
             case 1: blas_pint_sum_1d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
             case 2: blas_pint_sum_2d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
-            case 3: printf("ERROR: 3D is not finished"); break;
+            case 3: blas_pint_sum_3d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
         }
     }
     
@@ -72,7 +72,7 @@ class Driver {
         switch(g->ndim) {
             case 1: blas_vdist_1d_(g->nxyz, &g->nguard, d, s, val); break;
             case 2: blas_vdist_2d_(g->nxyz, &g->nguard, d, s, val); break;
-            case 3: printf("ERROR: 3D is not finished"); break;
+            case 3: blas_vdist_3d_(g->nxyz, &g->nguard, d, s, val); break;
         }
     }
 

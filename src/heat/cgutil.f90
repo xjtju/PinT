@@ -45,7 +45,6 @@ implicit none
         r(i,j) = b(i,j) - ss
     end do
     end do
-    
 end subroutine cg_rk2d
 
 
@@ -71,6 +70,99 @@ implicit none
     end do
 end subroutine cg_Xv2d
 
+
+!!
+!! 3D
+!!
+!! RHS
+subroutine cg_b3d(nxyz, lamdaxyz, ng, x, b)
+implicit none
+    integer, dimension(3) :: nxyz 
+    real,  dimension(3) :: lamdaxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: x, b 
+    real :: lamdax, lamday, lamdaz 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        b(i, j, k) = lamdax/2 * ( x(i+1, j,   k)   + x(i-1, j,   k   ) ) & 
+                   + lamday/2 * ( x(i,   j+1, k)   + x(i,   j-1, k   ) ) &  
+                   + lamdaz/2 * ( x(i,   j,   k+1) + x(i,   j,   k-1 ) ) &  
+                + (1 - lamdax - lamday - lamdaz) * x(i, j, k) 
+    end do
+    end do
+    end do
+end subroutine cg_b3d
+
+
+!! PBiCG : r = b - Ax
+!! nxyz : {nx, ny, nz}; lamdaxyz : {lamdax, lamday, lamdaz}
+subroutine cg_rk3d(nxyz, lamdaxyz, ng, r, x, b)
+implicit none
+    integer, dimension(3) :: nxyz 
+    real,  dimension(3) :: lamdaxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: r, x, b 
+    real :: lamdax, lamday, lamdaz, ss 
+    
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        ss = -lamdax/2*( x(i+1, j,   k)   + x(i-1, j,   k  )) &
+            - lamday/2*( x(i,   j+1, k)   + x(i,   j-1, k  )) &
+            - lamdaz/2*( x(i,   j,   k+1) + x(i,   j,   k-1)) &
+            + (1 + lamdax + lamday + lamdaz) * x(i,j,k) 
+        r(i,j,k) = b(i,j,k) - ss
+    end do
+    end do
+    end do
+end subroutine cg_rk3d
+
+
+!! matrix * vector, v = A*y, A stencil 
+subroutine cg_xv3d(nxyz, lamdaxyz, ng, v, y)
+implicit none
+    integer, dimension(3) :: nxyz 
+    real,  dimension(3) :: lamdaxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: v, y 
+    real :: lamdax, lamday, lamdaz  
+    
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+    v(i,j,k) = - lamdax/2*( y(i+1, j,   k)   + y(i-1, j,   k  )) &
+               - lamday/2*( y(i,   j+1, k)   + y(i,   j-1, k  )) &
+               - lamdaz/2*( y(i,   j,   k+1) + y(i,   j,   k-1)) &
+               + (1 + lamdax + lamday + lamdaz) * y(i,j,k) 
+    end do
+    end do
+    end do
+end subroutine cg_xv3d
+
+
+
+!! SOR
+!!
 !! Ax=b
 subroutine sor2_core_2d(nxyz, lamdaxyz, ng, x, b, color, omg)
 implicit none
@@ -89,7 +181,7 @@ implicit none
     do j=1, jy
     do i=1+mod(j+color,2), ix, 2
         ss =  - lamdax/2*( x(i+1, j  ) + x(i-1, j  ) ) &
-             - lamday/2*( x(i  , j+1) + x(i  , j-1) ) 
+              - lamday/2*( x(i  , j+1) + x(i  , j-1) ) 
         dx = ( (b(i,j) - ss)/dd - x(i,j) ) * omg
         x(i,j) = x(i,j) + dx
     end do

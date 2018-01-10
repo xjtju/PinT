@@ -29,12 +29,15 @@ public:
     
     void cg_rk1d(double *r, double *x, double *b);
     void cg_rk2d(double *r, double *x, double *b);
+    void cg_rk3d(double *r, double *x, double *b);
 
     void cg_Xv1d(double *v, double *y); 	
     void cg_Xv2d(double *v, double *y); 	
+    void cg_Xv3d(double *v, double *y); 	
 
     void cg_b1d(double *x);
     void cg_b2d(double *x);
+    void cg_b3d(double *x);
 
     inline void sor2_core_1d(double *p_, double *p, int *color){
          sor2_core_1d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;

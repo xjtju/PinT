@@ -5,9 +5,9 @@
 #include "Grid.h"
 
 // the Output is eventually indepent out of Grid since the 2018 new year  
-// because the output task become more heavy
+// because the output task become more and more heavier.
 //
-// the class is not well designed in the current version, only used for debug when the data is very small
+// WARN : the class is not well designed in the current version, only used for debug when the data is very small
 //
 // NOTE : the caller must be responsible to judge whether the data is with or without border 
 // and choose the proper output function.   
@@ -20,6 +20,11 @@ private:
     int nx, ny, nz;
     int nguard;
     int idx, idy, idz;
+
+    int idz_; // other grid's idz
+    int idy_;
+    int idx_;
+    int spnumz;
 
 public:
 
@@ -37,14 +42,26 @@ public:
         idx = g->idx;
         idy = g->idy;
         idz = g->idz;
+        idx_ = idx;
+        idy_ = idy;
+        idz_ = idz;
 
         nguard = g->nguard;
+
+        spnumz = g->spnumz;
     }
 
     inline void coord(FILE *fp, int *cds) {
-        fprintf(fp, "[ %d ", cds[0]); 
-        if(ndim>=2) fprintf(fp, ", %d ", cds[1]); 
-        if(ndim>=3) fprintf(fp, ", %d ", cds[2]); 
+        fprintf(fp, "grid coords : [ %d ", cds[0]); 
+        idx_=cds[0]*nx;
+        if(ndim>=2){
+            fprintf(fp, ", %d ", cds[1]); 
+            idy_=cds[1]*ny;
+        }
+        if(ndim>=3) { 
+            fprintf(fp, ", %d ", cds[2]);
+            idz_=cds[2]*nz;
+        } 
         fprintf(fp, "]\n"); 
     }
 
@@ -54,8 +71,9 @@ public:
     // the result is not important at current stage, so formal result output function is not yet provided,
     // such as HDF5 format output etc.  
    
-    // in the current version, the global idz is not supported, 
+    // in the current version, the global idz is not well supported, 
     // in order to avoid confusing, when outputing the global data, it is better to set withIdz=false
+    // if set the withIdz=true, make sure to call output.coord() first to set the global z index correctly
     void var_inner_Z(FILE *fp, double *p, bool withIdz);  
 
     // output outer mainly used for debug

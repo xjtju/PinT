@@ -20,11 +20,8 @@ int main(int argc, char* argv[]) {
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
-    g->guardcell(g->u_end);
-    g->bc(g->u_end);
-    g->output_global();
-
-    driver.Abort("高次元テスト3D HEAT:%d\n", 1); // DEBUG
+    
+    //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
 
     Solver *F = new HeatSolverF(conf,g);   // fine solver 
     Solver *G = new HeatSolverC(conf,g);   // coarse solver

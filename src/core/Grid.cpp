@@ -443,6 +443,7 @@ void Grid::output_local(double *p, bool inner_only) {
     fclose (fp);
 }
 
+// file name : mytid.all.txt 
 void Grid::output_global(){
     if (mytid != (tsnum-1)) return;  //only output the last time slice
     
@@ -482,12 +483,12 @@ void Grid::output_global(){
 
         MPI_Cart_coords(st_comm, source, ndim, coords_);
         out.coord(fp, coords_);
-        out.var_inner_Z(fp,sendrecv_buf, false);
+        out.var_inner_Z(fp,sendrecv_buf, true);
     }
     // output itself 
     pack_data(u_end, sendrecv_buf); // get rid of guard cell
     out.coord(fp, coords);
-    out.var_inner_Z(fp,sendrecv_buf,false);
+    out.var_inner_Z(fp,sendrecv_buf,true);
 
     fclose(fp);
 

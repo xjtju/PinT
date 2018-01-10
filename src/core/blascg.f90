@@ -101,3 +101,65 @@ implicit none
     end do
 end subroutine cg_direct_2d
 
+!! s = r - alpha*v or  s = -alpha*v + r  
+!! r = s - omega*t 
+subroutine blas_avpy_3d(nxyz, ng, alpha, s, r, v)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz 
+    real :: alpha
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: s, r, v 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+      s(i,j,k) = r(i,j,k) - alpha*v(i,j,k)
+    end do
+    end do
+    end do
+end subroutine blas_avpy_3d
+
+!! x = x + alpha*y + omega*z  
+subroutine cg_xi_3d(nxyz, ng, x,  y, z, alpha, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real :: alpha, omega 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: x, y, z 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+      x(i,j,k) = x(i,j,k) + alpha*y(i,j,k) + omega*z(i,j,k) 
+    end do
+    end do
+    end do
+end subroutine cg_xi_3d
+
+
+!!p = r + beta * ( p - omg * v )
+subroutine cg_direct_3d(nxyz, ng, p, r, v, beta, omega)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, i, j, k, ix, jy, kz
+    real :: beta, omega 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: p, r, v 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+      p(i,j,k) = r(i,j,k) + beta * ( p(i,j,k) - omega*v(i,j,k) )
+    end do
+    end do
+    end do
+end subroutine cg_direct_3d
