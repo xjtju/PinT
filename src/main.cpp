@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     g->init();
     g->guardcell(g->u_end);
     g->bc(g->u_end);
-    g->output_local(g->u_end, false);
+    g->output_global();
 
     driver.Abort("高次元テスト3D HEAT:%d\n", 1); // DEBUG
 

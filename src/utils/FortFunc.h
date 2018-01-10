@@ -47,7 +47,8 @@ extern "C" {
 
     // 
     // 3D : 6 directions. left<->right; front<->back; down<->up 
-    
+    // NOTE : sxyz (outer size) is used, not the nxyz (inner size) 
+    //
     // left right : X
     void packgc_3d_l_(int* sxyz, int *ng, double* p, double* gdata);
     void packgc_3d_r_(int* sxyz, int *ng, double* p, double* gdata);
@@ -90,6 +91,8 @@ extern "C" {
     void pack_1d_(int* nxyz, int *ng, double* p, double* gdata);
 
     void pack_2d_(int* nxyz, int *ng, double* p, double* gdata);
+
+    void pack_3d_(int* nxyz, int *ng, double* p, double* gdata);
 }
 #endif
 

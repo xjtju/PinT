@@ -314,12 +314,13 @@ end subroutine unpackgc_3d_u
 !! pull out the inner data of one grid
 subroutine pack_3d(nxyz, ng, p, gdata)
 implicit none
-    integer :: ng, nx, ny
+    integer :: ng, nx, ny, nz
     integer, dimension(3) :: nxyz
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: p
-    real, dimension(1:nxyz(1), 1:nxyz(2)) :: gdata
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: p
+    real, dimension( 1:nxyz(1), 1:nxyz(2), 1:nxyz(3) ) :: gdata 
 
     nx = nxyz(1)
     ny = nxyz(2)
-    gdata(1:nx , 1:ny) = p(1:nx , 1:ny);
+    nz = nxyz(3)
+    gdata(1:nx, 1:ny, 1:nz) = p(1:nx, 1:ny, 1:nz)
 end subroutine pack_3d    

@@ -144,12 +144,20 @@ public:
     }
 
     // get the linear index of the 1-2-3D index, the set of functions are not frequently used.
-    inline long getInnerIdx(int ix, int iy, int iz){
+    // if the ndim<3, the extra parameters will be ignored 
+    // ix, iy, iz is the outer coords
+    inline long getInnerIdxO(int ix, int iy, int iz){
         if(ndim==3) return ny*nx*(iz-nguard)+nx*(iy-nguard)+(ix-nguard);
         else if(ndim==2) return nx*(iy-nguard)+(ix-nguard);
         else return ix-nguard;
     }
-
+    // ix, iy, iz is the inner coords
+    inline long getInnerIdxI(int ix, int iy, int iz){
+        if(ndim==3) return ny*nx*iz + nx*iy + ix;
+        else if(ndim==2) return nx*iy + ix;
+        else return ix;
+    }
+    // ix, iy, iz is the outer coords
     inline long getOuterIdx(int ix, int iy, int iz){
         if(ndim==3) return sy*sx*iz + sx*iy + ix;
         else if(ndim==2) return sx*iy + ix;
@@ -161,7 +169,7 @@ public:
         switch(ndim) {
           case 1: pack_1d_(nxyz, &nguard, p, buf); break;
           case 2: pack_2d_(nxyz, &nguard, p, buf); break;
-          case 3: printf("3D is not finished\n");  break;
+          case 3: pack_3d_(nxyz, &nguard, p, buf); break; 
         }
     }
 
@@ -170,36 +178,15 @@ public:
     void sp_allreduce(double *d, double *o); //d is input, o is output
     // time-space domain
     void allreduce(double *d, double *o, int op);
-
     
-    // result output and debug 
-    // NOTE : 
-    // because the framework is mainly used for PinT performance testing,
-    // the result is not important at current stage, so formal result output function is not yet provided,
-    // such as HDF5 format output etc.  
-
     // the basic output function, write grid local variable for debug, 
-    // the caller must be responsible to judge whether the data is with or without border 
-    // and choose the proper output function.   
-    void output_var_inner(FILE *fp, double *data); 
-    // output outer mainly used for debug
-    void output_var_outer(FILE *fp, double *data); 
-    void output_var_outer_X(FILE *fp, double *data); 
-    void output_var_outer_Y(FILE *fp, double *data); 
-    void output_var_outer_Z(FILE *fp, double *data); 
-
-    //the wrapper of output_var_*, writing the local variables into debug file only for the last time slice 
+    // the wrapper of Output.var_..._Z, writing the local variables into debug file only for the last time slice  
+    // only for X-Y cross sections, if for X-Z or Y-Z cross sections, turn to the Output class  
     void output_local(double *data, bool inner_only);
 
     // aggregate all the final results from all the grids within the same space domain and output 
+    // only for X-Y cross sections along the Z direction   
     void output_global();
-
-    inline void printf_coord(FILE *fp, int *cds) {
-        fprintf(fp, "[ %d ", cds[0]); 
-        if(ndim>=2) fprintf(fp, ", %d ", cds[1]); 
-        if(ndim>=3) fprintf(fp, ", %d ", cds[2]); 
-        fprintf(fp, "]\n"); 
-    }
 
 };
 #endif

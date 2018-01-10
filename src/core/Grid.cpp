@@ -421,6 +421,8 @@ void Grid::allreduce(double *d, double *o, int op) {
 void Grid::output_local(double *p, bool inner_only) {
     if (mytid != (tsnum-1)) return;  //only output the last time slice
 
+    Output out = Output(this);
+
     FILE * fp;
     char fname[21];
     int ind = 0;   
@@ -432,46 +434,13 @@ void Grid::output_local(double *p, bool inner_only) {
     if(inner_only){
         buf = alloc_mem(this->inner_size); 
         pack_data(p, buf);  // get rid of the guard cell
-        output_var_inner(fp, buf);
+        out.var_inner_Z(fp, buf, true);
         free_mem(buf);
     }else { 
-        Output o = Output(this);
-        o.var_outer_Z(fp, p);
+        out.var_outer_Z(fp, p);
     }
 
     fclose (fp);
-}
-
-// used for grid data without guard cells
-void Grid::output_var_inner(FILE* fp, double *p) {
-    int i,j, ind;
-    if(ndim == 3) { printf("3D is not finished!"); return; }
-
-    for(int j=ny-1; j>=0 ; j--) { 
-        for(int i = 0; i < nx ; i++){
-            ind = j*nx + i;
-            fprintf (fp,"  %10.5f  ", p[ind]);
-        }
-        fprintf(fp, "\n");
-    }
-    fprintf(fp,"\n\n");
-}
-
-// used for grid data with guard cells
-void Grid::output_var_outer(FILE* fp, double *p) {
-    int i, j, ind;
-    if(ndim == 3) { printf("3D is not finished!"); return; }
-
-    for(int j=sy-1; j>=0 ; j--) { 
-        if( (j==nguard-1) || (j==sy-nguard-1)) fprintf(fp, "  ----------  \n");
-        for(int i = 0; i < sx ; i++){
-            ind = j*sx + i;
-            if( (i==nguard) || (i==sx-nguard)) fprintf(fp, " | ");
-            fprintf (fp, "  %10.5f  ", p[ind]);
-        }
-        fprintf(fp,"\n"); 
-    }
-    fprintf(fp,"\n"); 
 }
 
 void Grid::output_global(){
@@ -501,6 +470,7 @@ void Grid::output_global(){
     // the output task is left to the last space grid 
     sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
     fp = fopen (fname,"w");
+    Output out = Output(this);
     for(int k=0; k<spnumz; k++)
     for(int j=0; j<spnumy; j++)
     for(int i=0; i<spnumx; i++) {
@@ -511,13 +481,13 @@ void Grid::output_global(){
         MPI_Wait(&req_p, &sta_p);
 
         MPI_Cart_coords(st_comm, source, ndim, coords_);
-        printf_coord(fp, coords_);
-        output_var_inner(fp,sendrecv_buf);
+        out.coord(fp, coords_);
+        out.var_inner_Z(fp,sendrecv_buf, false);
     }
     // output itself 
-    printf_coord(fp, coords);
     pack_data(u_end, sendrecv_buf); // get rid of guard cell
-    output_var_inner(fp,sendrecv_buf);
+    out.coord(fp, coords);
+    out.var_inner_Z(fp,sendrecv_buf,false);
 
     fclose(fp);
 

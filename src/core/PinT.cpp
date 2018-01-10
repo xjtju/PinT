@@ -11,7 +11,9 @@ void PinT::init(){
 
     nx = Nx / spnumx;
     dx = Xspan / Nx; 
-    
+
+    ny = 1;
+    nz = 1;
 
     if(ndim>=2) { 
         ny = Ny / spnumy;
@@ -39,7 +41,9 @@ bool PinT::check(){
         fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
     }
 
-    if( spnum != (spnumx*spnumy*spnumz) ) {
+    if( ( (ndim==1) && (spnum!=spnumx) ) || 
+        ( (ndim==2) && (spnum!=spnumx*spnumy) ) ||
+        ( (ndim==3) && (spnum!=spnumx*spnumy*spnumz) ) ) {
         flag = false;
         fprintf(stderr, "ERROR : (the space num) should be equal with value multiplied from all directions.\n");
     }

@@ -18,13 +18,11 @@ void Driver::init(int argc, char* argv[]){
     conf = PinT::instance();
 
     INFO("Initialization file is  %s \n", ini_file);
-
-    if (ini_parse(ini_file, handler, conf) < 0) {
-        Abort("Can't load ini file : %s .\n", ini_file);
-    } else {
+    int parse_ret = ini_parse(ini_file, handler, conf);  
+    if (parse_ret >= 0) {
         conf->init();
         if(myid==0) conf->print();
-    }
+    } else Abort("Can't load ini file or ini error : %s .\n", ini_file);
 
     conf->numprocs = numprocs;
     spnum = conf->spnum;
