@@ -10,7 +10,7 @@ The framework has implemented the **Parareal algorithm skeleton** in an uniform 
 
 The framework is mainly written by C++ for good template and extension, most BLAS related calculations is performed by Fortran for performance reason and easy matrix manipulation. It is very light-weight, the only third library it used is [inih](https://github.com/benhoyt/inih), a small but excellent .INI file parser. 
 
-At the current stage, all the 1D / 2D / 3D can be automatically supported, we use the [PMlib](https://github.com/avr-aics-riken/PMlib) as the performance moniter, but PMlib will not be activated until the compile option -D _PMLIB_ is used.
+At the current stage, all the 1D / 2D / 3D can be automatically supported, we use the [PMlib](https://github.com/avr-aics-riken/PMlib) as the performance moniter, but PMlib will not be activated until the compile option ```-D _PMLIB_``` is used.
 
 ## Design and implementation 
 
