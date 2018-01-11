@@ -1,7 +1,9 @@
 #!/bin/bash
 
 TARGET = pfm_alpha.exe
-INCLUDES= -Isrc/core -Isrc/utils -Isrc/heat
+
+PMLIB_HOME = /Users/bamboo/Libs/PMlib
+INCLUDES= -Isrc/include -Isrc/heat -I${PMLIB_HOME}/include
 
 .FUFFIXES: .o .cpp .c .f90
 
@@ -11,6 +13,7 @@ FSRC = $(wildcard src/core/*.f90)  \
 
 CSRC = $(wildcard src/core/*.cpp) \
 	   $(wildcard src/heat/*.cpp) \
+	   $(wildcard src/utils/*.cpp) \
 	   $(wildcard src/*.cpp) 
 CSRC2 = $(wildcard src/utils/*.c) 
 
@@ -23,10 +26,11 @@ OBJS  = $(FOBJS) $(COBJS)
 
 CXX=mpic++
 FC=mpif90
-OPTFLAGS= -O2 
+OPTFLAGS= -O2   
+#OPTFLAGS= -fopenmp -O2 -D_PMLib_  
 CXXFLAGS= $(OPTFLAGS) $(INCLUDES)
 FFLAGS  = $(OPTFLAGS) $(INCLUDES) -fdefault-real-8 -fdefault-double-8
-LDFLAGS=
+LDFLAGS = -L${PMLIB_HOME}/lib -lPMmpi
 
 RM = rm
 

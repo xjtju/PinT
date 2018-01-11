@@ -4,6 +4,7 @@
 #include "common.h"
 #include "FortFunc.h"
 #include "PinT.h"
+#include "Monitor.h"
 
 /**
  * in current, the class is only for holding the physical variables used by PinT.
@@ -19,6 +20,8 @@
  */
 
 class Grid {
+ private:
+    Monitor monitor;
 
 public:
     PinT *conf;

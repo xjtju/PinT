@@ -15,3 +15,5 @@ double* alloc_mem(size_t size){
 void free_mem(double *u){
     delete u;
 }
+
+

@@ -1,3 +1,4 @@
+#include "Monitor.h"
 #include "Driver.h"
 #include "HeatGrid.h"
 #include "HeatSolverF.h"
@@ -5,8 +6,14 @@
 /**
  * the example program for employing parareal method (PinT) to solve real problem based on the framework.
  *
- * NOTE : the ini configuration file as the first command line parameter, 
- * default configuration file is "pint.ini", under the same directory with the executable file. 
+ * NOTE : 
+ *
+ * (1). the ini configuration file is as the 1st command line parameter, 
+ * default configuration file is "pint.ini", under the same directory with the executable file.
+ *
+ * (2). if using profiling, the profiling output file is as the 2nd command line parameter, 
+ * default profiling file is [monitor_pre].000.000.txt
+ *
  */
 int main(int argc, char* argv[]) {
     
@@ -20,7 +27,7 @@ int main(int argc, char* argv[]) {
     // create the grid/mesh and solver 
     Grid *g = new HeatGrid(conf);
     g->init();
-    
+
     //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
 
     Solver *F = new HeatSolverF(conf,g);   // fine solver 

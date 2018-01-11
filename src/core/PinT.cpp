@@ -24,6 +24,10 @@ void PinT::init(){
         dz = Zspan / Nz; 
     }
 
+    if(ndim==1) spnum = spnumx;
+    else if(ndim==2) spnum = spnumx*spnumy;
+    else if(ndim==3) spnum = spnumx*spnumy*spnumz;
+
     kpar_limit = tsnum;
 }
 
@@ -39,13 +43,6 @@ bool PinT::check(){
     if(tsnum != (numprocs/spnum)) {
         flag = false;
         fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
-    }
-
-    if( ( (ndim==1) && (spnum!=spnumx) ) || 
-        ( (ndim==2) && (spnum!=spnumx*spnumy) ) ||
-        ( (ndim==3) && (spnum!=spnumx*spnumy*spnumz) ) ) {
-        flag = false;
-        fprintf(stderr, "ERROR : (the space num) should be equal with value multiplied from all directions.\n");
     }
 
     if( (0 != Nx%spnumx) 
@@ -117,7 +114,6 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("domain", "bc_val")) { conf->bc_val  = atof(value); } 
 
     else if (MATCH("parareal", "tsnum")) { conf->tsnum = atoi(value); } 
-    else if (MATCH("parareal", "spnum")) { conf->spnum = atoi(value); } 
     else if (MATCH("parareal", "spnumx")) { conf->spnumx = atoi(value); } 
     else if (MATCH("parareal", "spnumy")) { conf->spnumy = atoi(value); } 
     else if (MATCH("parareal", "spnumz")) { conf->spnumz = atoi(value); } 

@@ -10,6 +10,7 @@
 #include "blas.h"
 #include "Solver.h"
 #include "Grid.h"
+#include "Monitor.h"
 
 /**
  * The driver of the PinT process
@@ -23,7 +24,7 @@ class Driver {
 
     PinT *conf;
     MPI_Comm sp_comm; //space within the same time slice
-
+    Monitor monitor;
  public:
     
     int myid = 0;
@@ -33,7 +34,8 @@ class Driver {
 
     int mytid ; // time slice number 
     int mysid ; // space subgrid number
-    
+    char *jobid = (char*)"000.000" ; // for profiling output 
+
     int kpar = 0;
 
     void init(int argc, char* argv[]);

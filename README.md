@@ -10,15 +10,18 @@ The framework has implemented the **Parareal algorithm skeleton** in an uniform 
 
 The framework is mainly written by C++ for good template and extension, most BLAS related calculations is performed by Fortran for performance reason and easy matrix manipulation. It is very light-weight, the only third library it used is [inih](https://github.com/benhoyt/inih), a small but excellent .INI file parser. 
 
-At the current stage, only 1D or 2D can be automatically supported, 3D functions has being developed, maybe after two weeks. we plan to use [PMlib](https://github.com/avr-aics-riken/PMlib) as the performance moniter.  
+At the current stage, all the 1D / 2D / 3D can be automatically supported, we use the [PMlib](https://github.com/avr-aics-riken/PMlib) as the performance moniter, but PMlib will not be activated until the compile option -D _PMLIB_ is used.
 
 ## Design and implementation 
 
-There are four main objects in the framework.
+There are four main objects and other two auxiliary objects in the framework.
 - **PinT**: for ini configuration, see the pint.ini sample file for details
 - **Grid**: manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
 - **Driver**: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
 - **Solver**: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
+
+- Output : outputs the grid variables for debugging, only ASCII format is supported for small runnings
+- Monitor: a simple wrapper of PMLib for easily open or close the profiling function
 
 ## DEMO
 
@@ -35,7 +38,7 @@ void HeatGrid::init(){
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
         x = this->getX(ind);   // global coordincate of the cell
-        unk = cos(2*x);      // set the initial temperature
+        unk = cos(2*x);        // set the initial temperature
         // set the variables used by Parareal method 
         u_start[ind] = unk;  // for start point of the current time slice
         u_f[ind] = unk;      // for fine solver, not necessary, it will be also set automatically   
@@ -129,6 +132,12 @@ int main(int argc, char* argv[]) {
 
 
 From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself.  
+
+## Build
+
+The Makefile is very simple, you can easily adapt it to any Unix-like OS.
+If using profiling, it is necessary to build PMLib firstly following [its website](https://github.com/avr-aics-riken/PMlib).
+Floating-point data type is DOUBLE, single precision is not supported, when compling Fortran code, it is recommended to set the default real type to 8 byte wide, if using gfortran, the option is -fdefault-real-8. 
 
 ## Notice 
 

@@ -187,9 +187,13 @@ void Grid::create_topology_3d(){
  * because boundary condition is usually applied between two time steps, but guard cell may be exchanged within one time steps when necessary. 
  */
 void Grid::guardcell(double* d) {
+    //monitor.start(Monitor::GC);
+
     if(ndim == 1) guardcell_1d(d);
     else if(ndim == 2) guardcell_2d(d);
     else if(ndim == 3) guardcell_3d(d);
+
+    //monitor.stop(Monitor::GC);
 }
 
 void Grid::guardcell_1d(double* d) {
@@ -424,9 +428,11 @@ void Grid::output_local(double *p, bool inner_only) {
     Output out = Output(this);
 
     FILE * fp;
-    char fname[21];
+    char fname[30];
     int ind = 0;   
     double *buf;
+
+    memset(fname, 0, sizeof(char)*30);
     sprintf(fname, "%s_%d.%d.txt", conf->debug_pre,mytid,mysid); 
 
     fp = fopen (fname,"w");
