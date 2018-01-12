@@ -22,7 +22,7 @@ public:
 
     static PinT* instance()
     {
-        if(s_instance == 0 )
+        if(s_instance == 0)
             s_instance = new PinT();
         return s_instance;
     }
@@ -70,6 +70,7 @@ public:
     int bc_type =0; // boundary type. 0:always unchanged, default is ZERO; 1: reflect
     double bc_val = 0.0; // valid when bc_type=0 
 
+    int pipelined = 0;
     int kpar_limit;
 
     // the number of timesteps of fine/coarse solver in one time slice

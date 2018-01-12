@@ -28,7 +28,8 @@ void PinT::init(){
     else if(ndim==2) spnum = spnumx*spnumy;
     else if(ndim==3) spnum = spnumx*spnumy*spnumz;
 
-    kpar_limit = tsnum;
+    if(pipelined == 0)
+        kpar_limit = tsnum;
 }
 
 //check the configuration is consist with the real run time
@@ -81,6 +82,8 @@ void PinT::print() {
     printf("  fine   dt        : %f\n", f_dt);
     printf("  coarse dt        : %f\n", c_dt);
     printf("  rfc_ (steps )    : %d\n", rfc_);
+
+    printf("  PIPELINED        : %d\n", pipelined);
     printf("  kpar_limit       : %d\n", kpar_limit);
     printf("  converge eps     : %e\n", converge_eps);
     printf("  small residual   : %e\n", smlr);
@@ -118,6 +121,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "spnumy")) { conf->spnumy = atoi(value); } 
     else if (MATCH("parareal", "spnumz")) { conf->spnumz = atoi(value); } 
 
+    else if (MATCH("parareal", "pipelined"))  { conf->pipelined  = atoi(value); } 
     else if (MATCH("parareal", "kpar_limit")) { conf->kpar_limit = atoi(value); } 
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
 

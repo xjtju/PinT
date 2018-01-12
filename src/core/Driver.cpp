@@ -32,6 +32,7 @@ void Driver::init(int argc, char* argv[]){
     tsnum = conf->tsnum;
     smlr  = conf->smlr;
     mytid = myid / spnum;
+    pipelined = conf->pipelined;
 
     //check the configuration is consist with the real run time
     bool checkOK = conf->check();
@@ -155,15 +156,19 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.start(Monitor::RES);
         g->sp_allreduce(&res_loc, &res_sp);
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
-        g->allreduce(&res_sp, &max_res,MPI_MAX); 
-        //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        if(pipelined == 0) {
+            g->allreduce(&res_sp, &max_res,MPI_MAX); 
+            //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        }
         monitorResidual(g,res_loc,max_res,size);
         monitor.stop(Monitor::RES);
 
-        max_res = sqrt(max_res/tsnum);
-        //STEP8
-        if( max_res < conf->converge_eps) 
-            break;   
+         //STEP8
+        if(pipelined == 0){
+            max_res = sqrt(max_res/tsnum);
+            if( max_res < conf->converge_eps) 
+                break;   
+        }
     }
     g->guardcell(u_end);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -216,7 +221,10 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
     }
 
     if(myid==numprocs-1){
-	    printf("kpar:%d, myid:%d, max_res:%13.8e \n", kpar, myid, max_res);
+        if(pipelined == 0)
+	        printf("kpar:%d, myid:%d, max_res:%13.8e \n", kpar, myid, max_res);
+        else 
+	        printf("kpar:%d, myid:%d, local_res:%13.8e \n", kpar, myid, res_loc);
     }
 }
 

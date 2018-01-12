@@ -36,6 +36,7 @@ class Driver {
     int mysid ; // space subgrid number
     char *jobid = (char*)"000.000" ; // for profiling output 
 
+    int pipelined = 0;
     int kpar = 0;
 
     void init(int argc, char* argv[]);

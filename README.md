@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 }
 
 ```
-5. changes the .ini file according to the real run time envirement and the test request. See pint.ini sample for details, and the .INI file is very direct and simple. 
+5. changes the .ini file according to the real run time envirement and the test request. For better performance, ```pipelined mode```  can be activated by setting ```pipelined=1```,  See pint.ini sample for details, and the .INI file is very direct and simple. 
 
 
 
