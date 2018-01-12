@@ -133,16 +133,30 @@ public:
      * often used in iniialization and position-related calculations.
      */
     // ind is the outer index
-    inline double getX(int ind){
-        int gind = (idx+ind-nguard);
+    inline double getX(int ind, bool outer=true){
+        size_t gind;
+        if(outer)
+            gind = (idx+ind-nguard);
+        else gind = idx+ind;
         return gind*dx + dx/2; 
     }
-    inline double getY(int ind){
-        int gind = (idy+ind-nguard);
+    inline double getY(int ind, bool outer=true ){
+        if(ndim<2) return 0;
+
+        size_t gind;
+        if(outer)
+            gind = (idy+ind-nguard);
+        else gind = idy + ind;
+
         return gind*dy + dy/2;
     }
-    inline double getZ(int ind){
-        int gind = (idz+ind-nguard);
+    inline double getZ(int ind, bool outer=true){
+        if(ndim<3) return 0;
+        size_t gind; 
+        if(outer)
+            gind = (idz+ind-nguard);
+        else gind = idz + ind;
+
         return gind*dz + dz/2;
     }
 
@@ -186,6 +200,8 @@ public:
     // the wrapper of Output.var_..._Z, writing the local variables into debug file only for the last time slice  
     // only for X-Y cross sections, if for X-Z or Y-Z cross sections, turn to the Output class  
     void output_local(double *data, bool inner_only);
+
+    void output_local_h5(double *data); // for large inner data only
 
     // aggregate all the final results from all the grids within the same space domain and output 
     // only for X-Y cross sections along the Z direction   

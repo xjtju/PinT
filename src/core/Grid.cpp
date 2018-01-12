@@ -449,6 +449,28 @@ void Grid::output_local(double *p, bool inner_only) {
     fclose (fp);
 }
 
+/**
+ * at current, the function is not well tuned, but it can work.
+ */
+void Grid::output_local_h5(double *p) {
+    if (mytid != (tsnum-1)) return;  //only output the last time slice
+
+    Output out = Output(this);
+
+    FILE * fp;
+    char fname[30];
+    int ind = 0;   
+    double *buf;
+
+    memset(fname, 0, sizeof(char)*30);
+    sprintf(fname, "%s_%d.%d.h5", conf->debug_pre,mytid,mysid); 
+        
+    buf = alloc_mem(this->inner_size); 
+    pack_data(p, buf); 
+    out.write_h5(fname, buf); 
+    free_mem(buf);
+}
+
 // file name : mytid.all.txt 
 void Grid::output_global(){
     if (mytid != (tsnum-1)) return;  //only output the last time slice

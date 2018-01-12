@@ -2,8 +2,21 @@
 
 TARGET = pfm_alpha.exe
 
+ifdef _PMLib_ 
 PMLIB_HOME = /Users/bamboo/Libs/PMlib
-INCLUDES= -Isrc/include -Isrc/heat -I${PMLIB_HOME}/include
+PMLIB_INC  = -I${PMLIB_HOME}/include 
+LDFLAGS_PM = -L${PMLIB_HOME}/lib -lPMmpi 
+OPTFLAGS_PM= -fopenmp -D_PMLib_  
+endif
+
+ifdef _HDF5_
+HDF5_HOME  = /Users/bamboo/Libs/hdf5
+HDF5_INC   = -I${HDF5_HOME}/include
+LDFLAGS_H5 = -L${HDF5_HOME}/lib -lhdf5 
+OPTFLAGS_H5= -D _HDF5_   
+endif
+
+INCLUDES= -Isrc/include -Isrc/heat ${PMLIB_INC} ${HDF5_INC}
 
 .FUFFIXES: .o .cpp .c .f90
 
@@ -26,11 +39,12 @@ OBJS  = $(FOBJS) $(COBJS)
 
 CXX=mpic++
 FC=mpif90
-OPTFLAGS= -O2   
-#OPTFLAGS= -fopenmp -O2 -D_PMLib_  
+
+
+OPTFLAGS= -O3 ${OPTFLAGS_PM} ${OPTFLAGS_H5} 
 CXXFLAGS= $(OPTFLAGS) $(INCLUDES)
 FFLAGS  = $(OPTFLAGS) $(INCLUDES) -fdefault-real-8 -fdefault-double-8
-LDFLAGS = -L${PMLIB_HOME}/lib -lPMmpi
+LDFLAGS = ${LDFLAGS_PM} $(LDFLAGS_H5) 
 
 RM = rm
 

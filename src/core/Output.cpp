@@ -1,5 +1,5 @@
 #include "Output.h"
-
+#include "common.h"
 
 void Output::var_outer(FILE *fp, double *p) {
 
@@ -91,4 +91,53 @@ void Output::var_outer_Z(FILE *fp, double *p){
         for(int i = 0; i < sx ; i++) fprintf(fp, " %13d ", idx+i);  //print global id of X
         fprintf(fp,"\n\n"); 
     }
+}
+
+int Output::write_h5(char *fname, double *p) {
+    int status = 0;
+
+#ifdef _HDF5_
+    hid_t file, dataset, dataspace, datatype;
+
+    file = H5Fcreate( fname, H5F_ACC_TRUNC, H5P_DEFAULT,H5P_DEFAULT );
+    datatype = H5Tcopy(H5T_NATIVE_DOUBLE);
+     
+    // write solution data
+    hsize_t dimsf[1];
+    dimsf[0] = grid->inner_size;
+    dataspace = H5Screate_simple(1, dimsf, NULL);
+    dataset = H5Dcreate(file, "solution", datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+    status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, p);
+
+    status = H5Sclose(dataspace);
+    status = H5Dclose(dataset);
+     
+    // write coords
+    hsize_t dimsc[2];
+    dimsc[0] = (hsize_t)grid->inner_size; 
+    dimsc[1] = (hsize_t)3;
+    double *coords = alloc_mem(dimsc[0]*dimsc[1]); 
+    size_t ind ;
+    for(int k=0; k<nz; k++)
+        for(int j=0; j<ny; j++)
+            for(int i=0; i<nx; i++) {
+                ind = grid->getInnerIdxI(i, j, k);
+                coords[ind*3]   = grid->getX(i, false);
+                coords[ind*3+1] = grid->getY(j, false);
+                coords[ind*3+2] = grid->getZ(k, false);
+            }
+    dataspace = H5Screate_simple(2, dimsc, NULL);
+    dataset = H5Dcreate(file, "coords", datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+    status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, coords);
+     
+    status = H5Sclose(dataspace);
+    status = H5Dclose(dataset);
+    
+    status = H5Fclose(file);
+
+    free_mem(coords);
+#else
+    printf("INFO : HDF5 function is not yet activated !\n");
+#endif   
+    return status; 
 }

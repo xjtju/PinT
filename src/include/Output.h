@@ -1,13 +1,19 @@
 #ifndef PinT_OUTPUT_H
 #define PinT_OUTPUT_H 1 
 
+#ifdef _HDF5_
+#include "hdf5.h"
+#endif
+
 #include <stdio.h>
 #include "Grid.h"
 
 // the Output is eventually indepent out of Grid since the 2018 new year  
 // because the output task become more and more heavier.
 //
-// WARN : the class is not well designed in the current version, only used for debug when the data is very small
+// WARN : 
+//   the class is not well designed in the current version, only used for debug when the data is very small.
+//   HDF5 support is added for large data,  but only for each local grid.
 //
 // NOTE : the caller must be responsible to judge whether the data is with or without border 
 // and choose the proper output function.   
@@ -81,6 +87,9 @@ public:
     void var_outer_X(FILE *fp, double *p); 
     void var_outer_Y(FILE *fp, double *p); 
     void var_outer_Z(FILE *fp, double *p); 
+
+    //write all the solution data to HDF5
+    int write_h5(char *fname, double *p);
 };
 
 #endif

@@ -20,8 +20,8 @@ There are four main objects and other two auxiliary objects in the framework.
 - **Driver**: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
 - **Solver**: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
-- Output : outputs the grid variables for debugging, only ASCII format is supported for small runnings
-- Monitor: a simple wrapper of PMLib for easily open or close the profiling function
+- Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned, and only for local grid, you have to collect all the .h5 files and combine them manually.  
+- Monitor: a simple wrapper of PMLib for easily open or close the profiling function.
 
 ## DEMO
 
@@ -135,9 +135,13 @@ From the above sample codes, in most cases it is not necessary for users to care
 
 ## Build
 
-The Makefile is very simple, you can easily adapt it to any Unix-like OS.
-If using profiling, it is necessary to build PMLib firstly following [its website](https://github.com/avr-aics-riken/PMlib).
-Floating-point data type is DOUBLE, single precision is not supported, when compling Fortran code, it is recommended to set the default real type to 8 byte wide, if using gfortran, the option is -fdefault-real-8. 
+* The Makefile is very simple, you can easily adapt it to any Unix-like OS.
+* If using profiling, it is necessary to build PMLib firstly following [its website](https://github.com/avr-aics-riken/PMlib), and use the compile option ```-D _PMLIB_``` to activate it. 
+* Floating-point data type is DOUBLE, single precision is not supported, when compling Fortran code, it is recommended to set the default real type to 8 byte wide, if using gfortran, the option is -fdefault-real-8. 
+* HDF5 output is also supported, using the compile option ```-D _HDF5_``` to activate the function, and make sure the hdf5 library is already installed.   
+* In order to easily compile PMLib and hdf5, the Makefile can also accept commond line parameters.
+  * for MPLib: ```$make _PMLIB_=1```
+  * for HDF5 : ```$make _HDF5_=1```
 
 ## Notice 
 
