@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
     Grid *g = new HeatGrid(conf);
     g->init();
 
-    //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
 
     Solver *F = new HeatSolverF(conf,g);   // fine solver 
     Solver *G = new HeatSolverC(conf,g);   // coarse solver
@@ -40,6 +39,7 @@ int main(int argc, char* argv[]) {
     g->output_local_h5(g->u_end);
     g->output_global();
     
+    //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
     driver.finalize();  // quit MPI 
 
     delete F;  
