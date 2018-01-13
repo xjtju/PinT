@@ -13,6 +13,7 @@ The framework is mainly written by C++ for good template and extension, most BLA
 At the current stage, all the 1D / 2D / 3D can be automatically supported, we use the [PMlib](https://github.com/avr-aics-riken/PMlib) as the performance moniter, but PMlib will not be activated until the compile option ```-D _PMLIB_``` is used.
 
 ## Design and implementation 
+<p align="center"><img src="./doc/images/Architecture.png"  height="300px"></img></p>
 
 There are four main objects and other two auxiliary objects in the framework.
 - **PinT**: for ini configuration, see the pint.ini sample file for details
@@ -131,7 +132,10 @@ int main(int argc, char* argv[]) {
 
 
 
-From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself.  
+From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself as shown in the following picture.
+
+<p align="center"><img src="./doc/images/usage.png" align="center" height="250px"></img></p>
+
 
 ## Build
 
