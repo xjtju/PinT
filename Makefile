@@ -16,16 +16,18 @@ LDFLAGS_H5 = -L${HDF5_HOME}/lib -lhdf5
 OPTFLAGS_H5= -D _HDF5_   
 endif
 
-INCLUDES= -Isrc/include -Isrc/heat ${PMLIB_INC} ${HDF5_INC}
+INCLUDES= -Isrc/include -Isrc/heat -Isrc/pfm ${PMLIB_INC} ${HDF5_INC}
 
 .FUFFIXES: .o .cpp .c .f90
 
 FSRC = $(wildcard src/core/*.f90)  \
 	   $(wildcard src/utils/*.f90) \
-	   $(wildcard src/heat/*.f90) 
+	   $(wildcard src/heat/*.f90)  \
+	   $(wildcard src/pfm/*.f90)
 
 CSRC = $(wildcard src/core/*.cpp) \
 	   $(wildcard src/heat/*.cpp) \
+	   $(wildcard src/pfm/*.cpp) \
 	   $(wildcard src/utils/*.cpp) \
 	   $(wildcard src/*.cpp) 
 CSRC2 = $(wildcard src/utils/*.c) 
