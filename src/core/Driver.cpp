@@ -21,9 +21,8 @@ void Driver::init(int argc, char* argv[]){
     conf = PinT::instance();
 
     INFO("Initialization file is  %s \n", ini_file);
-    int parse_ret = ini_parse(ini_file, handler, conf);  
-    if (parse_ret >= 0) {
-        conf->init();
+    int ini_ret = conf->init(ini_file);
+    if (ini_ret >= 0) {
         if(myid==0) conf->print();
     } else Abort("Can't load ini file or ini error : %s .\n", ini_file);
 

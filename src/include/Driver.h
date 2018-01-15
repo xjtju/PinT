@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <mpi.h>
 
-#include "ini.h"
 #include "PinT.h"
 #include "blas.h"
 #include "Solver.h"

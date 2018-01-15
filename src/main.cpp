@@ -1,7 +1,7 @@
 #include "Monitor.h"
 #include "Driver.h"
-#include "HeatGrid.h"
-#include "HeatSolverF.h"
+#include "PFMGrid.h"
+#include "PFMSolver.h"
 
 /**
  * the example program for employing parareal method (PinT) to solve real problem based on the framework.
@@ -15,6 +15,7 @@
  * default profiling file is [monitor_pre].000.000.txt
  *
  */
+
 int main(int argc, char* argv[]) {
     
     //load global configuration and init MPI  
@@ -25,25 +26,25 @@ int main(int argc, char* argv[]) {
     PinT* conf = PinT::instance();
 
     // create the grid/mesh and solver 
-    Grid *g = new HeatGrid(conf);
+    Grid *g = new PFMGrid(conf);
     g->init();
 
 
-    Solver *F = new HeatSolverF(conf,g);   // fine solver 
-    Solver *G = new HeatSolverC(conf,g);   // coarse solver
+    Solver *F = new PFMSolver(conf,g);   // fine solver 
+    //Solver *G = new HeatSolverC(conf,g);   // coarse solver
 
     // run the parareal algorithm 
-    driver.evolve(g, G, F);
+    //driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
-    g->output_local_h5(g->u_end);
-    g->output_global();
+    g->output_local(g->u_end, true);
+    //g->output_global();
     
     //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
     driver.finalize();  // quit MPI 
 
-    delete F;  
-    delete G;
+    //delete F;  
+    //delete G;
     delete g;  //free memory
 
     return 0;

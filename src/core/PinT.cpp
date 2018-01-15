@@ -2,7 +2,14 @@
 
 PinT* PinT::s_instance = 0;
 
-void PinT::init(){
+// parse ini file and initialize parameters
+int PinT::init(char* fname){
+
+    this->ini_file = fname;
+    int parse_ret = ini_parse(ini_file, handler, this);  
+
+    if (parse_ret < 0) return -1;
+
     f_steps = Nt/tsnum ; 
     c_steps = f_steps/rfc_ ;    
 
@@ -30,6 +37,8 @@ void PinT::init(){
 
     if(pipelined == 0)
         kpar_limit = tsnum;
+
+    return parse_ret;
 }
 
 //check the configuration is consist with the real run time
@@ -94,11 +103,15 @@ void PinT::print() {
     printf("\n");
 }
 
+int PinT::init_module(void *obj, ini_handler handler) {
+    return ini_parse(ini_file, handler, obj);  
+}
+
+// the global ini handler
 int handler(void* pint, const char* section, const char* name, const char* value)
 {
     PinT* conf = (PinT*)pint;
 
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("domain","ndim"))        { conf->ndim = atoi(value); }
 
     else if (MATCH("domain", "Tspan")) { conf->Tspan = atof(value); } 

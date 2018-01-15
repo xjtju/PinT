@@ -5,16 +5,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
+
+#include "ini.h"
+
 /**
  * the configuration of Parareal method, the current structure is proper when there is only one physical process
  *
  * singleton model
  *
+ * thanks to .INI parser https://github.com/benhoyt/inih  
  **/
+
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+
 class PinT {
 
 private:
     static PinT* s_instance;
+    char* ini_file;
 
     PinT() {}
 
@@ -27,9 +35,11 @@ public:
         return s_instance;
     }
 
-    void init();
+    int init(char* fname);
     void print();
     bool check();      
+    // the interface for problem-specific init 
+    int init_module(void *obj, ini_handler handler);
 
     // very important, the settings of x/y/z must be consistent with dims  
     int ndim = 1; 

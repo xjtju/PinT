@@ -1,6 +1,9 @@
 #ifndef _CG_HEAT_UTIL_H_
 #define _CG_HEAT_UTIL_H_ 1
 
+//
+//  HEAT stencil by Fortran
+//
 extern "C" {
 
     void cg_rk2d_(int* nxyz, double* lamdaxyz, int *ng, double* r, double *x, double *b);
