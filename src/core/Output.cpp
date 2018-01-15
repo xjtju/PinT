@@ -13,16 +13,16 @@ void Output::var_inner_Z(FILE* fp, double *p, bool withIdz) {
     if(withIdz) k_ = idz_;
     else k_ = idz;
     for(int k=0; k < nz; k++) { 
-        fprintf(fp, " z global index : %d \n", k_ + k );
+        if(with_coord) fprintf(fp, " z global index : %d \n", k_ + k );
         for(int j=ny-1; j>=0 ; j--) { 
-            fprintf(fp, "%4d :", idy_+j);  // print global id of Y
+            if(with_coord) fprintf(fp, "%4d :", idy_+j);  // print global id of Y
             for(int i = 0; i < nx ; i++){
                 ind = grid->getInnerIdxI(i, j, k); 
                 fprintf (fp," %10.5f  ", p[ind]);
             }
             fprintf(fp, "\n");
         }
-        for(int i = 0; i < nx ; i++) fprintf(fp, " %11d ", idx_+i);  //print global id of X
+        if(with_coord) for(int i = 0; i < nx ; i++) fprintf(fp, " %11d ", idx_+i);  //print global id of X
         fprintf(fp,"\n\n\n");
     }
 }

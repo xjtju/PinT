@@ -32,6 +32,8 @@ private:
     int idx_;
     int spnumz;
 
+    bool with_coord = true;
+
 public:
 
     Output(Grid *g){
@@ -55,6 +57,8 @@ public:
         nguard = g->nguard;
 
         spnumz = g->spnumz;
+        // weather or not output the coordinates in ASCII format file
+        if(g->conf->with_coord == 0) with_coord = false;
     }
 
     inline void coord(FILE *fp, int *cds) {

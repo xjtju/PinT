@@ -15,14 +15,10 @@ void PFMGrid::init1d(){
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
         x = this->getX(i);  // global coordincate of the cell
-        unk = cos(2*x);
-        
+
+        unk = 0.1*sin(2*PI*x) + 0.01*cos(4*PI*x) + 0.06*sin(4*PI*x) + 0.02*cos(10*PI*x);
         // set the variables used by Parareal method 
-        u_f[ind] = unk;      // for fine solver  
-        u_c[ind] = unk;      // for coarse solver  
-        u_cprev[ind] = unk;  // for coarse solver previous time iteration  
-        u_start[ind] = unk;  // for start point of the current time slice
-        u_end[ind] = unk;    // for end point of the current time slice
+        this->set_val4all(ind, unk);
     }
 }
 
@@ -37,16 +33,9 @@ void PFMGrid::init2d(){
        
        ind = this->getOuterIdx(i, j, 0);  // get the index including the guard cell 
         
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
-           unk = 100.0; 
-       else unk = 0.0; 
+       unk = 0.0; 
        
-       // set the variables used by Parareal method 
-       u_f[ind] = unk;      // for fine solver  
-       u_c[ind] = unk;      // for coarse solver  
-       u_cprev[ind] = unk;  // for coarse solver previous time iteration 
-       u_start[ind] = unk;  // for start point of the current time slice
-       u_end[ind] = unk;    // for end point of the current time slice
+       this->set_val4all(ind, unk);
     }
 }
 
@@ -63,15 +52,7 @@ void PFMGrid::init3d(){
 
        ind = this->getOuterIdx(i, j, k);  // get the index including the guard cell 
         
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 && abs(zdist)<=0.2 )
-           unk = 100.0; 
-       else unk = 0.0; 
-        
-       // set the variables used by Parareal method 
-       u_f[ind] = unk;      // for fine solver  
-       u_c[ind] = unk;      // for coarse solver  
-       u_cprev[ind] = unk;  // for coarse solver previous time iteration 
-       u_start[ind] = unk;  // for start point of the current time slice
-       u_end[ind] = unk;    // for end point of the current time slice
+       unk = 0.0; 
+        this->set_val4all(ind, unk);
     }
 }

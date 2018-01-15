@@ -102,6 +102,7 @@ public:
 
     char* debug_pre;
     char* monitor_pre;
+    int with_coord = 1;
 };
 
 int handler(void* pint, const char* section, const char* name, const char* value);

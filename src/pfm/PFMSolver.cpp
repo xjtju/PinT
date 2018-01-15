@@ -11,8 +11,8 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
 // set diffuse coefficient and tune the default parameter, problem specific
 void PFMSolver::setup(){
     this->eps = 1.0e-6;
-    conf->init_module(this, pfm_inih);
 
+    conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  
         printf("  D   = %f \n", d);
@@ -75,6 +75,7 @@ void PFMSolver::cg_Xv3d(double* v, double *y) {
 void PFMSolver::cg_b3d(double *x){
 }
 
+// parse ini parameters of PFM
 int pfm_inih(void* obj, const char* section, const char* name, const char* value) {
 
     PFMSolver* pfm = (PFMSolver*)obj;
