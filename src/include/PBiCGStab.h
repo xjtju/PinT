@@ -68,16 +68,16 @@ public:
     }
 
     // fetch physical variables into solver
-    inline double* fetch() {
+    virtual double* fetch() {
         if(isFine) return grid->u_f;
         else return grid->u_c;
     }
 
-    void update() ;  // update physical variables in grid, reserved blank functions. 
-    
+    virtual void update() ;  // update physical variables in grid, reserved blank functions. 
     // the template algorithm of PBiCBSTAB
     void solve();
-    
+
+    void prepare(){};
     // preconditioner: solve Mp_=p, 
     // if sub class uses preconditioner, they must implement the virtual stencil function.  
     void preconditioner(double *p_, double *p, bool isPrecond);
@@ -164,7 +164,6 @@ public:
     void cg_xi2d(double *x, double *y, double *z, double alpha, double omega);
     void cg_direct1d(double* p, double* r, double* v, double beta, double omega);
     void cg_direct2d(double* p, double* r, double* v, double beta, double omega);
-
 };
 
 #endif

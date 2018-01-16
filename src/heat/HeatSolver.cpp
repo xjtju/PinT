@@ -11,7 +11,6 @@ HeatSolver::HeatSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
 // set diffuse coefficient and tune the default parameter, problem specific
 void HeatSolver::setup(){
     this->eps = 1.0e-6;
-
     if(ndim==1) k = 0.061644; 
     if(ndim==2) k = 0.061644;
     if(ndim==3) k = 0.061644;

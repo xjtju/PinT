@@ -100,7 +100,6 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
     double res_loc, res_sp, max_res;
     res_loc = res_sp = max_res = 0.0;
-
     for(int k=1; k<=conf->kpar_limit; k++)
     {
         res_loc = 0.0;

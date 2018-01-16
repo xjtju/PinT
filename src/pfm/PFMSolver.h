@@ -18,9 +18,27 @@ public:
     double d;     // diffuse coefficient 
     double beta;
 
+    double theta = 0.5;  //Crank-Nicolson
+
+    double lamda_x;
+
+    double *F_;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
+    double *F;
+    double *G1;  // the pointer to the starting value 
+    double *unk; //Xn+1 - Xn
+
+    double A0, A1_, A1; // Jacobi matrix
+    double dtk;         // dt*k
+    double beta_;       // 0.5-beta
+
     PFMSolver(PinT *c, Grid *g); 
     PFMSolver(PinT *c, Grid *g, bool isFS); 
      
+    void update(); 
+    void prepare();
+    double* fetch();
+    void evolve();   // overwrite the default evolve for New-Raphson method
+
     void cg_rk1d(double *r, double *x, double *b);
     void cg_rk2d(double *r, double *x, double *b);
     void cg_rk3d(double *r, double *x, double *b);

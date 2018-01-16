@@ -1,5 +1,7 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
+#include "Driver.h"
+
 void PBiCGStab::init() {
     b   = alloc_mem(size);
 
@@ -30,7 +32,8 @@ void PBiCGStab::solve(){
     blas_clear_(p_, &size);
 
     grid->guardcell(x);    
-    cg_b(x);
+
+    cg_b(x);  // Ax=b, prepare b
 
     cg_rk(r, x, b); //init residual r = b - Ax 
     //grid->output_var(r,false);
@@ -81,7 +84,7 @@ void PBiCGStab::solve(){
         
 
         cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z;   
-        
+        //cg_xi1d(x, p_, s_, alpha, omega);  
         cg_avpy(r, omega, s, t);  // r = s - omega*t
          
         // ||r|| 
@@ -95,8 +98,7 @@ void PBiCGStab::solve(){
         rho0 = rho;
         grid->bc(x);
     }
-
-    //printf("Iter: %d, rho : %f, beta : %f, alpha : %f, omega : %f, res : %e \n",i,  rho, beta, alpha, omega, res);
+    if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
     grid->guardcell(x);
     update(); // update grid variables
 }

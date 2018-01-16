@@ -1,5 +1,7 @@
 #include "PFMGrid.h"
 
+// du/dt = D*(du/dx)^{2} + k*u(u-1.0)*(u-0.5+beta) 
+//
 PFMGrid::PFMGrid(PinT *conf) : Grid(conf){
 
 } 
@@ -12,12 +14,16 @@ int PFMGrid::init() {
 void PFMGrid::init1d(){
     long ind = 0;
     double x, unk;
+
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
         x = this->getX(i);  // global coordincate of the cell
 
-        unk = 0.1*sin(2*PI*x) + 0.01*cos(4*PI*x) + 0.06*sin(4*PI*x) + 0.02*cos(10*PI*x);
+        if(ind < this->size/2 )
+            unk = 1.0;
+        else unk = 0.0;
         // set the variables used by Parareal method 
+        //unk = cos(2*x);
         this->set_val4all(ind, unk);
     }
 }

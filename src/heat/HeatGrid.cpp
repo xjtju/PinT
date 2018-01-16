@@ -113,6 +113,7 @@ int main(int argc, char* argv[]) {
     driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
+    g->output_local(g->u_end, true);
     g->output_local_h5(g->u_end);
     g->output_global();
     

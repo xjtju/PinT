@@ -88,8 +88,8 @@ void PinT::print() {
     printf("  serial time steps: %d\n", Nt);
     printf("  fine   steps     : %d\n", f_steps);
     printf("  coarse steps     : %d\n", c_steps);
-    printf("  fine   dt        : %f\n", f_dt);
-    printf("  coarse dt        : %f\n", c_dt);
+    printf("  fine   dt        : %e\n", f_dt);
+    printf("  coarse dt        : %e\n", c_dt);
     printf("  rfc_ (steps )    : %d\n", rfc_);
 
     printf("  PIPELINED        : %d\n", pipelined);

@@ -6,6 +6,7 @@
 class HeatSolverF : public HeatSolver {
 public:
     HeatSolverF(PinT *conf, Grid *g);
+
 };
 
 class HeatSolverC : public HeatSolver {

@@ -35,8 +35,9 @@ def main(argv):
     plt.ylabel('T')
     plt.title(fname)
     axes = plt.gca()
-    #axes.set_ylim([0,1.0])
-
+    axes.set_ylim([-0.1,1.1])
+    plt.grid()
+    plt.xticks(np.arange(0, 1.0, 0.05))
     plt.show()
 
 if __name__ == '__main__':

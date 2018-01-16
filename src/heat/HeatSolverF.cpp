@@ -18,7 +18,7 @@ HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g, true) {
     //this->itmax = 10;  // For DEBUG
     //this->steps = 1;  // For DEBUG
     if(0 == grid->myid)
-    printf("Coarse : lamdax=%f, lamday=%f, lamdaz=%f \n", lamda_x, lamda_y, lamda_z);
+    printf("Fine : lamdax=%f, lamday=%f, lamdaz=%f \n", lamda_x, lamda_y, lamda_z);
 }
 
 HeatSolverC::HeatSolverC(PinT *conf, Grid *g):HeatSolver(conf,g, false){

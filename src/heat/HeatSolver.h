@@ -13,6 +13,7 @@ protected:
 
     void setup();
 public:
+    
     double k = 0.061644; // diffuse coefficient
 
     // lamda = k*dt/dx^2   
@@ -47,6 +48,7 @@ public:
     inline void sor2_core_2d(double *p_, double *p, int *color) {
          sor2_core_2d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;
     }
+
 };
 
 #endif

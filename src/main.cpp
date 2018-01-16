@@ -29,18 +29,20 @@ int main(int argc, char* argv[]) {
     Grid *g = new PFMGrid(conf);
     g->init();
 
+    //g->output_local(g->u_end, true);
+    //driver.Abort("高次元テスト3D PFM:%d\n", 3); // DEBUG
 
-    Solver *F = new PFMSolver(conf,g);   // fine solver 
-    //Solver *G = new HeatSolverC(conf,g);   // coarse solver
+    Solver *F = new PFMSolver(conf, g, true);   // fine solver 
+    Solver *G = new PFMSolver(conf, g, false);   // coarse solver
+
 
     // run the parareal algorithm 
-    //driver.evolve(g, G, F);
+    driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
     g->output_local(g->u_end, true);
     //g->output_global();
     
-    //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
     driver.finalize();  // quit MPI 
 
     //delete F;  

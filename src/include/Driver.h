@@ -46,7 +46,7 @@ class Driver {
 
     void INFO (const char* fmt, ...);
     void WARN (const char* fmt, ...);
-    void Abort(const char* fmt, ...);
+    static void Abort(const char* fmt, ...);
   
     double smlr = 1.0e-12;
 
