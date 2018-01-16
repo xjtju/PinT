@@ -139,7 +139,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //g->guardcell(u_c); 
         
         // step5: 
-        pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
+        //pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
         
         // step6:
         monitor.start(Monitor::SEND); 

@@ -1,6 +1,5 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
-#include "Driver.h"
 
 void PBiCGStab::init() {
     b   = alloc_mem(size);
@@ -50,7 +49,7 @@ void PBiCGStab::solve(){
         rho = cg_vdot(r0_, r);
         grid->sp_allreduce(&rho);
         //if( i==1 ){
-        //   blas_cp(p, r, size);
+        //   blas_cp_(p, r, &size);
         //}else {
             beta = (rho/rho0) * (alpha/omega);
             cg_direct(p, r, v, beta, omega); 

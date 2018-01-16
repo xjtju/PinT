@@ -19,11 +19,13 @@ public:
     double beta;
 
     double theta = 0.5;  //Crank-Nicolson
+    int newton_itmax = 5;
 
     double lamda_x;
 
     double *F_;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
     double *F;
+    double *Fm;
     double *G1;  // the pointer to the starting value 
     double *unk; //Xn+1 - Xn
 
@@ -34,9 +36,10 @@ public:
     PFMSolver(PinT *c, Grid *g); 
     PFMSolver(PinT *c, Grid *g, bool isFS); 
      
+    void newton_raphson(); 
     void update(); 
+    double* fetch(); 
     void prepare();
-    double* fetch();
     void evolve();   // overwrite the default evolve for New-Raphson method
 
     void cg_rk1d(double *r, double *x, double *b);

@@ -14,6 +14,7 @@
 #include "blas.h"
 #include "blascg.h"
 #include "Solver.h"
+#include "Driver.h"
 
 class PBiCGStab : public Solver{
 
