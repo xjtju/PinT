@@ -60,7 +60,9 @@ public:
     long idy;
     long idz;
 
-    // the output of fine/coarse solver      
+    // the temporary solution variables of fine/coarse solver      
+    // or the data interface between Grid and Fine/Coarase Solver
+    // before fine/coarse solver starts a new iteration, the Driver will copy the solution at starting point to u_f/u_c
     double *u_f;  
     double *u_c;
     double *u_cprev; // the structure holder for the coarse solver at the previous iteration of the the same slice 

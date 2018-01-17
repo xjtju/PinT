@@ -46,6 +46,47 @@ implicit none
     end do
 end subroutine cg_direct_1d
 
+!! calcaluate v = Ax ,
+!! bcp is stencil
+subroutine cg_ax1d(nxyz, ng, v, x, bcp)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer ::  ng, i, ix 
+    real    ::  ndag_e, ndag_w, dd  
+    real, dimension(    1-ng:nxyz(1)+ng ) :: v, x  
+    real, dimension(3,  1-ng:nxyz(1)+ng ) :: bcp 
+
+    ix = nxyz(1)
+    do i=1, ix
+        ndag_e = bcp(1, ix)
+        ndag_w = bcp(2, ix)
+            dd = bcp(3, ix)
+        
+        v(i) = ndag_e*x(i-1) + dd*x(i) + ndag_w*x(i-1);  
+    end do
+end subroutine cg_ax1d
+
+!! calcaluate the residual r = b - Ax ,
+!! bcp is stencil
+subroutine cg_rk1d(nxyz, ng, r, x, b, bcp)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer ::  ng, i, ix 
+    real    ::  ndag_e, ndag_w, dd, ax 
+    real, dimension(    1-ng:nxyz(1)+ng ) :: r, x, b 
+    real, dimension(3,  1-ng:nxyz(1)+ng ) :: bcp 
+
+    ix = nxyz(1)
+    do i=1, ix
+        ndag_e = bcp(1, ix)
+        ndag_w = bcp(2, ix)
+            dd = bcp(3, ix)
+        
+        ax = ndag_e*x(i-1) + dd*x(i) + ndag_w*x(i-1);  
+        r(i) = b(i) - ax;
+    end do
+end subroutine cg_rk1d
+
 !! 2D
 
 !! s = r - alpha*v or  s = -alpha*v + r  

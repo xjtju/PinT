@@ -5,12 +5,13 @@
  * NEED IMPROVED!
  */
 
-PFMSolver::PFMSolver(PinT *c, Grid *g) : PBiCGStab(c,g){
-    setup();
+PFMSolver::PFMSolver(PinT *c, Grid *g) : Solver(c,g){
+    setup(c,g);
 }
 
-PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
-    setup();
+PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
+    setup(c,g);
+
     if(isFS) {
         lamda_x = d*conf->f_dt/(grid->dx*grid->dx);   
         dtk = conf->f_dt*k;
@@ -27,9 +28,9 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
 }
 
 // set diffuse coefficient and tune the default parameter, problem specific
-void PFMSolver::setup(){
-    this->eps = 1.0e-6;
-    this->itmax = 10;
+void PFMSolver::setup(PinT *c, Grid *g){
+    ls_eps = 1.0e-6;
+    ls_itmax = 10;
     //this->steps = 6000;
     conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
@@ -44,35 +45,28 @@ void PFMSolver::setup(){
     beta_ = 0.5 - beta;
 
     unk = alloc_mem(this->size);
+    F_  = alloc_mem(this->size);
+    G1  = alloc_mem(this->size);
+    b   = alloc_mem(this->size);
+    if(ndim==1)
+        bcp = alloc_mem(3*this->size); 
 
-    F_ = alloc_mem(this->size);
-    F  = alloc_mem(this->size);
-    G1 = alloc_mem(this->size);
-
+    double val;
     for(int i=nguard; i<nx+nguard; i++){
         double x = grid->getX(i); 
-        F[i] = 1.0 + tanh( (x-0.5)/xi);    // initial value 
-        F[i] = 1.0 - 0.5*F[i];
-        grid->set_val4all(i,F[i]);
+        val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
+        val = 1.0 - 0.5*val;
+        grid->set_val4all(i,val);
     }
-    blas_cp_(Fm, F, &size);  
-}
 
-double* PFMSolver::fetch() {
-    return unk;
-}
-void PFMSolver::update() {
-}
-
-void PFMSolver::prepare() {
+    hypre = new PBiCGStab(c, g);
 }
 
 // overwrite the default evolve for New-Raphson method
 void PFMSolver::evolve() {
      
-     // step0: set initial value
-    blas_cp_(F, grid->u_start, &size); 
-
+    // step0: set initial value
+    F = getSoln();     // pointer to the start point  
     blas_clear_(unk, &size);
 
     for(int i=0; i<steps; i++){
@@ -86,8 +80,7 @@ void PFMSolver::evolve() {
     }
 
     // step3: return solution 
-    blas_cp_(unk, F, &size);  
-    
+    // nothing need to do 
 }
 
 void PFMSolver::newton_raphson() {
@@ -98,14 +91,17 @@ void PFMSolver::newton_raphson() {
            - dtk * F_[i] * (F_[i]-1.0) * (F_[i] - beta_);
     }
     bool ifg = false;
+
     for(int i=0; i<newton_itmax; i++) {
         // step1 : set initial guess value
         blas_clear_(unk, &size);
-        // step2 : set RHS cg_b1d 
-        
+        // step2 : set RHS 
+        this->rhs();
+
+        this->stencil();
+
         // ste3 : Call linear solver
-        solve();  
-        
+        hypre->solve(unk, b, bcp);  
         
         // ste4: update solution 
         for(int j=nguard; j<nx+nguard; j++){
@@ -127,8 +123,7 @@ void PFMSolver::newton_raphson() {
 //
 // 1D, not used Fortran
 
-// b = -F^{k-1} 
-void PFMSolver::cg_b1d(double *x){
+void PFMSolver::rhs(){
     double g2; 
     for(int i=nguard; i<nx+nguard; i++){
        g2 = lamda_x * ( F[i-1] - 2*F[i] + F[i+1] )
@@ -137,62 +132,17 @@ void PFMSolver::cg_b1d(double *x){
     }
 }
 
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void PFMSolver::cg_Xv1d(double* v, double *x) {
+/*
+void PFMSolver::stencil(){
+    int ind;
     for(int i=nguard; i<nx+nguard; i++){
        A0 = 1 + 2*theta*lamda_x + theta*dtk * ( 
              (F[i]-1.0) * (F[i] - beta_) 
            + (F[i]    ) * (F[i] - beta_)
            + (F[i]    ) * (F[i] - 1.0  )  );
-
-       v[i] = A1_*x[i-1] + A0*x[i] + A1*x[i+1];
     }
 }
-
-//calcaluate the residual r = b - Ax
-void PFMSolver::cg_rk1d(double *r, double *x, double *b){
-    double val = 0.0;
-    for(int i=nguard; i<nx+nguard; i++){
-       A0 = 1 + 2*theta*lamda_x + theta*dtk * ( 
-             (F[i]-1.0) * (F[i] - beta_) 
-           + (F[i]    ) * (F[i] - beta_)
-           + (F[i]    ) * (F[i] - 1.0  )  );
-       val = A1_*x[i-1] + A0*x[i] + A1*x[i+1];
-       r[i] = b[i] - val;
-    }
-}
-
-
-//
-// 2D, used Fortran
-//
-
-void PFMSolver::cg_rk2d(double *r, double *x, double *b){
-}
-
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void PFMSolver::cg_Xv2d(double* v, double *y) {
-}
-
-void PFMSolver::cg_b2d(double *x){
-}
-
-//
-// 3D, used Fortran
-//
-void PFMSolver::cg_rk3d(double *r, double *x, double *b){
-}
-
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void PFMSolver::cg_Xv3d(double* v, double *y) {
-}
-
-void PFMSolver::cg_b3d(double *x){
-}
-
+*/
 // parse ini parameters of PFM
 int pfm_inih(void* obj, const char* section, const char* name, const char* value) {
 

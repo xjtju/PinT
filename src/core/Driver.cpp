@@ -58,9 +58,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     double *u_cprev = g->u_cprev;  
     double *u_start= g->u_start; 
     double *u_end  = g->u_end;  
-
-    double *u_c    = G->fetch();  // solver is responsible to their variables 
-    double *u_f    = F->fetch(); 
+    double *u_c    = g->u_c;  
+    double *u_f    = g->u_f; 
 
     int source, dest, tag;
     int ierr;
@@ -82,8 +81,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     g->guardcell(u_start);    
 
     //coarse 
-    //blas_cp_(u_c, u_start, &size);  
     monitor.start(Monitor::CSolver);
+    blas_cp_(u_c, u_start, &size);  
     G->evolve();
     monitor.stop(Monitor::CSolver);
     
@@ -115,7 +114,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
 
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
-        //blas_cp_(u_f, u_start, &size);
+        blas_cp_(u_f, u_start, &size);
         F->evolve();
         //g->guardcell(u_f);
 
@@ -133,9 +132,9 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         }
         monitor.stop(Monitor::RECV);
         // step4:
-        //blas_cp_(u_c, u_start, &size); 
         
         monitor.start(Monitor::FSolver);
+        blas_cp_(u_c, u_start, &size); 
         G->evolve();
         monitor.stop(Monitor::FSolver);
         //g->guardcell(u_c); 
@@ -160,7 +159,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
             g->allreduce(&res_sp, &max_res,MPI_MAX); 
             //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         }
-        monitorResidual(g, u_c, u_f, res_loc,max_res,size);
+        monitorResidual(g, res_loc,max_res,size);
         monitor.stop(Monitor::RES);
 
          //STEP8
@@ -197,13 +196,13 @@ void Driver::finalize() {
  * it is no need to calcaluate again after all next processes.  
  * That is the accumulative residual before the time slice should be ZERO according PARAREAL's theory..  
  */
-void Driver::monitorResidual(Grid *g, double *u_c, double *u_f, double res_loc, double max_res,int size ){
+void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
 
     bool debug = false;
-    //double *u_c    = g->u_c;
+    double *u_c    = g->u_c;
     double *u_cprev = g->u_cprev;  
     double *u_end  = g->u_end;  
-    //double *u_f    = g->u_f;
+    double *u_f    = g->u_f;
     double cdist, fdist;
 
     if(debug && (myid==0)){

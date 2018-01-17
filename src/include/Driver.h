@@ -68,7 +68,7 @@ class Driver {
     }
     
     // check the residual is whether enough small as the Kpar increasing, for DEBUG only 
-    void monitorResidual(Grid *g, double *u_c, double *u_f, double res_loc, double max_res,int size );
+    void monitorResidual(Grid *g, double res_loc, double max_res,int size );
     // used for residual check
     inline void vector_dist(Grid *g, double *d, double *s, double *val) {
         switch(g->ndim) {

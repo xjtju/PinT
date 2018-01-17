@@ -11,6 +11,11 @@ extern "C" {
     
     void cg_direct_1d_( int *nxyz, int *ng, double* p, double* r, double* v, double* beta, double* omega);
 
+    //calcaluate the residual r = b - Ax
+    void cg_rk1d_( int *nxyz, int *ng, double *r, double *x, double *b, double *bcp);
+    // v = Ax
+    void cg_ax1d_( int *nxyz, int *ng, double *v, double *x, double *bcp);
+
     // 2D 
     // 
 

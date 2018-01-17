@@ -5,10 +5,31 @@
 #include "Grid.h" 
 
 /**
- * the abstract interface of all solvers for PinT framework
+ * the abstract interface of fine/coarse solvers for PinT framework
  * the interface is designed as simple as possible to adapt to more problem-specific calcaluations.
  */
 class Solver {
+private:
+    void init(PinT *conf, Grid *g) {
+        this->conf = conf; 
+        this->grid = g;
+
+        this->ndim = g->ndim;
+
+        this->nx = g->nx;
+        this->ny = g->ny;
+        this->nz = g->nz;
+
+        this->sx = g->sx;
+        this->sy = g->sy;
+        this->sz = g->sz;
+
+        this->nguard = g->nguard;
+
+        this->inner_size = g->inner_size; 
+        this->outer_size = g->size;
+     }
+
 protected:
     Grid *grid;
     PinT *conf;
@@ -33,33 +54,31 @@ protected:
     
     int steps;     // the number of time steps in one time slice
 
+    bool isFine = true;  // is fine solver or coarse solver, default is true
+
 public:
     Solver(PinT *conf, Grid *g){
-        this->conf = conf; 
-        this->grid = g;
-
-        this->ndim = g->ndim;
-
-        this->nx = g->nx;
-        this->ny = g->ny;
-        this->nz = g->nz;
-
-        this->sx = g->sx;
-        this->sy = g->sy;
-        this->sz = g->sz;
-
-        this->nguard = g->nguard;
-
-        this->inner_size = g->inner_size; 
-        this->outer_size = g->size;
+        init(conf, g);
     }
 
-    // the template algorithm for linear system etc. 
-    virtual void solve() = 0;
-    virtual void prepare(){} ; // some specific initialization before entering the next time slice iteration (Kpar) 
-    virtual double* fetch() = 0;
-    // integrate over one time slice , the default implementation
-    virtual void evolve();
+    Solver(PinT *conf, Grid *g, bool isFS){
+        init(conf, g);
+
+        // set the steps for time integrating (evolving)
+        this->isFine = isFS;
+        if(isFine)
+            this->steps = conf->f_steps;  
+        else this->steps = conf->c_steps;
+    }
+     
+     // get the current solution 
+     virtual double* getSoln() {
+         if(isFine) return grid->u_f;
+         else return grid->u_c;
+     }
+
+     // integrate over one time slice, that is one time slice iteration (each Kpar)
+     virtual void evolve() = 0;
 };
 
 #endif

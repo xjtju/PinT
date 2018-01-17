@@ -2,7 +2,7 @@
 #include "PBiCGStab.h"
 
 void PBiCGStab::init() {
-    b   = alloc_mem(size);
+    //b   = alloc_mem(size);
 
     r0_ = alloc_mem(size);
     r   = alloc_mem(size);
@@ -15,9 +15,7 @@ void PBiCGStab::init() {
     s_  = alloc_mem(size);
 }
 
-void PBiCGStab::solve(){
-
-    double *x = fetch();  // get the grid variables
+void PBiCGStab::solve(double *x, double *b, double *bcp){
 
     double rho0, rho, alpha, omega, beta;
     double res = 1000.0;
@@ -32,10 +30,10 @@ void PBiCGStab::solve(){
 
     grid->guardcell(x);    
 
-    cg_b(x);  // Ax=b, prepare b
+    //cg_b(x);  // Ax=b, prepare b
 
-    cg_rk(r, x, b); //init residual r = b - Ax 
-    //grid->output_var(r,false);
+    cg_rk(r, x, b, bcp); //init residual r = b - Ax 
+
     // choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
     blas_cp_(r0_, r, &size);
 
@@ -51,15 +49,15 @@ void PBiCGStab::solve(){
         //if( i==1 ){
         //   blas_cp_(p, r, &size);
         //}else {
-            beta = (rho/rho0) * (alpha/omega);
-            cg_direct(p, r, v, beta, omega); 
+        beta = (rho/rho0) * (alpha/omega);
+        cg_direct(p, r, v, beta, omega); 
        //}
 
         grid->guardcell(p);
         preconditioner(p_, p, isPrecond); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
 
         grid->guardcell(p_);
-        cg_Xv(v,p_);        // v=Ap_    
+        cg_ax(v,p_,bcp);        // v=Ap_    
 
         tmp = cg_vdot(r0_, v);
         grid->sp_allreduce(&tmp);
@@ -72,7 +70,7 @@ void PBiCGStab::solve(){
         preconditioner(s_, s, isPrecond); 
         
         grid->guardcell(s_);
-        cg_Xv(t,s_); // t=Az
+        cg_ax(t,s_,bcp); // t=Az
 
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
         tmp1 = cg_vdot(t, s);
@@ -98,8 +96,8 @@ void PBiCGStab::solve(){
         grid->bc(x);
     }
     if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
-    grid->guardcell(x);
-    update(); // update grid variables
+
+    grid->guardcell(x); // necessary ?
 }
 
 //
@@ -183,9 +181,4 @@ void PBiCGStab::sor2(double *p_, double *p, int lc_max, bool checkCnvg){
             if( res < eps) break;
         }
     }
-}
-
-void PBiCGStab::update() {
-    //in current implementation, the solver directly modify the grid variables, 
-    //so it is not necessary to do any real operations for updating 
 }

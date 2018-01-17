@@ -147,7 +147,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("monitor", "with_coord")) { conf->with_coord = atoi(value); } 
 
     else {
-        printf("WARN : unknown ini parameter [%s]/[%s] , ignored. \n", section, name);
+        //printf("WARN : unknown ini parameter [%s]/[%s] , ignored. \n", section, name);
         return 1;  
     }
     return 0;
