@@ -57,7 +57,7 @@ public:
     // the template algorithm for linear system etc. 
     virtual void solve() = 0;
     virtual void prepare(){} ; // some specific initialization before entering the next time slice iteration (Kpar) 
-
+    virtual double* fetch() = 0;
     // integrate over one time slice , the default implementation
     virtual void evolve();
 };

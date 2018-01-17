@@ -40,23 +40,27 @@ void PFMSolver::setup(){
         printf("  newton_iter=%d \n\n", newton_itmax);
     }
 
+    double xi = sqrt(2.0*d/k);
     beta_ = 0.5 - beta;
+
+    unk = alloc_mem(this->size);
+
     F_ = alloc_mem(this->size);
     F  = alloc_mem(this->size);
-    unk = alloc_mem(this->size);
     G1 = alloc_mem(this->size);
 
     for(int i=nguard; i<nx+nguard; i++){
-        F[i] = grid->u_start[i];   // initial value 
-        unk[i] = 0;
+        double x = grid->getX(i); 
+        F[i] = 1.0 + tanh( (x-0.5)/xi);    // initial value 
+        F[i] = 1.0 - 0.5*F[i];
+        grid->set_val4all(i,F[i]);
     }
+    blas_cp_(Fm, F, &size);  
 }
 
 double* PFMSolver::fetch() {
-    //blas_clear_(unk,&size);
     return unk;
 }
-
 void PFMSolver::update() {
 }
 
@@ -65,39 +69,50 @@ void PFMSolver::prepare() {
 
 // overwrite the default evolve for New-Raphson method
 void PFMSolver::evolve() {
-    
+     
+     // step0: set initial value
+    blas_cp_(F, grid->u_start, &size); 
+
+    blas_clear_(unk, &size);
+
     for(int i=0; i<steps; i++){
-        grid->bc();
-        grid->bc(F);
-        grid->bc(F_);
+    //   grid->bc(F_);
+    // step1 : set boundary condition
+        F[0] = 2.0 - F[1];
+        F[nx+nguard] = -F[nx];
+
+        // step2 : call the solver
         newton_raphson();
     }
+
+    // step3: return solution 
+    blas_cp_(unk, F, &size);  
     
-    for(int i=nguard; i<nx+nguard; i++){
-         grid->u_end[i] = F[i];
-    }
 }
 
 void PFMSolver::newton_raphson() {
     
+    blas_cp_(F_, F, &size); 
     for(int i=nguard; i<nx+nguard; i++){
-        F_[i] = F[i]; 
         G1[i] = lamda_x * ( F_[i-1] - 2*F_[i] + F_[i+1] )
            - dtk * F_[i] * (F_[i]-1.0) * (F_[i] - beta_);
     }
     bool ifg = false;
     for(int i=0; i<newton_itmax; i++) {
-        // step1 : set RHS cg_b1d 
-        solve(); // call PBiCGStab 
-         
-        double val =0.0;
-        blas_dot_1d_(grid->nxyz, &nguard, F, F, &val ); 
-        printf("%e \n", sqrt(val));
-        // update solution 
+        // step1 : set initial guess value
+        blas_clear_(unk, &size);
+        // step2 : set RHS cg_b1d 
+        
+        // ste3 : Call linear solver
+        solve();  
+        
+        
+        // ste4: update solution 
         for(int j=nguard; j<nx+nguard; j++){
             F[j] = F[j] + unk[j];
         }
-        // check eps 
+
+        // step5: check converge 
         double err =0.0;
         blas_dot_1d_(grid->nxyz, &nguard, unk, unk, &err ); 
         err = sqrt(err);

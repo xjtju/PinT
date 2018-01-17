@@ -36,6 +36,7 @@ def main(argv):
     plt.title(fname)
     axes = plt.gca()
     axes.set_ylim([-0.1,1.1])
+    axes.set_xlim([-0.02,1.02])
     plt.grid()
     plt.xticks(np.arange(0, 1.0, 0.05))
     plt.show()

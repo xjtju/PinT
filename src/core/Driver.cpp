@@ -58,8 +58,9 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     double *u_cprev = g->u_cprev;  
     double *u_start= g->u_start; 
     double *u_end  = g->u_end;  
-    double *u_c    = g->u_c;
-    double *u_f    = g->u_f;
+
+    double *u_c    = G->fetch();  // solver is responsible to their variables 
+    double *u_f    = F->fetch(); 
 
     int source, dest, tag;
     int ierr;
@@ -67,7 +68,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     MPI_Request req;
     MPI_Status  stat;
 
-    blas_cp_(u_start, u_c, &size); // is not necessary, because all vectors have the same values at the init
+    //blas_cp_(u_start, u_c, &size); //xj: is not necessary, because all vectors have the same values at the init
+    
      // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     monitor.start(Monitor::RECV);
     if(!isFirstSlice(myid)) {
@@ -80,7 +82,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     g->guardcell(u_start);    
 
     //coarse 
-    blas_cp_(u_c, u_start, &size); 
+    //blas_cp_(u_c, u_start, &size);  
     monitor.start(Monitor::CSolver);
     G->evolve();
     monitor.stop(Monitor::CSolver);
@@ -113,7 +115,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
 
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
-        blas_cp_(u_f, u_start, &size);
+        //blas_cp_(u_f, u_start, &size);
         F->evolve();
         //g->guardcell(u_f);
 
@@ -131,7 +133,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         }
         monitor.stop(Monitor::RECV);
         // step4:
-        blas_cp_(u_c, u_start, &size); 
+        //blas_cp_(u_c, u_start, &size); 
         
         monitor.start(Monitor::FSolver);
         G->evolve();
@@ -139,7 +141,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //g->guardcell(u_c); 
         
         // step5: 
-        //pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
+        pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
         
         // step6:
         monitor.start(Monitor::SEND); 
@@ -158,14 +160,16 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
             g->allreduce(&res_sp, &max_res,MPI_MAX); 
             //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         }
-        monitorResidual(g,res_loc,max_res,size);
+        monitorResidual(g, u_c, u_f, res_loc,max_res,size);
         monitor.stop(Monitor::RES);
 
          //STEP8
         if(pipelined == 0){
             max_res = sqrt(max_res/tsnum);
-            if( max_res < conf->converge_eps) 
+            if( max_res < conf->converge_eps) {
+                if(myid==numprocs-1) printf("Parareal is converged at %d iteration, res = %e .\n", k , max_res);
                 break;   
+            }
         }
     }
     g->guardcell(u_end);
@@ -193,13 +197,13 @@ void Driver::finalize() {
  * it is no need to calcaluate again after all next processes.  
  * That is the accumulative residual before the time slice should be ZERO according PARAREAL's theory..  
  */
-void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
+void Driver::monitorResidual(Grid *g, double *u_c, double *u_f, double res_loc, double max_res,int size ){
 
     bool debug = false;
-    double *u_c    = g->u_c;
+    //double *u_c    = g->u_c;
     double *u_cprev = g->u_cprev;  
     double *u_end  = g->u_end;  
-    double *u_f    = g->u_f;
+    //double *u_f    = g->u_f;
     double cdist, fdist;
 
     if(debug && (myid==0)){
@@ -212,9 +216,9 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
     if(mytid == kpar-1){
         if(res_loc > 0 ) {
             res_loc = sqrt(res_loc);
-            vector_dist(g, u_c,   u_cprev,&cdist); 
-            vector_dist(g, u_end, u_f,    &fdist); 
-            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e . \n\n", kpar, myid, cdist, fdist, res_loc); 
+            vector_dist(g, u_c,   u_cprev, &cdist); 
+            vector_dist(g, u_end, u_f,     &fdist); 
+            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, myid, cdist, fdist, res_loc); 
         }
     }
 

@@ -14,18 +14,19 @@ int PFMGrid::init() {
 void PFMGrid::init1d(){
     long ind = 0;
     double x, unk;
-
+    /*
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
         x = this->getX(i);  // global coordincate of the cell
 
         if(ind < this->size/2 )
-            unk = 1.0;
-        else unk = 0.0;
+            unk = 1;
+        else unk = 0;
         // set the variables used by Parareal method 
         //unk = cos(2*x);
         this->set_val4all(ind, unk);
     }
+    */
 }
 
 void PFMGrid::init2d(){

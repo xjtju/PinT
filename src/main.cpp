@@ -29,12 +29,12 @@ int main(int argc, char* argv[]) {
     Grid *g = new PFMGrid(conf);
     g->init();
 
-    //g->output_local(g->u_end, true);
-    //driver.Abort("高次元テスト3D PFM:%d\n", 3); // DEBUG
 
     Solver *F = new PFMSolver(conf, g, true);   // fine solver 
     Solver *G = new PFMSolver(conf, g, false);   // coarse solver
 
+    //g->output_local(g->u_end, true);
+    //driver.Abort("高次元テスト3D PFM:%d\n", 3); // DEBUG
 
     // run the parareal algorithm 
     driver.evolve(g, G, F);

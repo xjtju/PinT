@@ -25,7 +25,6 @@ public:
 
     double *F_;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
     double *F;
-    double *Fm;
     double *G1;  // the pointer to the starting value 
     double *unk; //Xn+1 - Xn
 
