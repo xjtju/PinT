@@ -101,6 +101,8 @@ void PinT::print() {
     printf("  monitor   prefix : %s\n", monitor_pre);
     printf("  coord is output  : %d\n", with_coord);
 
+    printf("  verbose output   : %d\n", verbose);
+
     printf("\n");
 }
 
@@ -145,6 +147,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("monitor", "debug_pre")) { conf->debug_pre = strdup(value); } 
     else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 
     else if (MATCH("monitor", "with_coord")) { conf->with_coord = atoi(value); } 
+    else if (MATCH("monitor", "verbose")) { conf->verbose = atoi(value); } 
 
     else {
         //printf("WARN : unknown ini parameter [%s]/[%s] , ignored. \n", section, name);

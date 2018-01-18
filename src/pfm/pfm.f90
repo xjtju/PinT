@@ -1,3 +1,5 @@
+!! 1D
+
 subroutine stencil_ac_1d(nxyz, lamda, ng, bcp, soln, theta, dtk, beta_)
 implicit none
     integer, dimension(3) :: nxyz
@@ -9,10 +11,9 @@ implicit none
 
     ix = nxyz(1)
     do i=1, ix
-        bcp(1, ix) = -theta*lamda
-        bcp(2, ix) = -theta*lamda
-
-        bcp(3, ix) = 1 + 2*theta*lamda + theta*dtk * (  &
+        bcp(1, i) = -theta*lamda
+        bcp(2, i) = -theta*lamda
+        bcp(3, i) = 1 + 2*theta*lamda + theta*dtk * (  &
               (soln(i)-1.0) * ( soln(i) - beta_ )  &
             + (soln(i)    ) * ( soln(i) - beta_  )  & 
             + (soln(i)    ) * ( soln(i) - 1.0    )  )

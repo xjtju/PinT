@@ -28,12 +28,20 @@ private:
 
         this->inner_size = g->inner_size; 
         this->outer_size = g->size;
+
+        b  = alloc_mem(this->size);
+        if(ndim==1) bcp = alloc_mem(3*this->size);  // 3-point stencil for 1D
+        if(ndim==2) bcp = alloc_mem(5*this->size); 
+        if(ndim==3) bcp = alloc_mem(7*this->size); 
      }
 
 protected:
     Grid *grid;
     PinT *conf;
     
+    double *b;   // RHS
+    double *bcp; // stencil matrix 
+
     // all the following variables are the same with the corresponding one in the Grid
     // holding the most being used variables here is just for convenience only 
     int ndim;
@@ -69,6 +77,13 @@ public:
         if(isFine)
             this->steps = conf->f_steps;  
         else this->steps = conf->c_steps;
+    }
+    virtual ~Solver() {
+        free_mem(b);
+        free_mem(bcp);
+        
+        if(grid->myid==0 && conf->verbose)
+        printf("INFO: The memory allocated by the base solver has been released.\n");
     }
      
      // get the current solution 

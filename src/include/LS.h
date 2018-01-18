@@ -5,7 +5,7 @@
 #include "Grid.h" 
 
 /**
- * the linear solver for PinT framework
+ * the abstract linear solver for PinT framework
  */
 
 class LS {
@@ -54,7 +54,7 @@ public:
         this->inner_size = g->inner_size; 
         this->outer_size = g->size;
     }
-
+    virtual ~LS(){ }
     // the template algorithm for linear system etc. 
     virtual void solve(double *x, double *b, double *bcp)  = 0;
 };

@@ -1,79 +1,42 @@
 #include "HeatSolver.h"
 
-HeatSolver::HeatSolver(PinT *c, Grid *g) : PBiCGStab(c,g){
+HeatSolver::HeatSolver(PinT *c, Grid *g) : Solver(c,g){
     setup();
 }
 
-HeatSolver::HeatSolver(PinT *c, Grid *g, bool isFS) : PBiCGStab(c,g,isFS){
+HeatSolver::HeatSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     setup();
 }
 
 // set diffuse coefficient and tune the default parameter, problem specific
 void HeatSolver::setup(){
-    this->eps = 1.0e-6;
     if(ndim==1) k = 0.061644; 
     if(ndim==2) k = 0.061644;
     if(ndim==3) k = 0.061644;
 
+    hypre = new PBiCGStab(conf, grid); // choose a linear solver
 }
 
-//
-// 1D, not used Fortran
-//
+// evolve along one time slice for Crank-Nicolson method  
+void HeatSolver::evolve() {
+     
+    // step0: set initial value, the latest solution is used directly 
+    soln = getSoln();     // pointer to the start point of this time slice  
 
-//calcaluate the residual r = b - Ax
-void HeatSolver::cg_rk1d(double *r, double *x, double *b){
-    for(int i=nguard; i<nx+nguard; i++){
-        double ax = -lamda*x[i-1] + (1+2*lamda)*x[i] - lamda*x[i+1];  
-        r[i] = b[i] - ax;
+    for(int i=0; i<steps; i++){
+        // step1 : set boundary condition, default bc function provided by Grid is enough
+        grid->bc(soln);
+        
+        // step2 : calcaluate RHS
+        rhs();
+
+        // step3 : set the stencil struct matrix 
+        stencil();
+
+        // step4 : call the linear solver, not necessary to use a new guess for heat diffusion 
+        hypre->solve(soln, b, bcp);
+
+        // step5: update solution, 
+        // for heat diffusion, soln has already updated by linear solver, noting need to be done 
     }
-}
-
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void HeatSolver::cg_Xv1d(double* v, double *y) {
-    for(int i=nguard; i<nx+nguard; i++){
-        v[i] = -lamda*y[i-1] + (1+2*lamda)*y[i] - lamda*y[i+1];
-    }
-}
-
-void HeatSolver::cg_b1d(double *x){
-    for(int i=nguard; i<nx+nguard; i++){
-        b[i] = lamda*x[i-1] + (1-2*lamda)*x[i] + lamda*x[i+1]; 
-    }
-}
-
-//
-// 2D, used Fortran
-//
-
-void HeatSolver::cg_rk2d(double *r, double *x, double *b){
-    cg_rk2d_(grid->nxyz, lamdaxyz, &nguard, r, x, b);
-}
-
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void HeatSolver::cg_Xv2d(double* v, double *y) {
-    cg_xv2d_(grid->nxyz, lamdaxyz, &nguard, v, y);
-}
-
-void HeatSolver::cg_b2d(double *x){
-    cg_b2d_(grid->nxyz, lamdaxyz, &nguard, x, b);
-}
-
-//
-// 3D, used Fortran
-//
-void HeatSolver::cg_rk3d(double *r, double *x, double *b){
-    cg_rk3d_(grid->nxyz, lamdaxyz, &nguard, r, x, b);
-}
-
-// matrix * vector,  the stencil matrix 
-// v = Ay
-void HeatSolver::cg_Xv3d(double* v, double *y) {
-    cg_xv3d_(grid->nxyz, lamdaxyz, &nguard, v, y);
-}
-
-void HeatSolver::cg_b3d(double *x){
-    cg_b3d_(grid->nxyz, lamdaxyz, &nguard, x, b);
 }

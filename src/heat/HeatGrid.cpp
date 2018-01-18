@@ -1,9 +1,13 @@
 #include "HeatGrid.h"
 
+/**
+ * 1) You can create a new grid class to set the initial value like following.
+ * 2) You also can directly operate the Grid class to initialize the grid variables, see PFM's example
+ */
 HeatGrid::HeatGrid(PinT *conf) : Grid(conf){
 } 
 
-int HeatGrid::init() {
+void HeatGrid::init() {
     if(this->ndim == 1) init1d();
     if(this->ndim == 2) init2d();
     if(this->ndim == 3) init3d();
@@ -17,11 +21,7 @@ void HeatGrid::init1d(){
         unk = cos(2*x);
         
         // set the variables used by Parareal method 
-        u_f[ind] = unk;      // for fine solver  
-        u_c[ind] = unk;      // for coarse solver  
-        u_cprev[ind] = unk;  // for coarse solver previous time iteration  
-        u_start[ind] = unk;  // for start point of the current time slice
-        u_end[ind] = unk;    // for end point of the current time slice
+        this->set_val4all(ind, unk);
     }
 }
 
@@ -41,11 +41,7 @@ void HeatGrid::init2d(){
        else unk = 0.0; 
        
        // set the variables used by Parareal method 
-       u_f[ind] = unk;      // for fine solver  
-       u_c[ind] = unk;      // for coarse solver  
-       u_cprev[ind] = unk;  // for coarse solver previous time iteration 
-       u_start[ind] = unk;  // for start point of the current time slice
-       u_end[ind] = unk;    // for end point of the current time slice
+       this->set_val4all(ind, unk);
     }
 }
 
@@ -67,11 +63,7 @@ void HeatGrid::init3d(){
        else unk = 0.0; 
         
        // set the variables used by Parareal method 
-       u_f[ind] = unk;      // for fine solver  
-       u_c[ind] = unk;      // for coarse solver  
-       u_cprev[ind] = unk;  // for coarse solver previous time iteration 
-       u_start[ind] = unk;  // for start point of the current time slice
-       u_end[ind] = unk;    // for end point of the current time slice
+       this->set_val4all(ind, unk);
     }
 }
 

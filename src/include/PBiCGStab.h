@@ -54,7 +54,8 @@ public:
        free_mem(s_);
        free_mem(t);
 
-       //free_mem(b);
+       if(grid->myid==0 && conf->verbose)
+       printf("INFO: the memory allocated by PBiCGStab solver has been released.\n");
     }
 
 
@@ -80,39 +81,20 @@ public:
     virtual void sor2_core_2d(double *p_, double *p, int *color) = 0;
     */
 
-    /***** stencil related functions, problem-special class must implement them *****/
+    /***** stencil related functions, specific problem must provide the stencil matrix (bcp) *****/
     //calcaluate the residual r = b - Ax 
     inline void cg_rk(double *r, double *x, double *b, double *bcp){
-        if(ndim==1)      cg_rk1d_(grid->nxyz, &nguard, r, x, b, bcp);
-        //else if(ndim==2) cg_rk2d(r, x, b);
-        //else if(ndim==3) cg_rk3d(r, x, b);
+        if(ndim==3)      cg_rk3d_(grid->nxyz, &nguard, r, x, b, bcp);
+        else if(ndim==2) cg_rk2d_(grid->nxyz, &nguard, r, x, b, bcp);
+        else if(ndim==1) cg_rk1d_(grid->nxyz, &nguard, r, x, b, bcp);
     }
-    //virtual void cg_rk1d(double *r, double *x, double *b)=0;
-    //virtual void cg_rk2d(double *r, double *x, double *b)=0;
-    //virtual void cg_rk3d(double *r, double *x, double *b)=0;
 
     // matrix * vector, v = A*x 
     inline void cg_ax(double *v, double *x, double *bcp) {
-        if(ndim==1)      cg_ax1d_(grid->nxyz, &nguard,v, x, bcp);
-      //  else if(ndim==2) cg_Xv2d(v, y);
-      //  else if(ndim==3) cg_Xv3d(v, y);
+        if(ndim==3)      cg_ax3d_(grid->nxyz, &nguard,v, x, bcp);
+        else if(ndim==2) cg_ax2d_(grid->nxyz, &nguard,v, x, bcp);
+        else if(ndim==1) cg_ax1d_(grid->nxyz, &nguard,v, x, bcp);
     }
-    /*
-    virtual void cg_Xv1d(double *v, double *y)=0;
-    virtual void cg_Xv2d(double *v, double *y)=0;
-    virtual void cg_Xv3d(double *v, double *y)=0;
-    */ 
-    /*
-    // set the b in Ax=b, RHS 
-    inline void cg_b(double *x) {
-        if(ndim==1)      cg_b1d(x);
-        else if(ndim==2) cg_b2d(x);
-        else if(ndim==3) cg_b3d(x);
-    }
-    virtual void cg_b1d(double *x)=0;
-    virtual void cg_b2d(double *x)=0;
-    virtual void cg_b3d(double *x)=0;
-    */
    
     /**** BLAS related functions *****/
     // vector production 

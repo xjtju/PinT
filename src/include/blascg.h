@@ -28,12 +28,18 @@ extern "C" {
     //p = r + beta * ( p - omg * v )
     void cg_direct_2d_( int *nxyz, int *ng, double* p, double* r, double* v, double* beta, double* omega);
 
+    void cg_rk2d_( int *nxyz, int *ng, double *r, double *x, double *b, double *bcp);
+    void cg_ax2d_( int *nxyz, int *ng, double *v, double *x, double *bcp);
+
     // 
     // 3D
     //
     void blas_avpy_3d_( int *nxyz, int *ng, double *alpha, double *s, double *r, double *v);
     void cg_xi_3d_( int *nxyz, int *ng, double *x, double *y, double *z, double *alpha, double *omega);
     void cg_direct_3d_( int *nxyz, int *ng, double* p, double* r, double* v, double* beta, double* omega);
+
+    void cg_rk3d_( int *nxyz, int *ng, double *r, double *x, double *b, double *bcp);
+    void cg_ax3d_( int *nxyz, int *ng, double *v, double *x, double *bcp);
 
 }
 #endif

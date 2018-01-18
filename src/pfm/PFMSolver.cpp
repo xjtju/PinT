@@ -43,11 +43,6 @@ void PFMSolver::setup(){
     unk   = alloc_mem(this->size);
     soln_ = alloc_mem(this->size);
     G1    = alloc_mem(this->size);
-    b     = alloc_mem(this->size);
-
-    if(ndim==1) bcp = alloc_mem(3*this->size);  // 3-point stencil for 1D
-    if(ndim==2) bcp = alloc_mem(5*this->size); 
-    if(ndim==3) bcp = alloc_mem(7*this->size); 
 
     hypre = new PBiCGStab(conf, grid);
 }

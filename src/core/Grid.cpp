@@ -126,6 +126,9 @@ Grid:: ~Grid(){
     }
 
     u = NULL;
+
+    if(myid==0 && conf->verbose) 
+    printf("INFO: the memory allocated by Grid has been released.\n");
 }
 
 void Grid::create_topology() {

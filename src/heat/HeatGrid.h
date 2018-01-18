@@ -11,8 +11,10 @@ class HeatGrid : public Grid {
 
 public: 
 
-    HeatGrid(PinT *conf); 
-    int init();
+    HeatGrid(PinT *conf);
+    virtual ~HeatGrid() {};
+
+    void init();
     void init1d();
     void init2d();
     void init3d();

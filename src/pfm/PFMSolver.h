@@ -31,9 +31,6 @@ public:
     double *G1;     // the partial RHS of Newton's method for PFM  
 
     double *unk; // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
-    double *b;   // RHS
-    double *bcp; // stencil matrix
-
 
     double ls_eps;
     double ls_itmax;
@@ -43,13 +40,16 @@ public:
     PFMSolver(PinT *c, Grid *g); 
     PFMSolver(PinT *c, Grid *g, bool isFS); 
 
-    ~PFMSolver() {
+    virtual ~PFMSolver() {
+
+        delete hypre;
+
         free_mem(soln_);
         free_mem(G1);
         free_mem(unk);
 
-        free_mem(b);
-        free_mem(bcp);
+        if(grid->myid==0 && conf->verbose)
+        printf("INFO: the memory allocate by PFMSolver has been released.\n");
     }
 
     void evolve();         // evolve over a time slice 

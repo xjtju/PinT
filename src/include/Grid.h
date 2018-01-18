@@ -103,8 +103,11 @@ public:
     int tsnum; 
 
     Grid(PinT* conf); 
-    ~Grid();
+    virtual ~Grid();
 
+    virtual void init() {
+        printf("WARN: the default blank init function is used by Grid!\n");
+    }
     // for easily initialize the grid variables
     inline void set_val4all(size_t ind, double val) {
         //u_f[ind] = val;      // for fine solver ,  not necessary 
