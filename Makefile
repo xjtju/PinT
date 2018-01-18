@@ -22,23 +22,29 @@ HEAT_FSRC = $(wildcard src/heat/*.f90)
 HEAT_CSRC = $(wildcard src/heat/*.cpp) 
 HEAT_OPT = -D _TEST_HEAT_   
 endif
+
+_PFM_ = 1
 ifdef _PFM_
+PFM_INC = -Isrc/pfm
+PFM_FSRC = $(wildcard src/pfm/*.f90) 
+PFM_CSRC = $(wildcard src/pfm/*.cpp) 
+PFM_OPT = -D _TEST_PFM_   
 endif
 
-INCLUDES= -Isrc/include -Isrc/pfm ${PMLIB_INC} ${HDF5_INC} ${HEAT_INC}
+INCLUDES= -Isrc/include ${PMLIB_INC} ${HDF5_INC} ${HEAT_INC} ${PFM_INC}
 
 .FUFFIXES: .o .cpp .c .f90
 
 FSRC = $(wildcard src/core/*.f90)  \
 	   $(wildcard src/utils/*.f90) \
-	   $(wildcard src/pfm/*.f90) \
-       $(HEAT_FSRC)
+       $(HEAT_FSRC) \
+       $(PFM_FSRC)
 
 CSRC = $(wildcard src/core/*.cpp) \
-	   $(wildcard src/pfm/*.cpp) \
 	   $(wildcard src/utils/*.cpp) \
 	   $(wildcard src/*.cpp) \
-	   $(HEAT_CSRC)
+	   $(HEAT_CSRC) \
+	   $(PFM_CSRC) 
 
 CSRC2 = $(wildcard src/utils/*.c) 
 
@@ -53,7 +59,7 @@ CXX=mpic++
 FC=mpif90
 
 
-OPTFLAGS= -O3 ${OPTFLAGS_PM} ${OPTFLAGS_H5} $(HEAT_OPT)
+OPTFLAGS= -O3 ${OPTFLAGS_PM} ${OPTFLAGS_H5} $(HEAT_OPT) $(PFM_OPT)
 CXXFLAGS= $(OPTFLAGS) $(INCLUDES)
 FFLAGS  = $(OPTFLAGS) $(INCLUDES) -fdefault-real-8 -fdefault-double-8
 LDFLAGS = ${LDFLAGS_PM} $(LDFLAGS_H5) 

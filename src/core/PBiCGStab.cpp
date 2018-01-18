@@ -23,7 +23,6 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
     rho0 = alpha = omega = 1.0;     
       
     blas_clear_(v,  &size);
-    blas_clear_(b,  &size);
     blas_clear_(r,  &size);
     blas_clear_(p,  &size);
     blas_clear_(p_, &size);

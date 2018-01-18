@@ -6,11 +6,11 @@
  */
 
 PFMSolver::PFMSolver(PinT *c, Grid *g) : Solver(c,g){
-    setup(c,g);
+    setup();
 }
 
 PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
-    setup(c,g);
+    setup();
 
     if(isFS) {
         lamda_x = d*conf->f_dt/(grid->dx*grid->dx);   
@@ -20,18 +20,15 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
         dtk = conf->c_dt*k; 
     }
 
-    A1_ = -theta*lamda_x;
-    A1  = -theta*lamda_x;
-
     if(0 == grid->myid)
-    printf("Solver (Fine=%d) : lamda_x=%f, lamday=%f, lamdaz=%f \n", isFS, lamda_x, lamda_x, lamda_x);
+    printf("Solver (Fine=%d) : lamda_x=%f, lamday=%f, lamdaz=%f, dtk=%f\n", isFS, lamda_x, lamda_x, lamda_x, dtk);
 }
 
 // set diffuse coefficient and tune the default parameter, problem specific
-void PFMSolver::setup(PinT *c, Grid *g){
+void PFMSolver::setup(){
     ls_eps = 1.0e-6;
     ls_itmax = 10;
-    //this->steps = 6000;
+    //this->steps = 1;
     conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  
@@ -41,16 +38,24 @@ void PFMSolver::setup(PinT *c, Grid *g){
         printf("  newton_iter=%d \n\n", newton_itmax);
     }
 
-    double xi = sqrt(2.0*d/k);
     beta_ = 0.5 - beta;
 
-    unk = alloc_mem(this->size);
-    F_  = alloc_mem(this->size);
-    G1  = alloc_mem(this->size);
-    b   = alloc_mem(this->size);
-    if(ndim==1)
-        bcp = alloc_mem(3*this->size); 
+    unk   = alloc_mem(this->size);
+    soln_ = alloc_mem(this->size);
+    G1    = alloc_mem(this->size);
+    b     = alloc_mem(this->size);
 
+    if(ndim==1) bcp = alloc_mem(3*this->size);  // 3-point stencil for 1D
+    if(ndim==2) bcp = alloc_mem(5*this->size); 
+    if(ndim==3) bcp = alloc_mem(7*this->size); 
+
+    hypre = new PBiCGStab(conf, grid);
+}
+
+// set the initial value
+void PFMSolver::init() {
+
+    double xi = sqrt(2.0*d/k);
     double val;
     for(int i=nguard; i<nx+nguard; i++){
         double x = grid->getX(i); 
@@ -59,22 +64,17 @@ void PFMSolver::setup(PinT *c, Grid *g){
         grid->set_val4all(i,val);
     }
 
-    hypre = new PBiCGStab(c, g);
 }
-
 // overwrite the default evolve for New-Raphson method
 void PFMSolver::evolve() {
      
     // step0: set initial value
-    F = getSoln();     // pointer to the start point  
+    soln = getSoln();     // pointer to the start point  
     blas_clear_(unk, &size);
 
     for(int i=0; i<steps; i++){
-    //   grid->bc(F_);
-    // step1 : set boundary condition
-        F[0] = 2.0 - F[1];
-        F[nx+nguard] = -F[nx];
-
+        // step1 : set boundary condition
+        bc();
         // step2 : call the solver
         newton_raphson();
     }
@@ -85,64 +85,38 @@ void PFMSolver::evolve() {
 
 void PFMSolver::newton_raphson() {
     
-    blas_cp_(F_, F, &size); 
-    for(int i=nguard; i<nx+nguard; i++){
-        G1[i] = lamda_x * ( F_[i-1] - 2*F_[i] + F_[i+1] )
-           - dtk * F_[i] * (F_[i]-1.0) * (F_[i] - beta_);
-    }
-    bool ifg = false;
+    bool ifg = false; // converge flag
+    double err = 0;   // eps check 
+    
+    // step0 : set F_{n-1} and calcaluate RHS G1 
+    blas_cp_(soln_, soln, &size); 
+    rhs_g1();
 
     for(int i=0; i<newton_itmax; i++) {
         // step1 : set initial guess value
         blas_clear_(unk, &size);
-        // step2 : set RHS 
-        this->rhs();
 
-        this->stencil();
+        // step2 : calcaluate RHS: b 
+        rhs();
+        
+        // step3 : set the stencil struct matrix 
+        stencil();
 
-        // ste3 : Call linear solver
+        // step4 : call the linear solver
         hypre->solve(unk, b, bcp);  
         
-        // ste4: update solution 
-        for(int j=nguard; j<nx+nguard; j++){
-            F[j] = F[j] + unk[j];
-        }
+        // step5: update solution 
+        update();
 
         // step5: check converge 
-        double err =0.0;
-        blas_dot_1d_(grid->nxyz, &nguard, unk, unk, &err ); 
-        err = sqrt(err);
+        chk_eps(&err);
         if(err <= 1.0e-6) {
-           ifg = true;
-            break;
+           ifg = true;  break;
         }
     }
-    if(!ifg) Driver::Abort("Newton Raphson loop does not converge");
+    if(!ifg) Driver::Abort("Newton Raphson loop does not converge, eps=%e\n" , err);
 }
 
-//
-// 1D, not used Fortran
-
-void PFMSolver::rhs(){
-    double g2; 
-    for(int i=nguard; i<nx+nguard; i++){
-       g2 = lamda_x * ( F[i-1] - 2*F[i] + F[i+1] )
-           - dtk * F[i] * (F[i]-1.0) * (F[i] - beta_);
-       b[i] = - ( F[i] - F_[i] - theta*g2 - (1-theta)*G1[i] ) ;
-    }
-}
-
-/*
-void PFMSolver::stencil(){
-    int ind;
-    for(int i=nguard; i<nx+nguard; i++){
-       A0 = 1 + 2*theta*lamda_x + theta*dtk * ( 
-             (F[i]-1.0) * (F[i] - beta_) 
-           + (F[i]    ) * (F[i] - beta_)
-           + (F[i]    ) * (F[i] - 1.0  )  );
-    }
-}
-*/
 // parse ini parameters of PFM
 int pfm_inih(void* obj, const char* section, const char* name, const char* value) {
 

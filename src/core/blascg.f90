@@ -53,8 +53,8 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, ix 
     real    ::  ndag_e, ndag_w, dd  
-    real, dimension(    1-ng:nxyz(1)+ng ) :: v, x  
-    real, dimension(3,  1-ng:nxyz(1)+ng ) :: bcp 
+    real, dimension(     1-ng:nxyz(1)+ng ) :: v, x  
+    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: bcp 
 
     ix = nxyz(1)
     do i=1, ix
@@ -62,7 +62,7 @@ implicit none
         ndag_w = bcp(2, ix)
             dd = bcp(3, ix)
         
-        v(i) = ndag_e*x(i-1) + dd*x(i) + ndag_w*x(i-1);  
+        v(i) = ndag_e*x(i+1) + dd*x(i) + ndag_w*x(i-1);  
     end do
 end subroutine cg_ax1d
 
@@ -73,8 +73,8 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, ix 
     real    ::  ndag_e, ndag_w, dd, ax 
-    real, dimension(    1-ng:nxyz(1)+ng ) :: r, x, b 
-    real, dimension(3,  1-ng:nxyz(1)+ng ) :: bcp 
+    real, dimension(     1-ng:nxyz(1)+ng ) :: r, x, b 
+    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: bcp 
 
     ix = nxyz(1)
     do i=1, ix
@@ -82,7 +82,7 @@ implicit none
         ndag_w = bcp(2, ix)
             dd = bcp(3, ix)
         
-        ax = ndag_e*x(i-1) + dd*x(i) + ndag_w*x(i-1);  
+        ax = ndag_e*x(i+1) + dd*x(i) + ndag_w*x(i-1);  
         r(i) = b(i) - ax;
     end do
 end subroutine cg_rk1d

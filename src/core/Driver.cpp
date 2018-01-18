@@ -67,9 +67,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     MPI_Request req;
     MPI_Status  stat;
 
-    //blas_cp_(u_start, u_c, &size); //xj: is not necessary, because all vectors have the same values at the init
-    
-     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
+    // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     monitor.start(Monitor::RECV);
     if(!isFirstSlice(myid)) {
         source = myid - spnum;
@@ -114,8 +112,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
 
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
+        monitor.start(Monitor::FSolver);
         blas_cp_(u_f, u_start, &size);
         F->evolve();
+        monitor.stop(Monitor::FSolver);
         //g->guardcell(u_f);
 
         if(kpar == 1) {
@@ -133,10 +133,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.stop(Monitor::RECV);
         // step4:
         
-        monitor.start(Monitor::FSolver);
+        monitor.start(Monitor::CSolver);
         blas_cp_(u_c, u_start, &size); 
         G->evolve();
-        monitor.stop(Monitor::FSolver);
+        monitor.stop(Monitor::CSolver);
         //g->guardcell(u_c); 
         
         // step5: 

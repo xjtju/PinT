@@ -105,12 +105,10 @@ public:
     Grid(PinT* conf); 
     ~Grid();
 
-    virtual int init()=0;
-
     // for easily initialize the grid variables
     inline void set_val4all(size_t ind, double val) {
-        u_f[ind] = val;      // for fine solver  
-        u_c[ind] = val;      // for coarse solver  
+        //u_f[ind] = val;      // for fine solver ,  not necessary 
+        //u_c[ind] = val;      // for coarse solver, not necessary 
         u_cprev[ind] = val;  // for coarse solver previous time iteration  
         u_start[ind] = val;  // for start point of the current time slice
         u_end[ind] = val;    // for end point of the current time slice

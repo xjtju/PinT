@@ -76,6 +76,11 @@ public:
          if(isFine) return grid->u_f;
          else return grid->u_c;
      }
+     
+     // set the initial value
+     virtual void init() {
+         printf("WARN: the blank init function is used for solver");
+     } 
 
      // integrate over one time slice, that is one time slice iteration (each Kpar)
      virtual void evolve() = 0;
