@@ -72,7 +72,6 @@ implicit none
     real,    dimension(3) :: lamdaxyz 
     real    :: lamdax
     integer ::  ng, i, ix 
-    real    ::  theta, beta_, dtk
     real, dimension(      1-ng:nxyz(1)+ng ) :: soln  
     real, dimension(1:3,  1-ng:nxyz(1)+ng ) :: bcp 
 

@@ -15,11 +15,12 @@ At the current stage, all the 1D / 2D / 3D can be automatically supported, we us
 ## Design and implementation 
 <p align="center"><img src="./doc/images/Architecture.png"  height="300px"></img></p>
 
-There are four main objects and other two auxiliary objects in the framework.
+There are five main objects and other two auxiliary objects in the framework.
 - **PinT**: for ini configuration, see the pint.ini sample file for details
-- **Grid**: manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
-- **Driver**: the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
-- **Solver**: the abstract interface of all solvers for the framework, its most imporant sub class is linear solver based on [PBiCGStab](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
+- **Grid**: space parallel manager, manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
+- **Driver**: time parallel manager, and the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
+- **Solver**: the abstract interface of coarse/fine solvers used by Parareal method, perform the time integration over one time slice. 
+- **LS**: the abstract interface of linear solvers used by the coarse/fine solver, its most imporant sub class is PBiCGStab implemented the [biconjugate gradient stabilized method](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
 - Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned, and only for local grid, you have to collect all the .h5 files and combine them manually.  
 - Monitor: a simple wrapper of PMLib for easily open or close the profiling function.
@@ -28,7 +29,7 @@ There are four main objects and other two auxiliary objects in the framework.
 
 For example, [1D/2D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
 
-1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables.
+1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables. 
 
 ```c++
 HeatGrid::HeatGrid(PinT *conf) : Grid(conf){ } 
@@ -38,16 +39,13 @@ void HeatGrid::init(){
     double x, unk;
     for(int i = nguard; i<nx+nguard ; i++){
         ind = i;
-        x = this->getX(ind);   // global coordincate of the cell
+        x = this->getX(ind);   // get the global coordinates of the cell
         unk = cos(2*x);        // set the initial temperature
-        // set the variables used by Parareal method 
-        u_start[ind] = unk;  // for start point of the current time slice
-        u_f[ind] = unk;      // for fine solver, not necessary, it will be also set automatically   
-        u_c[ind] = unk;      // for coarse solver, not necessary, it will be also set automatically    
+        grid->set_val4all(ind,unk);  // set the variables used by Parareal method 
     }
 }
 ```
-2. creates a sub class (HeatSolver) of the default linear solver (PBiCGStab), performs the stencil operations, the sample code uses the classic [Crank–Nicolson method](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method) for deducing the stencil of heat equation.
+2. creates a sub class (HeatSolver) of the **Solver**, provides the RHS and stencil matrix, and choose a linear solver to perform time integration, the sample code uses the classic [Crank–Nicolson method](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method) for deducing the stencil of heat equation.
 
 ```c++
 // set diffuse coefficient and tune the default parameter, problem specific
@@ -56,31 +54,83 @@ void HeatSolver::setup(){
     k = 0.061644;        // diffuse coefficient 
 }
 
-// 1D, not used Fortran
-
-//calcaluate the residual r = b - Ax
-void HeatSolver::cg_rk1d(double *r, double *x, double *b){
-    for(int i=nguard; i<nx+nguard; i++){
-        double ax = -lamda*x[i-1] + (1+2*lamda)*x[i] - lamda*x[i+1];  
-        r[i] = b[i] - ax;
-    }
+// set diffuse coefficient and tune the default parameter, problem specific
+void HeatSolver::setup(){
+    if(ndim==1) k = 0.061644; 
+    hypre = new PBiCGStab(conf, grid); // choose a linear solver
 }
 
-// matrix * vector,  the stencil matrix , v = Ay
-void HeatSolver::cg_Xv1d(double* v, double *y) {
-    for(int i=nguard; i<nx+nguard; i++){
-        v[i] = -lamda*y[i-1] + (1+2*lamda)*y[i] - lamda*y[i+1];
-    }
-}
+// evolve along one time slice for Crank-Nicolson method  
+void HeatSolver::evolve() {
+     
+    // step0: set initial value, 
+    soln = getSoln();     
 
-// calcaluate b of Ax=b,  RHS
-void HeatSolver::cg_b1d(double *x){
-    for(int i=nguard; i<nx+nguard; i++){
-        b[i] = lamda*x[i-1] + (1-2*lamda)*x[i] + lamda*x[i+1]; 
+    for(int i=0; i<steps; i++){
+        // step1 : set boundary condition, default bc function provided by Grid is enough
+        grid->bc(soln);
+        
+        // step2 : calcaluate RHS, the b of Ax=b 
+        rhs();
+
+        // step3 : set / update the stencil struct matrix, the A of Ax=b 
+        stencil();
+
+        // step4 : call the linear solver 
+        hypre->solve(soln, b, bcp);
+
+        // step5: update solution, 
     }
 }
 
 ```
+
+The calculations of RHS and stencil matrix are performed by Fortran.
+**NOTE** : 
+For the Heat equation with a constant diffuse factor or other simple examples, the coefficients of each stencil for different grid point may be same at the entire grid during the whole execution, so it is not necessary to use a LARGE matrix to hold these coefficients. 
+ 
+BUT in practice, for real world simulations, the coefficients associated with each stencil entry will typically vary from gridpoint to gridpoint, so the caller must provide both the RHS(b) and stencil struct matrix(bcp) 
+
+```fortran
+
+!! calcaluate the RHS of Ax=b 
+subroutine rhs_heat_1d(nxyz, lamdaxyz, ng, soln, b)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix 
+    real    ::  lamdax 
+    real, dimension(      1-ng:nxyz(1)+ng ) :: soln, b  
+
+    ix = nxyz(1)
+    lamdax = lamdaxyz(1)
+    do i=1, ix
+        b(i) =  lamdax/2 * ( soln(i+1) + soln(i-1) ) &
+            + (1 - lamdax)*soln(i) 
+    end do
+end subroutine rhs_heat_1d
+
+!! calcaluate the stencil struct matrix (bcp)
+subroutine stencil_heat_1d(nxyz, lamdaxyz, ng, soln, bcp)
+implicit none
+    integer, dimension(3) :: nxyz
+    real,    dimension(3) :: lamdaxyz 
+    real    :: lamdax
+    integer ::  ng, i, ix 
+    real, dimension(      1-ng:nxyz(1)+ng ) :: soln  
+    real, dimension(1:3,  1-ng:nxyz(1)+ng ) :: bcp 
+
+    ix = nxyz(1)
+    lamdax = lamdaxyz(1)
+    do i=1, ix
+        bcp(1, i) = -0.5*lamdax
+        bcp(2, i) = -0.5*lamdax
+        bcp(3, i) = 1 + lamdax
+    end do
+end subroutine stencil_heat_1d 
+
+```
+
 3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. For the Fine and Coarse solver, the only thing is to set their specific variables in most cases. 
 
 ```c++
@@ -146,6 +196,10 @@ From the above sample codes, in most cases it is not necessary for users to care
 * In order to easily compile PMLib and hdf5, the Makefile can also accept commond line parameters.
   * for MPLib: ```$make _PMLIB_=1```
   * for HDF5 : ```$make _HDF5_=1```
+
+* In order to support multi physical models easily, we also use optional flag to choose which model to be compiled.
+  * for heat diffuse: ```$make _HEAT_=1```
+  * for Phase Field's Allen-Cahn equation: ```$make _PFM_=1```
 
 ## Notice 
 
