@@ -16,7 +16,7 @@ LDFLAGS_H5 = -L${HDF5_HOME}/lib -lhdf5
 OPTFLAGS_H5= -D _HDF5_   
 endif
 
-_HEAT_ = 1
+#_HEAT_ = 1
 ifdef _HEAT_
 HEAT_INC = -Isrc/heat
 HEAT_FSRC = $(wildcard src/heat/*.f90) 
@@ -24,7 +24,7 @@ HEAT_CSRC = $(wildcard src/heat/*.cpp)
 HEAT_OPT = -D _TEST_HEAT_   
 endif
 
-#_PFM_ = 1
+_PFM_ = 1
 ifdef _PFM_
 PFM_INC = -Isrc/pfm
 PFM_FSRC = $(wildcard src/pfm/*.f90) 

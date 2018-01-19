@@ -5,7 +5,19 @@
 #include "pfm.h"
 
 /**
- * Phase Field Model using Crank-Nicolson
+ * Phase Field Model using Newton-Raphson and Crank-Nicolson
+ *
+ * Allen-Cahn Equation (AC)
+ *
+ * Unlike the classic Heat equation with constant diffuse coefficient, 
+ * the discrete formula of the AC equation based on Crank-Nicolson is nonlinear, 
+ * so Newton-Raphson method is used to linearize the numerical formula of AC, and the linear solver can be applied to AC.
+ * Compared to the HEAT, it is introduced extra three variables for data structure preservation during the calculation 
+ * due to its nonlinear feature.
+ *
+ * If using the default configuration, k=16000, d=1, beta=-0.128, 
+ * only after 0.1 second, the system has already reached its steady state.
+ * 
  */
 
 class PFMSolver : public Solver {
@@ -27,10 +39,10 @@ public:
     double lamda_x;     // d*dt/(dx**2)
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
+    // structure preservation 
     double *soln_;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
     double *G1;     // the partial RHS of Newton's method for PFM  
-
-    double *unk; // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
+    double *unk;    // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
 
     double ls_eps;
     double ls_itmax;

@@ -78,9 +78,8 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
         grid->sp_allreduce(&tmp2);
         omega = tmp1 / tmp2;   
         
-
         cg_xi(x, alpha, p_, omega, s_); // xi = xi_1 + alpha*y + omega*z;   
-        //cg_xi1d(x, p_, s_, alpha, omega);  
+
         cg_avpy(r, omega, s, t);  // r = s - omega*t
          
         // ||r|| 
@@ -92,7 +91,8 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
             break;
         }
         rho0 = rho;
-        grid->bc(x);
+        // WARN: the bc maybe introduce numerical error when grid default bc function is not used for some problems
+        grid->bc(x);  
     }
     if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
 
@@ -168,8 +168,13 @@ void PBiCGStab::preconditioner(double* p_, double* p, bool isPrecond){
  * check convergency flag is not used. if used, the previous solution must be hold for comparing. 
  */
 void PBiCGStab::sor2(double *p_, double *p, int lc_max, bool checkCnvg){
+    blas_cp_(p_, p, &size);
+    return;
+    
+    // not used at current
     int lc = 0;
     double res = 0.0;
+
 
     for(lc=1; lc<=lc_max; lc++) {
         for(int color=0; color<2; color++) {

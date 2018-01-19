@@ -1,8 +1,7 @@
 #include "PFMSolver.h"
 
 /**
- * at current, PFM cannot be able to supported by Driver. 
- * NEED IMPROVED!
+ *  Time integrator of AC equation 
  */
 
 PFMSolver::PFMSolver(PinT *c, Grid *g) : Solver(c,g){
@@ -28,7 +27,7 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
 void PFMSolver::setup(){
     ls_eps = 1.0e-6;
     ls_itmax = 10;
-    //this->steps = 1;
+    //this->steps = 1; // only for debug
     conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  
@@ -56,13 +55,15 @@ void PFMSolver::init() {
         double x = grid->getX(i); 
         val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
         val = 1.0 - 0.5*val;
+        if(i < size/2) 
+            val = 1.0;
+        else val = 0;
         grid->set_val4all(i,val);
     }
 
 }
 // overwrite the default evolve for New-Raphson method
 void PFMSolver::evolve() {
-     
     // step0: set initial value
     soln = getSoln();     // pointer to the start point  
     blas_clear_(unk, &size);
@@ -73,8 +74,7 @@ void PFMSolver::evolve() {
         // step2 : call the solver
         newton_raphson();
     }
-
-    // step3: return solution 
+    // step3: return latest solution to PinT framework 
     // nothing need to do 
 }
 
