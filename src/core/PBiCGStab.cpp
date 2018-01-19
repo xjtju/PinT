@@ -1,5 +1,15 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
+/**
+ * For the Heat equation with a constant diffuse factor or other simple examples, 
+ * the coefficients of each stencil for different grid point may be same at the entire grid during the whole execution, 
+ * so it is not necessary to use a LARGE matrix to hold these coefficients. 
+ *
+ * BUT in practice, for real world simulations, 
+ * the coefficients associated with each stencil entry will typically vary from gridpoint to gridpoint,
+ * so the caller must provide both the RHS(b) and stencil struct matrix(bcp) 
+ *
+ */
 
 void PBiCGStab::init() {
     //b   = alloc_mem(size);

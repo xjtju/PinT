@@ -3,9 +3,9 @@
 
 /**
  * the template of Biconjugate gradient stabilized method for solving Ax=B.
- * Except the unknown vector x, all the temporary variables are managed by the template including the RHS b.
+ * Except the unknown vector x and the RHS b, all the temporary variables are managed by the template.
  *
- * Stencil related routines are declared by virtual functions, the concrete class must implement them  
+ * Stencil matrix must be provided by the caller.
  * 
  * For easy reading, most functions pass parameter explicitly, though it is not necessary because all variables are shared within class
  */
