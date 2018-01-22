@@ -41,6 +41,7 @@ def main(argv):
             acolor = next(color)  
             plt.plot(posx, ds, color=acolor, linewidth=2.0, label=labels[ind])
             ind = ind + 1
+            break
 
     plt.legend(loc='upper right', shadow=True)
    #plt.tick_params(axis='both', which='major', labelsize=20,length=9)

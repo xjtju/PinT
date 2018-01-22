@@ -8,7 +8,7 @@ PMLIB_INC  = -I${PMLIB_HOME}/include
 LDFLAGS_PM = -L${PMLIB_HOME}/lib -lPMmpi 
 OPTFLAGS_PM= -fopenmp -D_PMLib_  
 endif
-
+_HDF5_=1
 ifdef _HDF5_
 HDF5_HOME  = /Users/bamboo/Libs/hdf5
 HDF5_INC   = -I${HDF5_HOME}/include

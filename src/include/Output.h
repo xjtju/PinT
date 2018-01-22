@@ -30,9 +30,15 @@ private:
     int idz_; // other grid's idz
     int idy_;
     int idx_;
-    int spnumz;
+    int spnum ; // the number of space partitions, parallel processes along the space domain 
 
     bool with_coord = true;
+
+#ifdef _HDF5_
+    double *coords_; 
+    hid_t gfile, gdatatype, gdataset_d, gdataset_c, gmemspace_d, gmemspace_c; 
+    hsize_t gdimsoln[1], gdimcoord[2];
+#endif
 
 public:
 
@@ -56,7 +62,9 @@ public:
 
         nguard = g->nguard;
 
-        spnumz = g->spnumz;
+        spnum = g->spnum;
+        double start_coords[3]; 
+
         // weather or not output the coordinates in ASCII format file
         if(g->conf->with_coord == 0) with_coord = false;
     }
@@ -73,6 +81,14 @@ public:
             idz_=cds[2]*nz;
         } 
         fprintf(fp, "]\n"); 
+    }
+
+    inline void to3dcoord(int *cds) {
+        idx_=cds[0]*nx;
+        idy_=0.0;
+        idz_=0.0;
+        if(ndim>=2) idy_=cds[1]*ny;
+        if(ndim>=3) idz_=cds[2]*nz;  
     }
 
     // result output and debug 
@@ -94,6 +110,10 @@ public:
 
     //write all the solution data to HDF5
     int write_h5(char *fname, double *p);
+
+    int open_h5(char *fname);
+    int append_h5(double *p);
+    int close_h5();
 };
 
 #endif

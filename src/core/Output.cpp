@@ -141,3 +141,91 @@ int Output::write_h5(char *fname, double *p) {
 #endif   
     return status; 
 }
+
+int Output::open_h5(char *fname){
+#ifdef _HDF5_
+    gfile = H5Fcreate( fname, H5F_ACC_TRUNC, H5P_DEFAULT,H5P_DEFAULT );
+    if(gfile < 0) { 
+        fprintf(stderr, "ERROR : create global h5 file failure\n");
+        return -1;
+    }
+    
+    gdatatype = H5Tcopy(H5T_NATIVE_DOUBLE);
+    hsize_t dimsoln[1], dimcoord[2];
+
+    dimsoln[0] = (hsize_t)grid->inner_size*spnum;  // all grids 
+    hsize_t dataspace = H5Screate_simple(1, dimsoln, NULL);
+
+    gdimsoln[0]  = (hsize_t) grid->inner_size;  // single grid
+    gmemspace_d = H5Screate_simple(1, gdimsoln,  NULL);   
+
+    gdataset_d = H5Dcreate(gfile, "solution", gdatatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+   
+
+    dimcoord[0] = (hsize_t)grid->inner_size*spnum; // all grids
+    dimcoord[1] = (hsize_t)3;
+    dataspace   = H5Screate_simple(2, dimcoord, NULL);
+
+    gdimcoord[0] = (hsize_t) grid->inner_size;  // single grid
+    gdimcoord[1] = (hsize_t)3;
+    gmemspace_c = H5Screate_simple(2, gdimcoord, NULL);   
+
+    gdataset_c = H5Dcreate(gfile, "coords", gdatatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+
+
+    coords_ = alloc_mem(gdimcoord[0]*gdimcoord[1]); 
+    
+#else
+    printf("INFO : HDF5 function is not yet activated !\n");
+#endif
+    return 0;
+}
+
+int Output::append_h5(double *p){
+    int status = 0;
+#ifdef _HDF5_
+    hid_t dataspace_id;
+
+    hsize_t offset[1] = {0};
+
+    dataspace_id = H5Dget_space(gdataset_d);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, NULL, gdimsoln, NULL);
+    status = H5Dwrite (gdataset_d, H5T_NATIVE_DOUBLE, gmemspace_d, dataspace_id, H5P_DEFAULT, p);    
+
+    H5Sclose(dataspace_id);
+
+    size_t ind ;
+    for(int k=0; k<nz; k++)
+        for(int j=0; j<ny; j++)
+            for(int i=0; i<nx; i++) {
+                ind = grid->getInnerIdxI(i, j, k);
+                coords_[ind*3]   = grid->getX(i, false);
+                coords_[ind*3+1] = grid->getY(j, false);
+                coords_[ind*3+2] = grid->getZ(k, false);
+            }
+    hsize_t offset_[2] = {0, 0};
+
+    dataspace_id = H5Dget_space(gdataset_c);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset_, NULL, gdimcoord, NULL);
+    status = H5Dwrite (gdataset_c, H5T_NATIVE_DOUBLE, gmemspace_c, dataspace_id, H5P_DEFAULT, coords_);    
+
+    H5Sclose(dataspace_id);
+#endif
+    return status;
+}
+
+int Output::close_h5() {
+    int status = 0;
+#ifdef _HDF5_
+    
+    free_mem(coords_);
+
+    status = H5Sclose(gmemspace_d);
+    status = H5Sclose(gmemspace_c);
+    status = H5Dclose(gdataset_c);
+    status = H5Dclose(gdataset_d);
+    
+    status = H5Fclose(gfile); 
+#endif
+    return status;
+}

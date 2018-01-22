@@ -348,24 +348,24 @@ void Grid::bc(){
     bc(u_end);    
 }
 void Grid::bc(double* d){
-    if(ndim == 1) bc_1d(d);
-    if(ndim == 2) bc_2d(d);
-    if(ndim == 3) bc_3d(d);
+    if(ndim == 3)      bc_3d(d);
+    else if(ndim == 2) bc_2d(d);
+    else if(ndim == 1) bc_1d(d);
 }
 // nguard = 1, now space parallel is not considered
 void Grid::bc_1d(double* d) {
     int ng = nguard;
     if( 0==bc_type ){ //fixed value
-       if(MPI_PROC_NULL==left)  // left border
-           bc_val_1d_l_(nxyz, &ng, d, &bc_val);
-       if(MPI_PROC_NULL==right)  //right border
-           bc_val_1d_r_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==left)   bc_val_1d_l_(nxyz, &ng, d, &bc_val);
+       if(MPI_PROC_NULL==right)  bc_val_1d_r_(nxyz, &ng, d, &bc_val);
     }
     else if( 1==bc_type ) { //reflected
-       if(MPI_PROC_NULL==left)  
-           bc_ref_1d_l_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==right)  
-           bc_ref_1d_r_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==left)   bc_ref_1d_l_(nxyz, &ng, d);
+       if(MPI_PROC_NULL==right)  bc_ref_1d_r_(nxyz, &ng, d);
+   }
+   else if( 2==bc_type ) {  // customized bc function is called
+       if(MPI_PROC_NULL==left)   bc_1d_l(d);
+       if(MPI_PROC_NULL==right)  bc_1d_r(d);
    }
 }
 void Grid::bc_2d(double* d) {
@@ -382,8 +382,16 @@ void Grid::bc_2d(double* d) {
        if(MPI_PROC_NULL==front)  bc_ref_2d_f_(nxyz, &ng, d);
        if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
     }
+    else if( 2==bc_type ) { //reflected
+       if(MPI_PROC_NULL==left)   bc_2d_l(d);
+       if(MPI_PROC_NULL==right)  bc_2d_r(d);
+       if(MPI_PROC_NULL==front)  bc_2d_f(d);
+       if(MPI_PROC_NULL==back)   bc_2d_b(d);
+    }
 }
-
+/**
+ * NOTE : unlike 1D/2D, the outer size is used in 3D 
+ */
 void Grid::bc_3d(double *d){
     int ng = nguard;
     if( 0==bc_type) {
@@ -401,6 +409,14 @@ void Grid::bc_3d(double *d){
         if(MPI_PROC_NULL==back)   bc_ref_3d_b_(sxyz, &ng, d);
         if(MPI_PROC_NULL==down)   bc_ref_3d_d_(sxyz, &ng, d);
         if(MPI_PROC_NULL==up)     bc_ref_3d_u_(sxyz, &ng, d);
+    }
+    else if( 2==bc_type ){
+        if(MPI_PROC_NULL==left)   bc_3d_l(d);
+        if(MPI_PROC_NULL==right)  bc_3d_r(d);
+        if(MPI_PROC_NULL==front)  bc_3d_f(d);
+        if(MPI_PROC_NULL==back)   bc_3d_b(d);
+        if(MPI_PROC_NULL==down)   bc_3d_d(d);
+        if(MPI_PROC_NULL==up)     bc_3d_u(d);
     }
 }
 /**
@@ -475,7 +491,7 @@ void Grid::output_local_h5(double *p) {
 }
 
 // file name : mytid.all.txt 
-void Grid::output_global(){
+void Grid::output_global(bool h5){
     if (mytid != (tsnum-1)) return;  //only output the last time slice
     
     MPI_Request req, req_p;
@@ -487,8 +503,8 @@ void Grid::output_global(){
     char fname[21];
     int ind = 0;   
     
-    int idbuf[3];
     double* sendrecv_buf = alloc_mem(this->inner_size); 
+    Output out = Output(this);
 
     dest = spnum - 1;
     if( mysid != dest ){ //is not the last space grid 
@@ -500,9 +516,12 @@ void Grid::output_global(){
     }
 
     // the output task is left to the last space grid 
-    sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
-    fp = fopen (fname,"w");
-    Output out = Output(this);
+    if(h5) sprintf(fname, "%s_%d.all.h5", conf->debug_pre,mytid); 
+    else sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
+
+    if(h5) out.open_h5(fname);    
+    else fp = fopen (fname,"w");
+
     for(int k=0; k<spnumz; k++)
     for(int j=0; j<spnumy; j++)
     for(int i=0; i<spnumx; i++) {
@@ -513,15 +532,26 @@ void Grid::output_global(){
         MPI_Wait(&req_p, &sta_p);
 
         MPI_Cart_coords(st_comm, source, ndim, coords_);
-        out.coord(fp, coords_);
-        out.var_inner_Z(fp,sendrecv_buf, true);
+
+        if(h5) {
+            out.to3dcoord(coords_);
+            out.append_h5(sendrecv_buf);
+        } else {
+            out.coord(fp, coords_);
+            out.var_inner_Z(fp,sendrecv_buf, true);
+        }
     }
     // output itself 
     pack_data(u_end, sendrecv_buf); // get rid of guard cell
-    out.coord(fp, coords);
-    out.var_inner_Z(fp,sendrecv_buf,true);
-
-    fclose(fp);
+    if(h5) {
+        out.to3dcoord(coords);
+        out.append_h5(sendrecv_buf);
+    } else {
+        out.coord(fp, coords);
+        out.var_inner_Z(fp,sendrecv_buf,true);
+    }
+    if(h5) out.close_h5();
+    else fclose(fp);
 
     free_mem(sendrecv_buf);
 

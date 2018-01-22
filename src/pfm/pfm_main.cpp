@@ -1,6 +1,7 @@
 #ifdef _TEST_PFM_
 
 #include "Monitor.h"
+#include "Grid.h"
 #include "Driver.h"
 #include "PFMSolver.h"
 
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // output result to disk and for post-processing 
     g->output_local(g->u_end, true);
-    //g->output_global();
+    g->output_global_h5();
     
     driver.finalize();  // quit MPI 
 

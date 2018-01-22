@@ -22,6 +22,7 @@
 class Grid {
  private:
     Monitor monitor;
+    inline void dummy(const char* s) { if(myid==0) printf("WARN: dummy %s function is used  by GRID !\n", s); }
 
 public:
     PinT *conf;
@@ -36,7 +37,7 @@ public:
     int inner_size; // size not including guard cells
 
     int nguard = 1;
-    int bc_type;
+    int bc_type;  // 0: fixed value;  1: reflected; 2: customize
     double bc_val;
 
     // in order to automatically adapt to multi-dimension  
@@ -106,7 +107,7 @@ public:
     virtual ~Grid();
 
     virtual void init() {
-        printf("WARN: the default blank init function is used by Grid!\n");
+        dummy("INIT");
     }
     // for easily initialize the grid variables
     inline void set_val4all(size_t ind, double val) {
@@ -202,6 +203,21 @@ public:
         }
     }
 
+    virtual void bc_1d_l(double *d){ dummy("BC"); } 
+    virtual void bc_1d_r(double *d){ dummy("BC"); } 
+
+    virtual void bc_2d_l(double *d){ dummy("BC"); } 
+    virtual void bc_2d_r(double *d){ dummy("BC"); }
+    virtual void bc_2d_f(double *d){ dummy("BC"); }
+    virtual void bc_2d_b(double *d){ dummy("BC"); }
+
+    virtual void bc_3d_l(double *d){ dummy("BC"); } 
+    virtual void bc_3d_r(double *d){ dummy("BC"); }
+    virtual void bc_3d_f(double *d){ dummy("BC"); }
+    virtual void bc_3d_b(double *d){ dummy("BC"); }
+    virtual void bc_3d_d(double *d){ dummy("BC"); }
+    virtual void bc_3d_u(double *d){ dummy("BC"); }
+
     // space domain, for only one datum with double type and SUM operation 
     void sp_allreduce(double *d);  //d is input and output
     void sp_allreduce(double *d, double *o); //d is input, o is output
@@ -217,7 +233,10 @@ public:
 
     // aggregate all the final results from all the grids within the same space domain and output 
     // only for X-Y cross sections along the Z direction   
-    void output_global();
+    void output_global(bool h5=false);
+    inline void output_global_h5() {
+        output_global(true);
+    }
 
 };
 #endif

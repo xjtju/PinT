@@ -37,6 +37,9 @@ public:
 
     double dtk;         // dt*k
     double lamda_x;     // d*dt/(dx**2)
+    double lamda_y;     
+    double lamda_z;    
+    double lamdaxyz[3]; 
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
     // structure preservation 
@@ -68,35 +71,37 @@ public:
     void newton_raphson(); // New-Raphson method iteration 
     
     void init();
+    void init1d();
+    void init2d();
 
     inline void stencil() {
-        if(ndim==1) stencil_ac_1d_(grid->nxyz, &lamda_x, &nguard, bcp, soln, &theta, &dtk, &beta_);
+        if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
+        else if(ndim==1) stencil_ac_1d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else printf("NOT 1D ERROR\n");
     }
 
     inline void rhs() {
-        if(ndim==1) rhs_ac_1d_(grid->nxyz, &lamda_x, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
+        if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
+        else if(ndim==1) rhs_ac_1d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
         else printf("NOT 1D ERROR\n");
     }
     inline void rhs_g1() {
-        if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, &lamda_x, &nguard, soln_,  G1, &theta, &dtk, &beta_);
-        else printf("NOT 1D ERROR\n");
-    }
-    // specific boundary condition, the default bc functions of Grid cannot satisfy the requirement. 
-    inline void  bc() {
-        if(ndim==1) bc_ac_1d_(grid->nxyz, &nguard, soln);
+        if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
+        else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
         else printf("NOT 1D ERROR\n");
     }
 
     inline void chk_eps(double *err) {
-        if(ndim==1) blas_dot_1d_(grid->nxyz, &nguard, unk, unk, err ); 
+        if(ndim==2) blas_dot_2d_(grid->nxyz, &nguard, unk, unk, err ); 
+        else if(ndim==1) blas_dot_1d_(grid->nxyz, &nguard, unk, unk, err ); 
         else printf("NOT 1D ERROR\n");
 
         *err = sqrt(*err);
     }
 
     inline void update() {
-        if(ndim==1) update_ac_1d_(grid->nxyz, &nguard, soln, unk);
+        if(ndim==2) update_ac_2d_(grid->nxyz, &nguard, soln, unk);
+        else if(ndim==1) update_ac_1d_(grid->nxyz, &nguard, soln, unk);
         else printf("NOT 1D ERROR\n");
     }
 };
