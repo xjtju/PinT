@@ -35,7 +35,7 @@ implicit none
     do i=1, ix
         g2 = lamda * (soln(i-1) -2*soln(i) + soln(i+1)) &
             - dtk * soln(i) * ( soln(i) - 1.0 ) * ( soln(i) - beta_ ) 
-        b(i) = - ( soln(i) - soln_(i) - theta*g2 - (1-theta)*g1(i) ) 
+        b(i) = - ( soln(i) - soln_(i) - theta*g2 - (1-theta)*g1(i) )
     end do
 end subroutine rhs_ac_1d 
 

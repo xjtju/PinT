@@ -38,7 +38,6 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
     blas_clear_(p_, &size);
 
     grid->guardcell(x);    
-
     //cg_b(x);  // Ax=b, prepare b
 
     cg_rk(r, x, b, bcp); //init residual r = b - Ax 
@@ -102,11 +101,12 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
         }
         rho0 = rho;
         // WARN: the bc maybe introduce numerical error when grid default bc function is not used for some problems
-        grid->bc(x);  
+        // In this condition, problem-specific sub grid must be implemented
+        // grid->bc(x); // necessary ?
     }
     if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
 
-    grid->guardcell(x); // necessary ?
+    //grid->guardcell(x); // necessary ?
 }
 
 //

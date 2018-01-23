@@ -192,9 +192,9 @@ void Grid::create_topology_3d(){
 void Grid::guardcell(double* d) {
     //monitor.start(Monitor::GC);
 
-    if(ndim == 1) guardcell_1d(d);
+    if(ndim == 3)      guardcell_3d(d);
     else if(ndim == 2) guardcell_2d(d);
-    else if(ndim == 3) guardcell_3d(d);
+    else if(ndim == 1) guardcell_1d(d);
 
     //monitor.stop(Monitor::GC);
 }
@@ -203,7 +203,7 @@ void Grid::guardcell_1d(double* d) {
    MPI_Request req;
    MPI_Status stat;
    int ierr;
-   
+
    int sg = this->gcsx;
 
    if(MPI_PROC_NULL!=right)  // not right border
@@ -213,14 +213,14 @@ void Grid::guardcell_1d(double* d) {
    if(MPI_PROC_NULL!=left)  // not left border
       unpackgc_1d_l_(nxyz, &nguard, d, gcell_recvx);
 
-   //printf("%d L: %f, %f ", st_rank, gcell_send[0], gcell_recv[0]);
- 
+   //printf("%d L: %f, %f ", st_rank, gcell_sendx[0], gcell_recvx[0]);
    if(MPI_PROC_NULL!=left)  // not left border
        packgc_1d_l_(nxyz, &nguard, d, gcell_sendx);
    MPI_Sendrecv(gcell_sendx, sg, MPI_DOUBLE, left, 9009, 
                 gcell_recvx, sg, MPI_DOUBLE, right,  9009, st_comm, &stat);
    if(MPI_PROC_NULL!=right)  // not right border
        unpackgc_1d_r_(nxyz, &nguard, d, gcell_recvx);
+
 }
 
 void Grid::guardcell_2d(double* d) {
@@ -423,13 +423,13 @@ void Grid::bc_3d(double *d){
  * MPI_Allreduce double
  */
 void Grid::sp_allreduce(double *d) {
-    double tmp[1]; 
+    double tmp[1];
     MPI_Allreduce(d, tmp, 1, MPI_DOUBLE, MPI_SUM, *sp_comm);
     *d = *tmp;
 }
 
 void Grid::sp_allreduce(double *d, double *o) {
-    MPI_Allreduce(d, o, 1, MPI_DOUBLE, MPI_SUM,*sp_comm);
+    MPI_Allreduce(d, o, 1, MPI_DOUBLE, MPI_SUM, *sp_comm);
 }
 
 void Grid::allreduce(double *d, double *o, int op) {
@@ -508,7 +508,7 @@ void Grid::output_global(bool h5){
 
     dest = spnum - 1;
     if( mysid != dest ){ //is not the last space grid 
-        printf("[%d.%d] is sending data to the last grid [%d.%d]\n", mytid, mysid,mytid, dest);
+        printf("[%d.%d] is sending data to the last grid [%d.%d]\n", mytid, mysid, mytid, dest);
         pack_data(u_end, sendrecv_buf);
         ierr = MPI_Isend(sendrecv_buf, inner_size, MPI_DOUBLE, dest, 9999, *sp_comm, &req); 
         MPI_Wait(&req, &sta);

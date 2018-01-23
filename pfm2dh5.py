@@ -42,6 +42,7 @@ def main(argv):
     
     #plt.imshow(grid, interpolation='nearest')
     plt.scatter(posx, posy, c=grid)
+    #plt.scatter(posx, grid)
     #plt.colorbar()
     plt.xlabel('X')
     plt.ylabel('Y')

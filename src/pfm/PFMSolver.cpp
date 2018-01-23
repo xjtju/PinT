@@ -33,9 +33,8 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
 
 // set diffuse coefficient and tune the default parameter, problem specific
 void PFMSolver::setup(){
-    ls_eps = 1.0e-6;
-    ls_itmax = 10;
-    //this->steps = 1; // only for debug
+    //ls_eps = 1.0e-6;
+    //ls_itmax = 1;
     conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  
@@ -52,6 +51,9 @@ void PFMSolver::setup(){
     G1    = alloc_mem(this->size);
 
     hypre = new PBiCGStab(conf, grid);
+    
+    //this->steps = 1; // only for debug
+    //conf->kpar_limit = 0; //only for debug
 }
 
 void PFMSolver::init() {
@@ -115,7 +117,7 @@ void PFMSolver::newton_raphson() {
     
     bool ifg = false; // converge flag
     double err = 0;   // eps check 
-    
+
     // step0 : set F_{n-1} and calcaluate RHS G1 
     blas_cp_(soln_, soln, &size); 
     rhs_g1();
@@ -123,10 +125,10 @@ void PFMSolver::newton_raphson() {
     for(int i=0; i<newton_itmax; i++) {
         // step1 : set initial guess value
         blas_clear_(unk, &size);
-
+     
         // step2 : calcaluate RHS: b 
         rhs();
-        
+
         // step3 : set the stencil struct matrix 
         stencil();
 
@@ -135,11 +137,15 @@ void PFMSolver::newton_raphson() {
         
         // step5: update solution 
         update();
+        grid->guardcell(soln); // when solution is changed, synchonization is necessary
 
-        // step5: check converge 
+        // step5: check converge in all grids   
         chk_eps(&err);
-        if(err <= 1.0e-6) {
-           ifg = true;  break;
+        // NOTE : in parallel version, BREAK must be carefully used.
+        // make sure all the MPI process will be jump out of the loop at the same point
+        if(err <= 1.0e-6) { 
+           ifg = true;  
+           break;
         }
     }
     if(!ifg) Driver::Abort("Newton Raphson loop does not converge, eps=%e\n" , err);

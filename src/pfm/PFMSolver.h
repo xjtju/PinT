@@ -37,8 +37,8 @@ public:
 
     double dtk;         // dt*k
     double lamda_x;     // d*dt/(dx**2)
-    double lamda_y;     
-    double lamda_z;    
+    double lamda_y = 0.0;     
+    double lamda_z = 0.0;    
     double lamdaxyz[3]; 
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
@@ -47,8 +47,8 @@ public:
     double *G1;     // the partial RHS of Newton's method for PFM  
     double *unk;    // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
 
-    double ls_eps;
-    double ls_itmax;
+    //double ls_eps;
+    //double ls_itmax;
 
     PBiCGStab *hypre;  // linear solver 
 
@@ -75,34 +75,38 @@ public:
     void init2d();
 
     inline void stencil() {
-        if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
+        if(ndim==3) printf("NOT 1D ERROR\n");
+        else if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==1) stencil_ac_1d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
-        else printf("NOT 1D ERROR\n");
     }
 
     inline void rhs() {
-        if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
+        if(ndim==3) printf("NOT 1D ERROR\n");
+        else if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
         else if(ndim==1) rhs_ac_1d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
-        else printf("NOT 1D ERROR\n");
     }
     inline void rhs_g1() {
-        if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
+        if(ndim==3) printf("NOT 1D ERROR\n");
+        else if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
         else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
-        else printf("NOT 1D ERROR\n");
     }
 
+    /*
+     * NOTE : for space division, converge check must be performed in the whole geographical space 
+     */
     inline void chk_eps(double *err) {
-        if(ndim==2) blas_dot_2d_(grid->nxyz, &nguard, unk, unk, err ); 
+        if(ndim==3) printf("NOT 1D ERROR\n");
+        else if(ndim==2) blas_dot_2d_(grid->nxyz, &nguard, unk, unk, err ); 
         else if(ndim==1) blas_dot_1d_(grid->nxyz, &nguard, unk, unk, err ); 
-        else printf("NOT 1D ERROR\n");
 
+        grid->sp_allreduce(err);
         *err = sqrt(*err);
     }
 
     inline void update() {
-        if(ndim==2) update_ac_2d_(grid->nxyz, &nguard, soln, unk);
+        if(ndim==3) printf("NOT 1D ERROR\n");
+        else if(ndim==2) update_ac_2d_(grid->nxyz, &nguard, soln, unk);
         else if(ndim==1) update_ac_1d_(grid->nxyz, &nguard, soln, unk);
-        else printf("NOT 1D ERROR\n");
     }
 };
 
