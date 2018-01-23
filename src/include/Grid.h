@@ -155,7 +155,6 @@ public:
     }
     inline double getY(int ind, bool outer=true ){
         if(ndim<2) return 0;
-
         size_t gind;
         if(outer)
             gind = (idy+ind-nguard);
@@ -171,6 +170,17 @@ public:
         else gind = idz + ind;
 
         return gind*dz + dz/2;
+    }
+    inline double getGX(int igx, int ind){
+        return (igx+ind+0.5)*dx; 
+    }
+    inline double getGY(int igy, int ind){
+        if(ndim<2) return 0;
+        return (igy+ind+0.5)*dy; 
+    }
+    inline double getGZ(int igz, int ind){
+        if(ndim<3) return 0;
+        return (igz+ind+0.5)*dz; 
     }
 
     // get the linear index of the 1-2-3D index, the set of functions are not frequently used.

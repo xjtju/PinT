@@ -35,7 +35,7 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
 void PFMSolver::setup(){
     ls_eps = 1.0e-6;
     ls_itmax = 10;
-    this->steps = 1; // only for debug
+    //this->steps = 1; // only for debug
     conf->init_module(this, pfm_inih);
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  

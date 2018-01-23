@@ -35,7 +35,8 @@ private:
     bool with_coord = true;
 
 #ifdef _HDF5_
-    double *coords_; 
+    double *coords_;
+    size_t gridcounter = 0;
     hid_t gfile, gdatatype, gdataset_d, gdataset_c, gmemspace_d, gmemspace_c; 
     hsize_t gdimsoln[1], gdimcoord[2];
 #endif
@@ -63,7 +64,6 @@ public:
         nguard = g->nguard;
 
         spnum = g->spnum;
-        double start_coords[3]; 
 
         // weather or not output the coordinates in ASCII format file
         if(g->conf->with_coord == 0) with_coord = false;
