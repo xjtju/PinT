@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
-
+from mpl_toolkits.mplot3d import Axes3D
 
 def get_color():
     for item in ['r','g','b','c','m','y','k']:
@@ -37,16 +37,23 @@ def main(argv):
     print 'coords shape is ({0},{1})\n'.format(totalcount, dims)
     posx = ds2[..., 0]
     posy = ds2[..., 1]
+    posz = ds2[..., 2]
     grid = ds1[...]
    # grid = tmp.reshape(cnt, cnt) 
     
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
     #plt.imshow(grid, interpolation='nearest')
-    plt.scatter(posx, posy, c=grid)
+    p = ax.scatter3D(posx, posy, posz, c=grid, s=50, cmap=cm.binary)
     #plt.scatter(posx, grid)
     #plt.colorbar()
-    plt.xlabel('X')
-    plt.ylabel('Y')
+    fig.colorbar(p)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
     plt.title(fname)
+
     #axes = plt.gca()
     #axes.set_ylim([-0.1,1.1])
     #axes.set_xlim([-0.02, xlen+0.02])

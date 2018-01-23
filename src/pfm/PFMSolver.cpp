@@ -1,9 +1,8 @@
 #include "PFMSolver.h"
 
 /**
- *  Time integrator of AC equation 
+ *  Time integrator of Allen-Cahn Equation (AC)
  */
-
 PFMSolver::PFMSolver(PinT *c, Grid *g) : Solver(c,g){
     setup();
 }
@@ -33,9 +32,8 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
 
 // set diffuse coefficient and tune the default parameter, problem specific
 void PFMSolver::setup(){
-    //ls_eps = 1.0e-6;
-    //ls_itmax = 1;
     conf->init_module(this, pfm_inih);
+    beta_ = 0.5 - beta;
     if(grid->myid == 0) {
         printf("PFM init parameter : \n");  
         printf("        D    = %f \n", d);
@@ -43,8 +41,6 @@ void PFMSolver::setup(){
         printf("        beta = %f \n", beta);
         printf("  newton_iter=%d \n\n", newton_itmax);
     }
-
-    beta_ = 0.5 - beta;
 
     unk   = alloc_mem(this->size);
     soln_ = alloc_mem(this->size);
@@ -54,47 +50,6 @@ void PFMSolver::setup(){
     
     //this->steps = 1; // only for debug
     //conf->kpar_limit = 0; //only for debug
-}
-
-void PFMSolver::init() {
-    if(this->ndim == 1) init1d();
-    if(this->ndim == 2) init2d();
-//    if(this->ndim == 3) init3d();
-}
-// set the initial value
-void PFMSolver::init1d() {
-
-    double xi = sqrt(2.0*d/k);
-    double val;
-    double midx = conf->Xspan/2 ; 
-    double xdist;
-    for(int i=nguard; i<nx+nguard; i++){
-        double x = grid->getX(i); 
-        //val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
-        //val = 1.0 - 0.5*val;
-        xdist = x - midx; 
-        if(abs(xdist) < 0.2) 
-            val = 0.6;
-        else val = 0;
-        grid->set_val4all(i,val);
-    }
-}
-
-void PFMSolver::init2d(){
-    long ind = 0;     
-    double xdist, ydist, unk;
-    for(int j = nguard; j<ny+nguard; j++)
-    for(int i = nguard; i<nx+nguard; i++){
-       xdist = grid->getX(i) -  conf->Xspan/2 ; 
-       ydist = grid->getY(j) -  conf->Yspan/2 ;
-       
-       ind = grid->getOuterIdx(i, j, 0);  
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
-           unk = 1.0; 
-       else unk = 0.0; 
-       
-       grid->set_val4all(ind, unk);
-    }
 }
 
 // overwrite the default evolve for New-Raphson method
@@ -113,6 +68,7 @@ void PFMSolver::evolve() {
     // nothing need to do 
 }
 
+// Newton-Raphson's iteration loop
 void PFMSolver::newton_raphson() {
     
     bool ifg = false; // converge flag
@@ -137,7 +93,8 @@ void PFMSolver::newton_raphson() {
         
         // step5: update solution 
         update();
-        grid->guardcell(soln); // when solution is changed, synchonization is necessary
+        // when solution is changed, synchonization is necessary
+        grid->guardcell(soln); 
 
         // step5: check converge in all grids   
         chk_eps(&err);
@@ -151,6 +108,66 @@ void PFMSolver::newton_raphson() {
     if(!ifg) Driver::Abort("Newton Raphson loop does not converge, eps=%e\n" , err);
 }
 
+// set the initial value
+void PFMSolver::init() {
+    if(this->ndim == 1) init1d();
+    if(this->ndim == 2) init2d();
+    if(this->ndim == 3) init3d();
+}
+// set the initial value
+void PFMSolver::init1d() {
+
+    double xi = sqrt(2.0*d/k);
+    double val;
+    double midx = conf->Xspan/2 ; 
+    double xdist;
+    for(int i=nguard; i<nx+nguard; i++){
+        double x = grid->getX(i); 
+        //val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
+        //val = 1.0 - 0.5*val;
+        xdist = x - midx; 
+        if(abs(xdist) < 0.2) 
+            val = 0.8;
+        else val = 0;
+        grid->set_val4all(i,val);
+    }
+}
+
+void PFMSolver::init2d(){
+    long ind = 0;     
+    double xdist, ydist, unk;
+    for(int j = nguard; j<ny+nguard; j++)
+    for(int i = nguard; i<nx+nguard; i++){
+       xdist = grid->getX(i) -  conf->Xspan/2 ; 
+       ydist = grid->getY(j) -  conf->Yspan/2 ;
+       
+       ind = grid->getOuterIdx(i, j, 0);  
+       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
+           unk = 1.0; 
+       else unk = 0.0; 
+       
+       grid->set_val4all(ind, unk);
+    }
+}
+
+void PFMSolver::init3d(){
+    long ind = 0;     
+    double xdist, ydist, zdist, unk;
+    for(int k = nguard; k<nz+nguard; k++)
+    for(int j = nguard; j<ny+nguard; j++)
+    for(int i = nguard; i<nx+nguard; i++){
+       xdist = grid->getX(i) -  conf->Xspan/2 ; 
+       ydist = grid->getY(j) -  conf->Yspan/2 ;
+       zdist = grid->getZ(k) -  conf->Zspan/2 ;
+       
+       ind = grid->getOuterIdx(i, j, k);  
+       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 && abs(zdist<=0.2) )
+           unk = 1.0; 
+       else unk = 0.0; 
+       
+       grid->set_val4all(ind, unk);
+    }
+}
 // parse ini parameters of PFM
 int pfm_inih(void* obj, const char* section, const char* name, const char* value) {
 

@@ -223,3 +223,111 @@ implicit none
     p(1:sx , ny+1:ny+ng) = p(1:sx, ny:ny) 
 end subroutine bc_pfm_ac_2d_b    
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! 3D  
+!!
+!! setup the stencil struct matrix, A
+subroutine stencil_ac_3d(nxyz, lamdaxyz, ng, A, soln, theta, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, j, k, ix, jy, kz  
+    real    ::  theta, beta_, dtk, lamdax, lamday, lamdaz
+    real, dimension(      1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln  
+    real, dimension(1:7,  1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: A 
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        A(1,i,j,k) = -theta*lamdax
+        A(2,i,j,k) = -theta*lamdax
+        A(3,i,j,k) = -theta*lamday
+        A(4,i,j,k) = -theta*lamday
+        A(5,i,j,k) = -theta*lamdaz
+        A(6,i,j,k) = -theta*lamdaz
+        A(7,i,j,k) = 1 + 2*theta*(lamdax + lamday + lamdaz) + theta*dtk * (  &
+              (soln(i,j,k)-1.0) * ( soln(i,j,k) - beta_ )  &
+            + (soln(i,j,k)    ) * ( soln(i,j,k) - beta_  )  & 
+            + (soln(i,j,k)    ) * ( soln(i,j,k) - 1.0    )  )
+    end do
+    end do 
+    end do
+end subroutine stencil_ac_3d 
+
+subroutine rhs_ac_3d(nxyz, lamdaxyz, ng, b, soln, soln_, g1, theta, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix, j, jy, k, kz 
+    real    ::  theta, beta_, dtk, g2, lamdax, lamday, lamdaz
+    real, dimension(      1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, soln_, b, g1  
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        g2 = lamdax * ( soln(i-1, j,   k  ) - 2*soln(i,j,k) + soln(i+1, j,   k  ) ) &
+           + lamday * ( soln(i,   j-1, k  ) - 2*soln(i,j,k) + soln(i,   j+1, k  ) ) &
+           + lamdaz * ( soln(i,   j,   k-1) - 2*soln(i,j,k) + soln(i,   j,   k+1) ) &
+           - dtk * soln(i,j,k) * ( soln(i,j,k) - 1.0 ) * ( soln(i,j,k) - beta_ ) 
+        b(i,j,k) = - ( soln(i,j,k) - soln_(i,j,k) - theta*g2 - (1-theta)*g1(i,j,k) ) 
+    end do
+    end do
+    end do
+end subroutine rhs_ac_3d 
+
+subroutine rhs_g1_ac_3d(nxyz, lamdaxyz, ng, soln, g1, theta, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix, j, jy, k, kz 
+    real    ::  theta, beta_, dtk, lamdax, lamday, lamdaz
+    real, dimension(      1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, g1  
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        g1(i,j,k) = lamdax * ( soln(i-1, j,   k  ) - 2*soln(i,j,k) + soln(i+1, j,   k  ) ) &
+                  + lamday * ( soln(i,   j-1, k  ) - 2*soln(i,j,k) + soln(i,   j+1, k  ) ) &
+                  + lamdaz * ( soln(i,   j,   k-1) - 2*soln(i,j,k) + soln(i,   j,   k+1) ) &
+                  - dtk * soln(i,j,k) * ( soln(i,j,k) - 1.0 ) * ( soln(i,j,k) - beta_ ) 
+    end do
+    end do
+    end do
+end subroutine rhs_g1_ac_3d 
+
+
+subroutine update_ac_3d(nxyz, ng, soln, delta)
+implicit none
+    integer, dimension(3) :: nxyz
+    integer ::  ng, i, ix, j, jy, k, kz 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, delta  
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        soln(i,j,k) = soln(i,j,k) + delta(i,j,k)
+    end do
+    end do
+    end do 
+end subroutine update_ac_3d 

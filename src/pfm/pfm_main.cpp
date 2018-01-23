@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
     // because the initial values for both solver are same at the start time 
     G->init();
 
-    //g->output_local(g->u_end, true);
-    //driver.Abort("高次元テスト3D PFM:%d\n", 3); // DEBUG
 
+    //g->output_local(g->u_end, true);
+    //driver.Abort("高次元テスト3D PFM:%d\n", 5); // DEBUG
     // run the parareal algorithm 
     driver.evolve(g, G, F);
 

@@ -30,10 +30,25 @@ extern "C" {
 
     void update_ac_2d_(int *nxyz, int *ng, double *soln, double *delta);
 
-    // only for example
+    // only for example, not used 
     void bc_pfm_ac_2d_l_(int* sxyz, int *ng, double* soln);  // left  border : west 
     void bc_pfm_ac_2d_r_(int* sxyz, int *ng, double* soln);  // right border : east 
     void bc_pfm_ac_2d_f_(int* sxyz, int *ng, double* soln);  // front border : south 
     void bc_pfm_ac_2d_b_(int* sxyz, int *ng, double* soln);  // back  border : north
+
+    //
+    // 3D
+    //
+    void rhs_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *soln_, double *g1, 
+            double *theta, double *dtk, double *beta_);
+
+    void rhs_g1_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *soln, double *g1, 
+            double *theta, double *dtk, double *beta_);
+
+    void stencil_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *A, double *soln,
+            double *theta, double *dtk, double *beta_);
+
+    void update_ac_3d_(int *nxyz, int *ng, double *soln, double *delta);
+
 }
 #endif

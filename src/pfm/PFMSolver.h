@@ -73,20 +73,21 @@ public:
     void init();
     void init1d();
     void init2d();
+    void init3d();
 
     inline void stencil() {
-        if(ndim==3) printf("NOT 1D ERROR\n");
+        if(ndim==3)      stencil_ac_3d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==1) stencil_ac_1d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
     }
 
     inline void rhs() {
-        if(ndim==3) printf("NOT 1D ERROR\n");
+        if(ndim==3)      rhs_ac_3d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
         else if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
         else if(ndim==1) rhs_ac_1d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
     }
     inline void rhs_g1() {
-        if(ndim==3) printf("NOT 1D ERROR\n");
+        if(ndim==3)      rhs_g1_ac_3d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
         else if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
         else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
     }
@@ -95,7 +96,7 @@ public:
      * NOTE : for space division, converge check must be performed in the whole geographical space 
      */
     inline void chk_eps(double *err) {
-        if(ndim==3) printf("NOT 1D ERROR\n");
+        if(ndim==3)      blas_dot_3d_(grid->nxyz, &nguard, unk, unk, err ); 
         else if(ndim==2) blas_dot_2d_(grid->nxyz, &nguard, unk, unk, err ); 
         else if(ndim==1) blas_dot_1d_(grid->nxyz, &nguard, unk, unk, err ); 
 
@@ -104,7 +105,7 @@ public:
     }
 
     inline void update() {
-        if(ndim==3) printf("NOT 1D ERROR\n");
+        if(ndim==3)      update_ac_3d_(grid->nxyz, &nguard, soln, unk);
         else if(ndim==2) update_ac_2d_(grid->nxyz, &nguard, soln, unk);
         else if(ndim==1) update_ac_1d_(grid->nxyz, &nguard, soln, unk);
     }
