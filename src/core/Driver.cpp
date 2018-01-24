@@ -26,17 +26,18 @@ void Driver::init(int argc, char* argv[]){
         if(myid==0) conf->print();
     } else Abort("Can't load ini file or ini error : %s .\n", ini_file);
 
+    conf->myid = myid;
     conf->numprocs = numprocs;
     spnum = conf->spnum;
     tsnum = conf->tsnum;
     smlr  = conf->smlr;
     mytid = myid / spnum;
     pipelined = conf->pipelined;
-
+    
     //check the configuration is consist with the real run time
     bool checkOK = conf->check();
     if(!checkOK)
-        Abort("configuration inconsistent : the program is forcely stopped due to the previous WARNs or ERRORs, please check the ini file again!\n\n");
+        Abort("configuration inconsistent : the program is forcely stopped due to the previous WARNs or ERRORs, please check the ini file and the run time parameters again!\n\n");
 
     int key=myid%spnum, color=myid/spnum; 
     //communicator for spatil parallel
@@ -54,6 +55,11 @@ void Driver::init(int argc, char* argv[]){
 
 // the PinT algorithm template
 void Driver::evolve(Grid* g, Solver* G, Solver* F){
+    // output the initial values for debugging or ...
+    if(conf->dump_init) {
+        g->output_global_h5("ini");
+        INFO("\ninitial data has been dumped to ...all.ini.h5 \n\n");
+    }
     // for convience only, set the pointer to grid inner variables
     double *u_cprev = g->u_cprev;  
     double *u_start= g->u_start; 
@@ -156,10 +162,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         g->sp_allreduce(&res_loc, &res_sp);
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         if(pipelined == 0) {
-            g->allreduce(&res_sp, &max_res,MPI_MAX); 
+            g->allreduce(&res_sp, &max_res,MPI_MAX);  // time space is enough ?!
             //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         }
-        monitorResidual(g, res_loc,max_res,size);
+        monitorResidual(g, res_loc, max_res, size);
         monitor.stop(Monitor::RES);
 
          //STEP8
@@ -257,15 +263,17 @@ void Driver::WARN(const char* fmt, ...) {
 
 
 void Driver::Abort(const char* fmt, ...) {
-    
-    va_list args;
-        
-    va_start(args, fmt);
-    fputs("ERROR: ", stderr);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
-
-    MPI_Abort(MPI_COMM_WORLD, 2018);
+   
+    int myid;
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    if(myid==0){  
+        va_list args;
+        va_start(args, fmt);
+        fputs("ERROR: ", stderr);
+        vfprintf(stderr, fmt, args);
+        va_end(args);
+    }
+    MPI_Abort(MPI_COMM_WORLD, 2018); // the project since 2018 new year
 
     exit(1);
 }

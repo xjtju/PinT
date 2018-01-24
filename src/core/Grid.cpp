@@ -491,7 +491,7 @@ void Grid::output_local_h5(double *p) {
 }
 
 // file name : mytid.all.txt 
-void Grid::output_global(bool h5){
+void Grid::output_global(const char* flagname, bool h5){
     if (mytid != (tsnum-1)) return;  //only output the last time slice
     
     MPI_Request req, req_p;
@@ -500,7 +500,7 @@ void Grid::output_global(bool h5){
     int source, dest;
 
     FILE *fp;
-    char fname[21];
+    char fname[40];
     int ind = 0;   
     
     double* sendrecv_buf = alloc_mem(this->inner_size); 
@@ -516,8 +516,8 @@ void Grid::output_global(bool h5){
     }
 
     // the output task is left to the last space grid 
-    if(h5) sprintf(fname, "%s_%d.all.h5", conf->debug_pre,mytid); 
-    else sprintf(fname, "%s_%d.all.txt", conf->debug_pre,mytid); 
+    if(h5) sprintf(fname, "%s_%d.all.%s.h5", conf->debug_pre,mytid, flagname); 
+    else sprintf(fname, "%s_%d.all.%s.txt", conf->debug_pre,mytid, flagname); 
 
     if(h5) out.open_h5(fname);    
     else fp = fopen (fname,"w");

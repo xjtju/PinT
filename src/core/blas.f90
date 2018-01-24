@@ -132,10 +132,11 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, ix 
     real, dimension( 1-ng:nxyz(1)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2 
+    real :: res, sml, tmp1, tmp2, u_nrm2 
 
     tmp1 = 0.0
     tmp2 = 0.0
+    u_nrm2 = 0.0
 
     ix = nxyz(1)
     do i=1, ix
@@ -143,7 +144,10 @@ implicit none
         tmp2 = u(i) -tmp1
         res = res + tmp2*tmp2
         u(i) = tmp1
+        u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
+    
+    res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
     end if
@@ -155,21 +159,25 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2 
+    real :: res, sml, tmp1, tmp2, u_nrm2
 
     tmp1 = 0.0
     tmp2 = 0.0
+    u_nrm2 = 0.0
 
     ix = nxyz(1)
     jy = nxyz(2)
     do j=1, jy
     do i=1, ix
         tmp1 = f(i,j) + ( g(i,j) - g_(i,j) )
-        tmp2 = u(i,j) -tmp1
+        tmp2 = u(i,j) - tmp1
         res = res + tmp2*tmp2
         u(i,j) = tmp1
+        u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
     end do
+
+    res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
     end if
@@ -181,10 +189,11 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, k, ix, jy, kz
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2 
+    real :: res, sml, tmp1, tmp2, u_nrm2; 
 
     tmp1 = 0.0
     tmp2 = 0.0
+    u_nrm2 = 0.0
 
     ix = nxyz(1)
     jy = nxyz(2)
@@ -196,9 +205,12 @@ implicit none
         tmp2 = u(i,j,k) -tmp1
         res = res + tmp2*tmp2
         u(i,j,k) = tmp1
+        u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
     end do
     end do
+
+    res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
     end if

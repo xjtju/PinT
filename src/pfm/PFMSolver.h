@@ -95,14 +95,7 @@ public:
     /*
      * NOTE : for space division, converge check must be performed in the whole geographical space 
      */
-    inline void chk_eps(double *err) {
-        if(ndim==3)      blas_dot_3d_(grid->nxyz, &nguard, unk, unk, err ); 
-        else if(ndim==2) blas_dot_2d_(grid->nxyz, &nguard, unk, unk, err ); 
-        else if(ndim==1) blas_dot_1d_(grid->nxyz, &nguard, unk, unk, err ); 
-
-        grid->sp_allreduce(err);
-        *err = sqrt(*err);
-    }
+    void chk_eps(double *err); 
 
     inline void update() {
         if(ndim==3)      update_ac_3d_(grid->nxyz, &nguard, soln, unk);

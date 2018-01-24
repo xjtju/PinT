@@ -47,12 +47,12 @@ bool PinT::check(){
     
     if(ndim>=4) {
         flag = false;
-        fprintf(stderr, "ERROR : 4D or higher space is not supported.\n");
+        if(myid==0) fprintf(stderr, "ERROR : 4D or higher space is not supported.\n");
     }
 
     if(tsnum != (numprocs/spnum)) {
         flag = false;
-        fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
+        if(myid==0) fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
     }
 
     if( (0 != Nx%spnumx) 
@@ -60,9 +60,13 @@ bool PinT::check(){
         || ( (ndim>=3) && ( 0 != Nz%spnumz) ) ) 
     {
         flag = false; 
-        fprintf(stderr, "WARN  : the cell number is not well divided by the parallel cores.\n");
+        if(myid==0) fprintf(stderr, "WARN  : the cell number is not well divided by the parallel cores.\n");
     }
 
+    if( (test_serial>0) && ( spnum > 1) ){
+        flag = false;
+        if(myid==0) fprintf(stderr, "ERROR : SERIAL mode is set, but the number of CPU cores is %d, greater than ONE.\n", spnum);
+    }
     return flag;
 }
 
@@ -103,7 +107,13 @@ void PinT::print() {
 
     printf("  verbose output   : %d\n", verbose);
 
+    printf("  test serial mode : %d\n", test_serial);
+    printf("  dump init vars   : %d\n", dump_init);
+
     printf("\n");
+
+    if( test_serial >0 )
+        printf("INFO : SERIAL mode is activated, run fine solver only once without any parallel support.\n\n");
 }
 
 int PinT::init_module(void *obj, ini_handler handler) {
@@ -148,6 +158,8 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 
     else if (MATCH("monitor", "with_coord")) { conf->with_coord = atoi(value); } 
     else if (MATCH("monitor", "verbose")) { conf->verbose = atoi(value); } 
+    else if (MATCH("monitor", "test_serial")) { conf->test_serial = atoi(value); } 
+    else if (MATCH("monitor", "dump_init")) { conf->dump_init = atoi(value); } 
 
     else {
         //printf("WARN : unknown ini parameter [%s]/[%s] , ignored. \n", section, name);

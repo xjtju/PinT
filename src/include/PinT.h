@@ -83,6 +83,12 @@ public:
     int pipelined = 0;
     int kpar_limit;
 
+    // only run the fine solver in serial mode, for measuring the orininal single process/thread performance  
+    // NOTE: if the flag is valid, all the parameters related with time-space parallel will be ignored 
+    int test_serial = 0; 
+
+    int dump_init = 0; // ouput the initial data before starting   
+
     // the number of timesteps of fine/coarse solver in one time slice
     long f_steps; 
     long c_steps;

@@ -38,26 +38,29 @@ def main(argv):
     posx = ds2[..., 0]
     posy = ds2[..., 1]
     posz = ds2[..., 2]
+    #posz=0
     grid = ds1[...]
    # grid = tmp.reshape(cnt, cnt) 
     
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    #plt.imshow(grid, interpolation='nearest')
-    p = ax.scatter3D(posx, posy, posz, c=grid, s=50, cmap=cm.binary)
-    #plt.scatter(posx, grid)
+    #plt.scatter(posx, posy, c=grid )
+    p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none', cmap=cm.binary)
+    #p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none')
     #plt.colorbar()
     fig.colorbar(p)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-
+    ax.set_xlim(0, 1.0)
+    ax.set_ylim(0, 1.0)
+    ax.set_zlim(0, 1.0)
     plt.title(fname)
 
     #axes = plt.gca()
     #axes.set_ylim([-0.1,1.1])
     #axes.set_xlim([-0.02, xlen+0.02])
-    #P.savefig('pfm.eps',bbox_inches='tight')
+    #p.savefig('pfm3d.png',bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':

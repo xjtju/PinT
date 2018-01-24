@@ -38,15 +38,13 @@ int main(int argc, char* argv[]) {
     // because the initial values for both solver are same at the start time 
     G->init();
 
-
-    //g->output_local(g->u_end, true);
     //driver.Abort("高次元テスト3D PFM:%d\n", 5); // DEBUG
     // run the parareal algorithm 
     driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
     g->output_local(g->u_end, true);
-    g->output_global_h5();
+    g->output_global_h5("pfm");
     
     driver.finalize();  // quit MPI 
 

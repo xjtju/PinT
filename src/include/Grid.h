@@ -243,9 +243,9 @@ public:
 
     // aggregate all the final results from all the grids within the same space domain and output 
     // only for X-Y cross sections along the Z direction   
-    void output_global(bool h5=false);
-    inline void output_global_h5() {
-        output_global(true);
+    void output_global(const char* flagname, bool h5=false);
+    inline void output_global_h5(const char* flagname) {
+        output_global(flagname, true);
     }
 
 };

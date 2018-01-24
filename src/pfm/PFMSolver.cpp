@@ -108,6 +108,27 @@ void PFMSolver::newton_raphson() {
     if(!ifg) Driver::Abort("Newton Raphson loop does not converge, eps=%e\n" , err);
 }
 
+//NOTE : for space division, converge check must be performed in the whole geographical space 
+void PFMSolver::chk_eps(double *err) {
+        double x_nrm2 = 1.0;
+        if(ndim==3) { 
+            blas_dot_3d_(grid->nxyz, &nguard, unk,  unk,  err     );
+            blas_dot_3d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+        }
+        else if(ndim==2) {
+            blas_dot_2d_(grid->nxyz, &nguard, unk,  unk,  err     ); 
+            blas_dot_2d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+        }
+        else if(ndim==1) {
+            blas_dot_1d_(grid->nxyz, &nguard, unk,  unk,  err     );
+            blas_dot_1d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+        }
+
+        grid->sp_allreduce(err);
+        grid->sp_allreduce(&x_nrm2);
+        *err = sqrt(*err/x_nrm2);
+}
+
 // set the initial value
 void PFMSolver::init() {
     if(this->ndim == 1) init1d();
@@ -142,7 +163,7 @@ void PFMSolver::init2d(){
        ydist = grid->getY(j) -  conf->Yspan/2 ;
        
        ind = grid->getOuterIdx(i, j, 0);  
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 )
+       if( abs(xdist)<=0.4 &&  abs(ydist)<=0.4 )
            unk = 1.0; 
        else unk = 0.0; 
        
@@ -159,9 +180,8 @@ void PFMSolver::init3d(){
        xdist = grid->getX(i) -  conf->Xspan/2 ; 
        ydist = grid->getY(j) -  conf->Yspan/2 ;
        zdist = grid->getZ(k) -  conf->Zspan/2 ;
-       
        ind = grid->getOuterIdx(i, j, k);  
-       if( abs(xdist)<=0.2 &&  abs(ydist)<=0.2 && abs(zdist<=0.2) )
+       if( (abs(xdist)<=0.4) &&  (abs(ydist)<=0.4) && (abs(zdist)<=0.4) )
            unk = 1.0; 
        else unk = 0.0; 
        
