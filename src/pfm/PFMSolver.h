@@ -25,6 +25,10 @@ class PFMSolver : public Solver {
 protected:
     void setup();
 
+    virtual LS* getLS(PinT *conf, Grid *grid){
+        return new PBiCGStab(conf, grid);
+    }
+
 public:
 
     double k;     // interfacial width related
@@ -32,7 +36,7 @@ public:
     double beta;  // potential engrgy parameter
     double beta_;       // 0.5-beta
 
-    double theta = 0.5;  //Crank-Nicolson
+    double theta = 0.5;  //Crank-Nicolson; 0: Ex.Euler; 1: Im.Euler
     int newton_itmax = 5;
 
     double dtk;         // dt*k
@@ -50,7 +54,7 @@ public:
     //double ls_eps;
     //double ls_itmax;
 
-    PBiCGStab *hypre;  // linear solver 
+    LS *hypre;  // linear solver 
 
     PFMSolver(PinT *c, Grid *g); 
     PFMSolver(PinT *c, Grid *g, bool isFS); 
@@ -67,7 +71,7 @@ public:
         printf("INFO: the memory allocate by PFMSolver has been released.\n");
     }
 
-    void evolve();         // evolve over a time slice 
+    virtual void evolve();         // evolve over a time slice 
     void newton_raphson(); // New-Raphson method iteration 
     
     void init();

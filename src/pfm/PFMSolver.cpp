@@ -39,14 +39,17 @@ void PFMSolver::setup(){
         printf("        D    = %f \n", d);
         printf("        k    = %f \n", k);
         printf("        beta = %f \n", beta);
-        printf("  newton_iter=%d \n\n", newton_itmax);
+        printf("  newton_iter= %d \n", newton_itmax);
+        printf("        theta= %f \n",theta);
+
+        printf("     => 0.0: Ex.Euler; 0.5: Crank-Nicolson; 1.0: Im.Euler.\n\n"); 
     }
 
     unk   = alloc_mem(this->size);
     soln_ = alloc_mem(this->size);
     G1    = alloc_mem(this->size);
 
-    hypre = new PBiCGStab(conf, grid);
+    hypre = getLS(conf,grid); 
     
     //this->steps = 1; // only for debug
     //conf->kpar_limit = 0; //only for debug
@@ -144,12 +147,12 @@ void PFMSolver::init1d() {
     double xdist;
     for(int i=nguard; i<nx+nguard; i++){
         double x = grid->getX(i); 
-        //val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
-        //val = 1.0 - 0.5*val;
-        xdist = x - midx; 
-        if(abs(xdist) < 0.2) 
-            val = 0.8;
-        else val = 0;
+        val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
+        val = 1.0 - 0.5*val;
+        //xdist = x - midx; 
+        //if(abs(xdist) < 0.2) 
+        //   val = 0.8;
+        //else val = 0;
         grid->set_val4all(i,val);
     }
 }
@@ -196,6 +199,7 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
     if (MATCH("pfm","ac_dval"))        { pfm->d = atof(value); }
     if (MATCH("pfm","ac_beta"))        { pfm->beta = atof(value); }
     if (MATCH("pfm", "newton_itmax"))  { pfm->newton_itmax = atoi(value); }
+    if (MATCH("pfm", "theta"))         { pfm->theta = atof(value); }
 
     return 0;
 }

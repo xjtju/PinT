@@ -349,3 +349,78 @@ implicit none
     end do
     end do 
 end subroutine update_ac_3d 
+
+!!
+!! Frist order forward Euler method
+!!
+subroutine euler_rhs_ac_1d(nxyz, lamdaxyz, ng, b, soln, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix    
+    real    ::  dtk, beta_, ss, lamdax  
+    real, dimension( 1-ng:nxyz(1)+ng ) :: soln, b   
+
+    ix = nxyz(1)
+    lamdax = lamdaxyz(1)
+
+    do i=1, ix
+        ss = lamdax * ( soln(i-1) - 2*soln(i) + soln(i+1) )
+        b(i) = ss - dtk * soln(i) * ( soln(i) - 1.0 ) * ( soln(i) - beta_ ) 
+        
+    end do
+
+end subroutine euler_rhs_ac_1d
+
+subroutine euler_rhs_ac_2d(nxyz, lamdaxyz, ng, b, soln, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix, j, jy   
+    real    ::  dtk, beta_, ss, lamdax, lamday 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng) :: soln, b   
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+
+    do j=1, jy
+    do i=1, ix
+        ss = lamdax * ( soln(i-1, j   ) - 2*soln(i,j) + soln(i+1, j  ) ) &
+           + lamday * ( soln(i,   j-1 ) - 2*soln(i,j) + soln(i,   j+1) ) 
+        b(i,j) = ss - dtk * soln(i,j) * ( soln(i,j) - 1.0 ) * ( soln(i,j) - beta_ ) 
+        
+    end do
+    end do
+
+end subroutine euler_rhs_ac_2d
+
+subroutine euler_rhs_ac_3d(nxyz, lamdaxyz, ng, b, soln, dtk, beta_)
+implicit none
+    integer, dimension(3) :: nxyz
+    real   , dimension(3) :: lamdaxyz
+    integer ::  ng, i, ix, j, jy, k, kz 
+    real    ::  dtk, beta_, ss, lamdax, lamday, lamdaz
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, b   
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    lamdax = lamdaxyz(1)
+    lamday = lamdaxyz(2)
+    lamdaz = lamdaxyz(3)
+
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        ss = lamdax * ( soln(i-1, j,   k  ) - 2*soln(i,j,k) + soln(i+1, j,   k  ) ) &
+           + lamday * ( soln(i,   j-1, k  ) - 2*soln(i,j,k) + soln(i,   j+1, k  ) ) &
+           + lamdaz * ( soln(i,   j,   k-1) - 2*soln(i,j,k) + soln(i,   j,   k+1) ) 
+        b(i,j,k) = ss - dtk * soln(i,j,k) * ( soln(i,j,k) - 1.0 ) * ( soln(i,j,k) - beta_ ) 
+        
+    end do
+    end do
+    end do
+
+end subroutine euler_rhs_ac_3d

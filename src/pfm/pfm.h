@@ -2,7 +2,9 @@
 #define _PinT_PFM_H_ 1
 
 extern "C" {
-
+    //
+    // For Crank-Nicolson and Newton-Raphson
+    //
     // 1D
     void rhs_ac_1d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *soln_, double *g1, 
             double *theta, double *dtk, double *beta_);
@@ -50,5 +52,10 @@ extern "C" {
 
     void update_ac_3d_(int *nxyz, int *ng, double *soln, double *delta);
 
+
+    //For first order forward Euler 
+    void euler_rhs_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
+    void euler_rhs_ac_2d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
+    void euler_rhs_ac_1d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
 }
 #endif
