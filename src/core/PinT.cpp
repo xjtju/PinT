@@ -10,6 +10,18 @@ int PinT::init(char* fname){
 
     if (parse_ret < 0) return -1;
 
+    if(pipelined == 0)
+        kpar_limit = tsnum;
+
+    if( test_serial > 0 ) { // for running the serial test, coarse solver->fine solver->coarse solver
+        this->tsnum  = 1;
+        this->spnumx = 1;
+        this->spnumy = 1;
+        this->spnumz = 1;
+        printf("INFO : SERIAL mode is activated, run parareal iteration only once without any space parallel support.\n"); 
+        printf("       and time-space divisions are forcely set to ONE\n\n");
+    }
+
     f_steps = Nt/tsnum ; 
     c_steps = f_steps/rfc_ ;    
 
@@ -30,13 +42,9 @@ int PinT::init(char* fname){
         nz = Nz / spnumz;
         dz = Zspan / Nz; 
     }
-
     if(ndim==1) spnum = spnumx;
     else if(ndim==2) spnum = spnumx*spnumy;
     else if(ndim==3) spnum = spnumx*spnumy*spnumz;
-
-    if(pipelined == 0)
-        kpar_limit = tsnum;
 
     return parse_ret;
 }
@@ -63,9 +71,9 @@ bool PinT::check(){
         if(myid==0) fprintf(stderr, "WARN  : the cell number is not well divided by the parallel cores.\n");
     }
 
-    if( (test_serial>0) && ( spnum > 1) ){
+    if( (test_serial>0) && ( numprocs > 1) ){
         flag = false;
-        if(myid==0) fprintf(stderr, "ERROR : SERIAL mode is set, but the number of CPU cores is %d, greater than ONE.\n", spnum);
+        if(myid==0) fprintf(stderr, "ERROR : SERIAL mode is set, but the total number of CPU cores is %d, greater than ONE.\n", spnum);
     }
     return flag;
 }
@@ -112,8 +120,6 @@ void PinT::print() {
 
     printf("\n");
 
-    if( test_serial >0 )
-        printf("INFO : SERIAL mode is activated, run fine solver only once without any parallel support.\n\n");
 }
 
 int PinT::init_module(void *obj, ini_handler handler) {

@@ -215,6 +215,9 @@ implicit none
     jy = nxyz(2)
     kz = nxyz(3)
 
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -222,6 +225,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine blas_avpy_3d
 
 !! x = x + alpha*y + omega*z  
@@ -235,6 +241,9 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -242,6 +251,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine cg_xi_3d
 
 
@@ -256,6 +268,10 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -263,6 +279,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine cg_direct_3d
 
 subroutine cg_ax3d(nxyz, ng, v, x, bcp)
@@ -276,6 +295,10 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP PRIVATE(ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss) & 
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -297,6 +320,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine cg_ax3d
 
 subroutine cg_rk3d(nxyz, ng, r, x, b, bcp)
@@ -310,6 +336,10 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP PRIVATE(ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss) & 
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -332,4 +362,7 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine cg_rk3d

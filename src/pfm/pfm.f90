@@ -242,6 +242,9 @@ implicit none
     lamdax = lamdaxyz(1)
     lamday = lamdaxyz(2)
     lamdaz = lamdaxyz(3)
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -258,6 +261,9 @@ implicit none
     end do
     end do 
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine stencil_ac_3d 
 
 subroutine rhs_ac_3d(nxyz, lamdaxyz, ng, b, soln, soln_, g1, theta, dtk, beta_)
@@ -274,6 +280,9 @@ implicit none
     lamdax = lamdaxyz(1)
     lamday = lamdaxyz(2)
     lamdaz = lamdaxyz(3)
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -285,6 +294,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine rhs_ac_3d 
 
 subroutine rhs_g1_ac_3d(nxyz, lamdaxyz, ng, soln, g1, theta, dtk, beta_)
@@ -301,6 +313,9 @@ implicit none
     lamdax = lamdaxyz(1)
     lamday = lamdaxyz(2)
     lamdaz = lamdaxyz(3)
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -311,6 +326,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine rhs_g1_ac_3d 
 
 

@@ -38,8 +38,7 @@ int main(int argc, char* argv[]) {
 
     // output result to disk and for post-processing 
     g->output_local(g->u_end, true);
-    g->output_local_h5(g->u_end);
-    g->output_global();
+    g->output_global_h5("heat");
     
     //driver.Abort("高次元テスト3D HEAT:%d\n", 3); // DEBUG
     driver.finalize();  // quit MPI 

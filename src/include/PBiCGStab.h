@@ -33,7 +33,7 @@ protected:
     double eps = 1.0e-6;
     int itmax = 20; 
     double sor_omg = 1.7;     // SOR : relaxation factor, used for preconditioner, 
-    bool   isPrecond = false; // in the current version, no preconditioner is GOOD.
+    bool   isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
     
 public:
 

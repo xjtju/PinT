@@ -182,13 +182,19 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 }
 
 void Driver::finalize() {
-    char fname[30];
-    memset(fname, 0, sizeof(char)*30);
-    sprintf(fname, "%s_%s.txt", conf->monitor_pre, jobid); 
+    char fname[40];
 
     monitor.gather();
-    monitor.print(stderr, "The TAO of Programming", "The PinT performance test framework");
+
+    memset(fname, 0, sizeof(char)*40);
+    sprintf(fname, "%s_%s_basic.txt", conf->monitor_pre, jobid); 
+    monitor.print(fname, "The TAO of Programming", "The PinT performance test framework");
+
+    memset(fname, 0, sizeof(char)*40);
+    sprintf(fname, "%s_%s_detail.txt", conf->monitor_pre, jobid); 
     monitor.printDetail(fname);
+
+    monitor.print(stdout, "The TAO of Programming", "The PinT performance test framework");
 
     MPI_Finalize();
 }

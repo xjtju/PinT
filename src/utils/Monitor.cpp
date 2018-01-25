@@ -39,7 +39,8 @@ void Monitor::initialize() {
 void Monitor::setRankInfo(int id) {
 #ifdef _PMLib_
     pm.setRankInfo(id);
-    if(id==0) printf("INFO : PMLib is used for performance monitor !\n");
+    int num_thread = omp_get_max_threads();
+    if(id==0) printf("INFO : PMLib is used for performance monitor: %d threads per process!\n", num_thread);
 #else
     if(id==0) printf("INFO : Performance monitor is not configurated, no performance data will be collected !\n");
 #endif 

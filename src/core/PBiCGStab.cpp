@@ -63,8 +63,7 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
 
         grid->guardcell(p);
         preconditioner(p_, p, isPrecond); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
-
-        grid->guardcell(p_);
+        if(isPrecond) grid->guardcell(p_);
         cg_ax(v,p_,bcp);        // v=Ap_    
 
         tmp = cg_vdot(r0_, v);
@@ -77,7 +76,7 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
         // solve Ms_=s , in some algorithm description, s_ is also denoted by z
         preconditioner(s_, s, isPrecond); 
         
-        grid->guardcell(s_);
+        if(isPrecond) grid->guardcell(s_);
         cg_ax(t,s_,bcp); // t=Az
 
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
