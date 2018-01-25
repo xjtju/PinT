@@ -5,6 +5,7 @@
 #include "Driver.h"
 #include "PFMSolver.h"
 #include "EulerSolver.h"
+#include "BD4Solver.h"
 
 /**
  * the example program for employing parareal method (PinT) to solve real problem based on the framework.
@@ -33,8 +34,9 @@ int main(int argc, char* argv[]) {
 
     // setup the coarse/fine solver
     Solver *G = new PFMSolver(conf, g, false);   // coarse 
-    Solver *F = new EulerSolver(conf, g, true);   // fine  
+    //Solver *F = new EulerSolver(conf, g, true);   // fine  
     //Solver *F = new PFMSolver(conf, g, true);   // fine  
+    Solver *F = new BD4Solver(conf, g, true);   // fine  
 
     // set the initial values, in most cases, it is not necessary to call fine solver's init function  
     // because the initial values for both solver are same at the start time 

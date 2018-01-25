@@ -47,7 +47,7 @@ public:
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
     // structure preservation 
-    double *soln_;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
+    double *soln_1;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
     double *G1;     // the partial RHS of Newton's method for PFM  
     double *unk;    // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
 
@@ -63,7 +63,7 @@ public:
 
         delete hypre;
 
-        free_mem(soln_);
+        free_mem(soln_1);
         free_mem(G1);
         free_mem(unk);
 
@@ -74,32 +74,32 @@ public:
     virtual void evolve();         // evolve over a time slice 
     void newton_raphson(); // New-Raphson method iteration 
     
+    /*
+     * NOTE : for space division, converge check must be performed in the whole geographical space 
+     */
+    void chk_eps(double *err); 
+
     void init();
     void init1d();
     void init2d();
     void init3d();
 
-    inline void stencil() {
+    virtual void stencil() {
         if(ndim==3)      stencil_ac_3d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==1) stencil_ac_1d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
     }
 
-    inline void rhs() {
-        if(ndim==3)      rhs_ac_3d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
-        else if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
-        else if(ndim==1) rhs_ac_1d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_, G1, &theta, &dtk, &beta_);
+    virtual void rhs() {
+        if(ndim==3)      rhs_ac_3d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_1, G1, &theta, &dtk, &beta_);
+        else if(ndim==2) rhs_ac_2d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_1, G1, &theta, &dtk, &beta_);
+        else if(ndim==1) rhs_ac_1d_(grid->nxyz, lamdaxyz, &nguard, b, soln, soln_1, G1, &theta, &dtk, &beta_);
     }
-    inline void rhs_g1() {
-        if(ndim==3)      rhs_g1_ac_3d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
-        else if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
-        else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_,  G1, &theta, &dtk, &beta_);
+    virtual void rhs_g1() {
+        if(ndim==3)      rhs_g1_ac_3d_(grid->nxyz, lamdaxyz, &nguard, soln_1,  G1, &theta, &dtk, &beta_);
+        else if(ndim==2) rhs_g1_ac_2d_(grid->nxyz, lamdaxyz, &nguard, soln_1,  G1, &theta, &dtk, &beta_);
+        else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_1,  G1, &theta, &dtk, &beta_);
     }
-
-    /*
-     * NOTE : for space division, converge check must be performed in the whole geographical space 
-     */
-    void chk_eps(double *err); 
 
     inline void update() {
         if(ndim==3)      update_ac_3d_(grid->nxyz, &nguard, soln, unk);

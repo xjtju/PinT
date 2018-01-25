@@ -12,6 +12,10 @@ class EulerSolver : public PFMSolver {
 protected:
     void euler();
 
+    virtual LS* getLS(PinT *conf, Grid *grid){
+        return NULL; 
+    }
+
 public:
     EulerSolver(PinT *c, Grid *g); 
     EulerSolver(PinT *c, Grid *g, bool isFS); 

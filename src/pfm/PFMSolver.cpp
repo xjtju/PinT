@@ -46,7 +46,7 @@ void PFMSolver::setup(){
     }
 
     unk   = alloc_mem(this->size);
-    soln_ = alloc_mem(this->size);
+    soln_1= alloc_mem(this->size);
     G1    = alloc_mem(this->size);
 
     hypre = getLS(conf,grid); 
@@ -78,7 +78,7 @@ void PFMSolver::newton_raphson() {
     double err = 0;   // eps check 
 
     // step0 : set F_{n-1} and calcaluate RHS G1 
-    blas_cp_(soln_, soln, &size); 
+    blas_cp_(soln_1, soln, &size); 
     rhs_g1();
 
     for(int i=0; i<newton_itmax; i++) {
