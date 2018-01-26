@@ -14,13 +14,13 @@ def get_color():
 
 def main(argv):
     if(len(argv)<2):
-        print 'usage   : python pfm.py input_file xpoints'
-        print 'example : python pfm.py dbbug.h5 1000'
+        print 'usage   : python pfm.py input_file label'
+        print 'example : python pfm.py dbbug.h5 bd4'
         return 1
 
     fname = argv[1]
-    cnt   = int(argv[2])
-    print 'input file is {0} with {1} points \n'.format(fname,cnt)
+    lname = argv[2]
+    print 'input file is {0}. \n'.format(fname)
 
     color = get_color()
     ind = 0
@@ -40,7 +40,7 @@ def main(argv):
         #line = fp.readline();
         #ds = [ float(x) for x in line.split()]
     acolor = next(color)  
-    plt.plot(posx, ds1, color=acolor, linewidth=2.0, label='euler')
+    plt.plot(posx, ds1, color=acolor, linewidth=2.0, label=lname)
 
     plt.legend(loc='upper right', shadow=True)
    #plt.tick_params(axis='both', which='major', labelsize=20,length=9)

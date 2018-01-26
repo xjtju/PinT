@@ -27,7 +27,8 @@ PFMSolver::PFMSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     lamdaxyz[2] = lamda_z;
 
     if(0 == grid->myid)
-    printf("Solver (Fine=%d) : lamda_x=%f, lamday=%f, lamdaz=%f, dtk=%f\n", isFS, lamda_x, lamda_y, lamda_z, dtk);
+        if(isFS) printf("Solver (Fine  ) : lamda_x=%f, lamday=%f, lamdaz=%f, dtk=%f\n", lamda_x, lamda_y, lamda_z, dtk);
+        else     printf("Solver (Coarse) : lamda_x=%f, lamday=%f, lamdaz=%f, dtk=%f\n", lamda_x, lamda_y, lamda_z, dtk);
 }
 
 // set diffuse coefficient and tune the default parameter, problem specific
@@ -59,6 +60,7 @@ void PFMSolver::setup(){
 void PFMSolver::evolve() {
     // step0: set initial value
     soln = getSoln();     // pointer to the start point  
+    init_holder();        // init holders from latest solution
     blas_clear_(unk, &size);
 
     for(int i=0; i<steps; i++){
@@ -78,7 +80,7 @@ void PFMSolver::newton_raphson() {
     double err = 0;   // eps check 
 
     // step0 : set F_{n-1} and calcaluate RHS G1 
-    blas_cp_(soln_1, soln, &size); 
+    update_holder();
     rhs_g1();
 
     for(int i=0; i<newton_itmax; i++) {

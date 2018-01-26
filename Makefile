@@ -2,13 +2,14 @@
 
 TARGET = pfm_alpha.exe
 
-_PMLib_ =1
+#_PMLib_ =1
 ifdef _PMLib_ 
 PMLIB_HOME = /Users/bamboo/Libs/PMlib
 PMLIB_INC  = -I${PMLIB_HOME}/include 
 LDFLAGS_PM = -L${PMLIB_HOME}/lib -lPMmpi 
 OPTFLAGS_PM= -fopenmp -D_PMLib_  
 endif
+
 _HDF5_=1
 ifdef _HDF5_
 HDF5_HOME  = /Users/bamboo/Libs/hdf5

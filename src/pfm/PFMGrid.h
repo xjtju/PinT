@@ -5,7 +5,7 @@
 #include "pfm.h"
 /**
  *  The example of customized BC
- *  specific boundary condition, the default bc functions of Grid cannot satisfy the requirement. 
+ *  specific boundary condition, when the default bc functions of Grid cannot satisfy the requirement. 
  */
 class PFMGrid : public Grid {
 
@@ -20,7 +20,7 @@ public:
    
 
     void bc_2d_l(double *d){ bc_pfm_ac_2d_l_(sxyz, &nguard, d); }
-    void bc_2d_l(double *d){ bc_pfm_ac_2d_l_(sxyz, &nguard, d); }
+    void bc_2d_r(double *d){ bc_pfm_ac_2d_l_(sxyz, &nguard, d); }
     void bc_2d_f(double *d){ bc_pfm_ac_2d_f_(sxyz, &nguard, d); }
     void bc_2d_b(double *d){ bc_pfm_ac_2d_b_(sxyz, &nguard, d); }
 

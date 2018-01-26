@@ -2,6 +2,7 @@
 
 /**
  * For simple test only, not well tuned.
+ * Euler method is not often used, except as a simple example of numerical integration.
  */ 
 EulerSolver::EulerSolver(PinT *c, Grid *g) : PFMSolver(c,g){
 }

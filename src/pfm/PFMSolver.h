@@ -5,7 +5,7 @@
 #include "pfm.h"
 
 /**
- * Phase Field Model using Newton-Raphson and Crank-Nicolson
+ * Phase Field Model using Newton-Raphson 
  *
  * Allen-Cahn Equation (AC)
  *
@@ -14,6 +14,11 @@
  * so Newton-Raphson method is used to linearize the numerical formula of AC, and the linear solver can be applied to AC.
  * Compared to the HEAT, it is introduced extra three variables for data structure preservation during the calculation 
  * due to its nonlinear feature.
+ *
+ * NOTE: 
+ *  The class is a template of Newton-Raphson method, the default finite difference method is Crank-Nicolson (when theta=0.5), 
+ *  other differentiation formulas can be easily implemented by overwriting all the virtual functions.
+ *  See the BD4Solver (4th order backward euler) for example.
  *
  * If using the default configuration, k=16000, d=1, beta=-0.128, 
  * only after 0.1 second, the system has already reached its steady state.
@@ -51,9 +56,6 @@ public:
     double *G1;     // the partial RHS of Newton's method for PFM  
     double *unk;    // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) for Newton's method 
 
-    //double ls_eps;
-    //double ls_itmax;
-
     LS *hypre;  // linear solver 
 
     PFMSolver(PinT *c, Grid *g); 
@@ -71,8 +73,8 @@ public:
         printf("INFO: the memory allocate by PFMSolver has been released.\n");
     }
 
-    virtual void evolve();         // evolve over a time slice 
-    void newton_raphson(); // New-Raphson method iteration 
+    void evolve();         // evolve over a time slice 
+    void newton_raphson(); // the template of New-Raphson method iteration 
     
     /*
      * NOTE : for space division, converge check must be performed in the whole geographical space 
@@ -83,7 +85,18 @@ public:
     void init1d();
     void init2d();
     void init3d();
+    
+    // init previous solution holder for backward method, the structure preservation
+    // at the starting, all of them are identical to the initial condition of the problem 
+    virtual void init_holder() {
+            blas_cp_(soln_1, soln, &size); 
+    }
 
+    // update backward solution holders for the next step 
+    virtual void update_holder(){
+            blas_cp_(soln_1, soln, &size); 
+    }
+    
     virtual void stencil() {
         if(ndim==3)      stencil_ac_3d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
         else if(ndim==2) stencil_ac_2d_(grid->nxyz, lamdaxyz, &nguard, bcp, soln, &theta, &dtk, &beta_);
@@ -101,7 +114,7 @@ public:
         else if(ndim==1) rhs_g1_ac_1d_(grid->nxyz, lamdaxyz, &nguard, soln_1,  G1, &theta, &dtk, &beta_);
     }
 
-    inline void update() {
+    void update() {
         if(ndim==3)      update_ac_3d_(grid->nxyz, &nguard, soln, unk);
         else if(ndim==2) update_ac_2d_(grid->nxyz, &nguard, soln, unk);
         else if(ndim==1) update_ac_1d_(grid->nxyz, &nguard, soln, unk);
