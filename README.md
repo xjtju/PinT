@@ -19,15 +19,15 @@ There are five main objects and other two auxiliary objects in the framework.
 - **PinT**: for ini configuration, see the pint.ini sample file for details
 - **Grid**: space parallel manager, manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
 - **Driver**: time parallel manager, and the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
-- **Solver**: the abstract interface of coarse/fine solvers used by Parareal method, perform the time integration over one time slice. 
+- **Solver**: the abstract interface of coarse/fine solvers used by Parareal method, perform the time integration over one time slice. Its most imporant sub class is NewtonSolver, which implemented the template for Newton-Raphson method. 
 - **LS**: the abstract interface of linear solvers used by the coarse/fine solver, its most imporant sub class is PBiCGStab implemented the [biconjugate gradient stabilized method](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
-- Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned, and only for local grid, you have to collect all the .h5 files and combine them manually.  
+- Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned, .h5 file includes two datasets, one for 2d N*3 coordinates  and the other for 1d N solution, where N is the total grid cellls. 
 - Monitor: a simple wrapper of PMLib for easily open or close the profiling function.
 
 ## DEMO
 
-For example, [1D/2D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
+For example, [1D/2D/3D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
 
 1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables. 
 
@@ -77,7 +77,7 @@ void HeatSolver::evolve() {
         stencil();
 
         // step4 : call the linear solver 
-        hypre->solve(soln, b, bcp);
+        hypre->solve(soln, b, A);
 
         // step5: update solution, 
     }
@@ -89,7 +89,7 @@ The calculations of RHS and stencil matrix are performed by Fortran.
 **NOTE** : 
 For the Heat equation with a constant diffuse factor or other simple examples, the coefficients of each stencil for different grid point may be same at the entire grid during the whole execution, so it is not necessary to use a LARGE matrix to hold these coefficients. 
  
-BUT in practice, for real world simulations, the coefficients associated with each stencil entry will typically vary from gridpoint to gridpoint, so the caller must provide both the RHS(b) and stencil struct matrix(bcp) 
+BUT in practice, for real world simulations, the coefficients associated with each stencil entry will typically vary from gridpoint to gridpoint, so the caller must provide both the RHS(b) and stencil struct matrix(A) 
 
 ```fortran
 
@@ -110,22 +110,22 @@ implicit none
     end do
 end subroutine rhs_heat_1d
 
-!! calcaluate the stencil struct matrix (bcp)
-subroutine stencil_heat_1d(nxyz, lamdaxyz, ng, soln, bcp)
+!! calcaluate the stencil struct matrix (A)
+subroutine stencil_heat_1d(nxyz, lamdaxyz, ng, soln, A)
 implicit none
     integer, dimension(3) :: nxyz
     real,    dimension(3) :: lamdaxyz 
     real    :: lamdax
     integer ::  ng, i, ix 
     real, dimension(      1-ng:nxyz(1)+ng ) :: soln  
-    real, dimension(1:3,  1-ng:nxyz(1)+ng ) :: bcp 
+    real, dimension(1:3,  1-ng:nxyz(1)+ng ) :: A 
 
     ix = nxyz(1)
     lamdax = lamdaxyz(1)
     do i=1, ix
-        bcp(1, i) = -0.5*lamdax
-        bcp(2, i) = -0.5*lamdax
-        bcp(3, i) = 1 + lamdax
+        A(1, i) = -0.5*lamdax
+        A(2, i) = -0.5*lamdax
+        A(3, i) = 1 + lamdax
     end do
 end subroutine stencil_heat_1d 
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     // output result to disk for debug or post-processing, the two steps is not necessary for performance test. 
     g->output_local(g->u_end, false); // for each process, it will create a unique file
-    g->output_global();  // aggregates the result from all the process, and dumps out to one file.
+    g->output_global_h5("heat");  // aggregates the result from all the process, and dumps out to hdf5 file.
     
     driver.finalize();  // quit MPI 
 
@@ -187,10 +187,12 @@ From the above sample codes, in most cases it is not necessary for users to care
 <p align="center"><img src="./doc/images/usage.png" align="center" height="250px"></img></p>
 
 
+For more comprehensive examples and usages, please check the 'pfm' directory. PFM stands for Phase Field Model, we implemented two solvers for a simplied  Allen-Cahn equation. All 1D/2D/3D are supported, OpenMP is also used to accelerate matrix calculations further in multi-core envirement.  Examples for customized boundary condition and problem-specific configuration are also located in 'pfm'.
+
 ## Build
 
 * The Makefile is very simple, you can easily adapt it to any Unix-like OS.
-* If using profiling, it is necessary to build PMLib firstly following [its website](https://github.com/avr-aics-riken/PMlib), and use the compile option ```-D _PMLIB_``` to activate it. 
+* If using profiling, it is necessary to build PMLib firstly following [its website](https://github.com/avr-aics-riken/PMlib), and use the compile option ```-D _PMLIB_``` to activate it. PMLib needs both of MPI and OpenMP libraries. 
 * Floating-point data type is DOUBLE, single precision is not supported, when compling Fortran code, it is recommended to set the default real type to 8 byte wide, if using gfortran, the option is -fdefault-real-8. 
 * HDF5 output is also supported, using the compile option ```-D _HDF5_``` to activate the function, and make sure the hdf5 library is already installed.   
 * In order to easily compile PMLib and hdf5, the Makefile can also accept commond line parameters.
