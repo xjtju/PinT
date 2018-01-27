@@ -14,9 +14,10 @@ void HeatSolver::setup(){
     if(ndim==2) k = 0.061644;
     if(ndim==3) k = 0.061644;
 
-    hypre = new PBiCGStab(conf, grid); // choose a linear solver
+    hypre = this->getLS(conf,grid);
 }
 
+// the template for time integration of simple linear system 
 // evolve along one time slice for Crank-Nicolson method  
 void HeatSolver::evolve() {
      
@@ -34,7 +35,7 @@ void HeatSolver::evolve() {
         stencil();
 
         // step4 : call the linear solver, not necessary to use a new guess for heat diffusion 
-        hypre->solve(soln, b, bcp);
+        hypre->solve(soln, b, A);
 
         // step5: update solution, 
         // for heat diffusion, soln has already updated by linear solver, noting need to be done 

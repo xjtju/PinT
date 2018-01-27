@@ -105,3 +105,16 @@ implicit none
     nx = nxyz(1)
     gdata( 1:nx ) = p( 1:nx ) 
 end subroutine pack_1d
+
+subroutine update_soln_1d(nxyz, ng, soln, delta)
+implicit none
+    integer, dimension(3) :: nxyz
+    integer ::  ng, i, ix 
+    real, dimension(1-ng:nxyz(1)+ng ) :: soln, delta  
+
+    ix = nxyz(1)
+    do i=1, ix
+        soln(i) = soln(i) + delta(i)
+    end do
+end subroutine update_soln_1d 
+

@@ -15,7 +15,6 @@ extern "C" {
     void stencil_ac_1d_(int *nxyz, double *lamdaxyz, int *ng, double *A, double *soln,
             double *theta, double *dtk, double *beta_);
 
-    void update_ac_1d_(int *nxyz, int *ng, double *soln, double *delta);
 
     // customized border condition
     void bc_pfm_ac_1d_l_(int* nxyz, int *ng, double* soln);  // left border 
@@ -31,7 +30,6 @@ extern "C" {
     void stencil_ac_2d_(int *nxyz, double *lamdaxyz, int *ng, double *A, double *soln,
             double *theta, double *dtk, double *beta_);
 
-    void update_ac_2d_(int *nxyz, int *ng, double *soln, double *delta);
 
     // only for example, not used 
     void bc_pfm_ac_2d_l_(int* sxyz, int *ng, double* soln);  // left  border : west 
@@ -51,7 +49,6 @@ extern "C" {
     void stencil_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *A, double *soln,
             double *theta, double *dtk, double *beta_);
 
-    void update_ac_3d_(int *nxyz, int *ng, double *soln, double *delta);
 
     //
     //For first order forward Euler 

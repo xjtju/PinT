@@ -87,12 +87,15 @@ extern "C" {
 
 
     // for pack and unpack all inner grid data for aggregating result 
-
     void pack_1d_(int* nxyz, int *ng, double* p, double* gdata);
-
     void pack_2d_(int* nxyz, int *ng, double* p, double* gdata);
-
     void pack_3d_(int* nxyz, int *ng, double* p, double* gdata);
+
+    // common update function for soln[n+1] = soln[n] + delta
+    void update_soln_1d_(int *nxyz, int *ng, double *soln, double *delta);
+    void update_soln_3d_(int *nxyz, int *ng, double *soln, double *delta);
+    void update_soln_2d_(int *nxyz, int *ng, double *soln, double *delta);
+
 }
 #endif
 

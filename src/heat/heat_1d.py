@@ -9,7 +9,7 @@ def get_color():
 
 def main(argv):
     if(len(argv)<2):
-        print 'usage   : python heat.py input_file lines'
+        print 'usage   : python heat.py input_file count'
         print 'example : python heat.py 1.txt 100'
         return 1
 

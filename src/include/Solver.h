@@ -2,7 +2,8 @@
 #define PinT_SOLVER_H_ 
 
 #include "PinT.h"
-#include "Grid.h" 
+#include "Grid.h"
+#include "LS.h"
 
 /**
  * the abstract interface of fine/coarse solvers for PinT framework
@@ -30,17 +31,17 @@ private:
         this->outer_size = g->size;
 
         b  = alloc_mem(this->size);
-        if(ndim==1) bcp = alloc_mem(3*this->size);  // 3-point stencil for 1D
-        if(ndim==2) bcp = alloc_mem(5*this->size); 
-        if(ndim==3) bcp = alloc_mem(7*this->size); 
+        if(ndim==1) A = alloc_mem(3*this->size);  // 3-point stencil for 1D
+        if(ndim==2) A = alloc_mem(5*this->size); 
+        if(ndim==3) A = alloc_mem(7*this->size); 
      }
 
 protected:
     Grid *grid;
     PinT *conf;
     
-    double *b;   // RHS
-    double *bcp; // stencil matrix 
+    double *b;   // RHS, b of Ax=b
+    double *A; // stencil matrix A of Ax=b 
 
     // all the following variables are the same with the corresponding one in the Grid
     // holding the most being used variables here is just for convenience only 
@@ -64,6 +65,14 @@ protected:
 
     bool isFine = true;  // is fine solver or coarse solver, default is true
 
+    LS *hypre;  // linear solver 
+    
+    // default is NULL 
+    virtual LS* getLS(PinT *conf, Grid *grid) { 
+        fprintf(stderr, "WARN : NO linear solver is used \n");
+        return NULL; 
+    }  
+
 public:
     Solver(PinT *conf, Grid *g){
         init(conf, g);
@@ -80,7 +89,7 @@ public:
     }
     virtual ~Solver() {
         free_mem(b);
-        free_mem(bcp);
+        free_mem(A);
         
         if(grid->myid==0 && conf->verbose)
         printf("INFO: The memory allocated by the base solver has been released.\n");

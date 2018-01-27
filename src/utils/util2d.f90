@@ -210,3 +210,19 @@ implicit none
     ny = nxyz(2)
     gdata(1:nx , 1:ny) = p(1:nx , 1:ny);
 end subroutine pack_2d    
+
+subroutine update_soln_2d(nxyz, ng, soln, delta)
+implicit none
+    integer, dimension(3) :: nxyz
+    integer ::  ng, i, ix, j, jy 
+    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: soln, delta  
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    do j=1, jy
+    do i=1, ix
+        soln(i,j) = soln(i,j) + delta(i,j)
+    end do
+    end do 
+end subroutine update_soln_2d 
+

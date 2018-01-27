@@ -7,13 +7,18 @@
 
 /**
  * 1D/2D/3D heat equation with Crank-Nicolson
+ *
+ * The class is also a template for linear system which can be directly integrated in time loops
  */
-
 class HeatSolver : public Solver {
+private:
+    void setup();
 
 protected:
 
-    void setup();
+    virtual LS* getLS(PinT *conf, Grid *grid) { 
+        return new PBiCGStab(conf, grid); // choose a linear solver
+    }
 
 public:
     
@@ -30,10 +35,9 @@ public:
     
     double *soln; // the pointer to grid->u_f/u_c
 
-    LS *hypre;  // linear solver 
-     
     HeatSolver(PinT *c, Grid *g); 
     HeatSolver(PinT *c, Grid *g, bool isFS);
+
 
     virtual ~HeatSolver() {
         delete hypre;
@@ -42,9 +46,9 @@ public:
     void evolve();         // evolve over a time slice 
 
     inline void stencil() {
-        if(ndim==3)      stencil_heat_3d_(grid->nxyz, lamdaxyz, &nguard, soln, bcp);
-        else if(ndim==2) stencil_heat_2d_(grid->nxyz, lamdaxyz, &nguard, soln, bcp);
-        else if(ndim==1) stencil_heat_1d_(grid->nxyz, lamdaxyz, &nguard, soln, bcp);
+        if(ndim==3)      stencil_heat_3d_(grid->nxyz, lamdaxyz, &nguard, soln, A);
+        else if(ndim==2) stencil_heat_2d_(grid->nxyz, lamdaxyz, &nguard, soln, A);
+        else if(ndim==1) stencil_heat_1d_(grid->nxyz, lamdaxyz, &nguard, soln, A);
     }
 
     inline void rhs() {

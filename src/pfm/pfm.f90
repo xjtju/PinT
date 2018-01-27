@@ -56,18 +56,6 @@ implicit none
 end subroutine rhs_g1_ac_1d 
 
 
-subroutine update_ac_1d(nxyz, ng, soln, delta)
-implicit none
-    integer, dimension(3) :: nxyz
-    integer ::  ng, i, ix 
-    real, dimension(1-ng:nxyz(1)+ng ) :: soln, delta  
-
-    ix = nxyz(1)
-    do i=1, ix
-        soln(i) = soln(i) + delta(i)
-    end do
-end subroutine update_ac_1d 
-
 subroutine bc_pfm_ac_1d_l(nxyz, ng, soln)
 implicit none
     integer, dimension(3) :: nxyz
@@ -161,21 +149,6 @@ implicit none
     end do
 end subroutine rhs_g1_ac_2d 
 
-
-subroutine update_ac_2d(nxyz, ng, soln, delta)
-implicit none
-    integer, dimension(3) :: nxyz
-    integer ::  ng, i, ix, j, jy 
-    real, dimension(1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: soln, delta  
-
-    ix = nxyz(1)
-    jy = nxyz(2)
-    do j=1, jy
-    do i=1, ix
-        soln(i,j) = soln(i,j) + delta(i,j)
-    end do
-    end do 
-end subroutine update_ac_2d 
 
 
 !! the example of customized BC 
@@ -331,24 +304,6 @@ implicit none
 
 end subroutine rhs_g1_ac_3d 
 
-
-subroutine update_ac_3d(nxyz, ng, soln, delta)
-implicit none
-    integer, dimension(3) :: nxyz
-    integer ::  ng, i, ix, j, jy, k, kz 
-    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, delta  
-
-    ix = nxyz(1)
-    jy = nxyz(2)
-    kz = nxyz(3)
-    do k=1, kz
-    do j=1, jy
-    do i=1, ix
-        soln(i,j,k) = soln(i,j,k) + delta(i,j,k)
-    end do
-    end do
-    end do 
-end subroutine update_ac_3d 
 
 !!
 !! Frist order forward Euler method

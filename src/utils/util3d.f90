@@ -324,3 +324,22 @@ implicit none
     nz = nxyz(3)
     gdata(1:nx, 1:ny, 1:nz) = p(1:nx, 1:ny, 1:nz)
 end subroutine pack_3d    
+
+subroutine update_soln_3d(nxyz, ng, soln, delta)
+implicit none
+    integer, dimension(3) :: nxyz
+    integer ::  ng, i, ix, j, jy, k, kz 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: soln, delta  
+
+    ix = nxyz(1)
+    jy = nxyz(2)
+    kz = nxyz(3)
+    do k=1, kz
+    do j=1, jy
+    do i=1, ix
+        soln(i,j,k) = soln(i,j,k) + delta(i,j,k)
+    end do
+    end do
+    end do 
+end subroutine update_soln_3d 
+

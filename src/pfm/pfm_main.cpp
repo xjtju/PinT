@@ -1,12 +1,13 @@
 #ifdef _TEST_PFM_
 
 #include "Monitor.h"
-#include "Grid.h"
 #include "Driver.h"
-#include "PFMSolver.h"
-#include "EulerSolver.h"
+
+#include "CNSolver.h"
 #include "BD4Solver.h"
+//#include "EulerSolver.h"
 #include "PFMGrid.h"
+#include "PFMParams.h"
 
 /**
  * the example program for employing parareal method (PinT) to solve real problem based on the framework.
@@ -29,22 +30,22 @@ int main(int argc, char* argv[]) {
 
     // get init-ready system information
     PinT* conf = PinT::instance();
-
+    
     // create the grid/mesh 
-    //Grid *g = new Grid(conf);
     Grid *g = new PFMGrid(conf);
+    g->init();
+    
+    // choose and setup the proper coarse/fine solver
+    PFMParams param;
+    param.init(conf,g);
+    Solver *G, *F;
+    if(param.csolver == param.ID_CN) 
+        G =  new CNSolver (conf, g, false);    
+    else G = new BD4Solver(conf, g, false);  
 
-    // setup the coarse/fine solver
-    //Solver *G = new PFMSolver(conf, g, false);   // coarse 
-    Solver *G = new BD4Solver(conf, g, false);   // coarse 
-    //Solver *F = new PFMSolver(conf, g, true);   // fine  
-    Solver *F = new BD4Solver(conf, g, true);   // fine  
-
-    //Solver *F = new EulerSolver(conf, g, true);   // fine, simple test
-
-    // set the initial values, in most cases, it is not necessary to call fine solver's init function  
-    // because the initial values for both solver are same at the start time 
-    G->init();
+    if(param.fsolver == param.ID_CN) 
+        F =  new CNSolver (conf, g, true);   
+    else F = new BD4Solver(conf, g, true); 
 
     //driver.Abort("高次元テスト3D PFM:%d\n", 5); // DEBUG
     // run the parareal algorithm 
