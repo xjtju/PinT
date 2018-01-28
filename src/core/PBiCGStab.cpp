@@ -1,5 +1,7 @@
 // PBiCBSTAB 
 #include "PBiCGStab.h"
+#include "Driver.h"
+
 /**
  * For the Heat equation with a constant diffuse factor or other simple examples, 
  * the coefficients of each stencil for different grid point may be same at the entire grid during the whole execution, 
@@ -7,7 +9,7 @@
  *
  * BUT in practice, for real world simulations, 
  * the coefficients associated with each stencil entry will typically vary from gridpoint to gridpoint,
- * so the caller must provide both the RHS(b) and stencil struct matrix(bcp) 
+ * so the caller must provide both the RHS(b) and stencil struct matrix(A) 
  *
  */
 
@@ -25,7 +27,7 @@ void PBiCGStab::init() {
     s_  = alloc_mem(size);
 }
 
-void PBiCGStab::solve(double *x, double *b, double *bcp){
+void PBiCGStab::solve(double *x, double *b, double *A){
 
     double rho0, rho, alpha, omega, beta;
     double res = 1000.0;
@@ -40,7 +42,7 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
     grid->guardcell(x);    
     //cg_b(x);  // Ax=b, prepare b
 
-    cg_rk(r, x, b, bcp); //init residual r = b - Ax 
+    cg_rk(r, x, b, A); //init residual r = b - Ax 
 
     // choose an aribtrary vector r0_ such that (r0_, r) /=0, e.g. r0_ = r
     blas_cp_(r0_, r, &size);
@@ -62,9 +64,9 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
        //}
 
         grid->guardcell(p);
-        preconditioner(p_, p, isPrecond); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
+        preconditioner(p_, p, A, isPrecond); //solve Mp_=p, in some algorithm description, p_ is also denoted by y
         if(isPrecond) grid->guardcell(p_);
-        cg_ax(v,p_,bcp);        // v=Ap_    
+        cg_ax(v,p_,A);        // v=Ap_    
 
         tmp = cg_vdot(r0_, v);
         grid->sp_allreduce(&tmp);
@@ -74,10 +76,10 @@ void PBiCGStab::solve(double *x, double *b, double *bcp){
         cg_avpy(s, alpha, r, v);  // s = r -alpha*v;
         grid->guardcell(s);
         // solve Ms_=s , in some algorithm description, s_ is also denoted by z
-        preconditioner(s_, s, isPrecond); 
+        preconditioner(s_, s, A, isPrecond); 
         
         if(isPrecond) grid->guardcell(s_);
-        cg_ax(t,s_,bcp); // t=Az
+        cg_ax(t,s_,A); // t=Az
 
         // in preconditioner t = 1/M_1*t and s = 1/M_1*s
         tmp1 = cg_vdot(t, s);
@@ -165,33 +167,11 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
  * BUT: the above approach did not worked, that is NO EFFECT, moreover, when iterations < 10, even become worse. 
  * so we have to do matrix decomposition, and now there is no effective preconditioner in the current version.
  */
-void PBiCGStab::preconditioner(double* p_, double* p, bool isPrecond){
+void PBiCGStab::preconditioner(double* p_, double* p, double *A, bool isPrecond){
     if(!isPrecond)   
         blas_cp_(p_, p, &size);
     else {  
-        sor2(p_, p, 10, false);
+        sor->solve(p_, p, A);
     }
 }
 
-/**
- * check convergency flag is not used. if used, the previous solution must be hold for comparing. 
- */
-void PBiCGStab::sor2(double *p_, double *p, int lc_max, bool checkCnvg){
-    blas_cp_(p_, p, &size);
-    return;
-    
-    // not used at current
-    int lc = 0;
-    double res = 0.0;
-
-
-    for(lc=1; lc<=lc_max; lc++) {
-        for(int color=0; color<2; color++) {
-            grid->guardcell(p_);
-            sor2_core(p_, p, &color);
-         }
-        if(checkCnvg) {
-            if( res < eps) break;
-        }
-    }
-}

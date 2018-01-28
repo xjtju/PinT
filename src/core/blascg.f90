@@ -47,40 +47,40 @@ implicit none
 end subroutine cg_direct_1d
 
 !! calcaluate v = Ax ,
-!! bcp is stencil
-subroutine cg_ax1d(nxyz, ng, v, x, bcp)
+!! A is stencil
+subroutine cg_ax1d(nxyz, ng, v, x, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, ix 
     real    ::  ndag_e, ndag_w, dd  
     real, dimension(     1-ng:nxyz(1)+ng ) :: v, x  
-    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: bcp 
+    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: A 
 
     ix = nxyz(1)
     do i=1, ix
-        ndag_e = bcp(1, i)
-        ndag_w = bcp(2, i)
-            dd = bcp(3, i)
+        ndag_e = A(1, i)
+        ndag_w = A(2, i)
+            dd = A(3, i)
         
         v(i) = ndag_e*x(i+1) + dd*x(i) + ndag_w*x(i-1);  
     end do
 end subroutine cg_ax1d
 
 !! calcaluate the residual r = b - Ax ,
-!! bcp is stencil
-subroutine cg_rk1d(nxyz, ng, r, x, b, bcp)
+!! A is stencil
+subroutine cg_rk1d(nxyz, ng, r, x, b, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, ix 
     real    ::  ndag_e, ndag_w, dd, ax 
     real, dimension(     1-ng:nxyz(1)+ng ) :: r, x, b 
-    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: bcp 
+    real, dimension(1:3, 1-ng:nxyz(1)+ng ) :: A 
 
     ix = nxyz(1)
     do i=1, ix
-        ndag_e = bcp(1, i)
-        ndag_w = bcp(2, i)
-            dd = bcp(3, i)
+        ndag_e = A(1, i)
+        ndag_w = A(2, i)
+            dd = A(3, i)
         
         ax = ndag_e*x(i+1) + dd*x(i) + ndag_w*x(i-1);  
         r(i) = b(i) - ax;
@@ -143,23 +143,23 @@ implicit none
     end do
 end subroutine cg_direct_2d
 
-subroutine cg_ax2d(nxyz, ng, v, x, bcp)
+subroutine cg_ax2d(nxyz, ng, v, x, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, j, ix, jy 
     real    ::  ndag_e, ndag_w, ndag_n, ndag_s, dd  
     real, dimension(     1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: v, x  
-    real, dimension(1:5, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: bcp 
+    real, dimension(1:5, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: A 
 
     ix = nxyz(1)
     jy = nxyz(2)
     do j=1, jy
     do i=1, ix
-        ndag_e = bcp(1, i, j)
-        ndag_w = bcp(2, i, j)
-        ndag_n = bcp(3, i, j)
-        ndag_s = bcp(4, i, j)
-            dd = bcp(5, i, j)
+        ndag_e = A(1, i, j)
+        ndag_w = A(2, i, j)
+        ndag_n = A(3, i, j)
+        ndag_s = A(4, i, j)
+            dd = A(5, i, j)
         
         v(i,j) = ndag_e*x(i+1, j  ) &
                + ndag_w*x(i-1, j  ) &
@@ -170,23 +170,23 @@ implicit none
     end do
 end subroutine cg_ax2d
 
-subroutine cg_rk2d(nxyz, ng, r, x, b, bcp)
+subroutine cg_rk2d(nxyz, ng, r, x, b, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, j, ix, jy 
     real    ::  ndag_e, ndag_w, ndag_n, ndag_s, dd, val 
     real, dimension(     1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: r, x, b  
-    real, dimension(1:5, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: bcp 
+    real, dimension(1:5, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: A 
 
     ix = nxyz(1)
     jy = nxyz(2)
     do j=1, jy
     do i=1, ix
-        ndag_e = bcp(1, i, j)
-        ndag_w = bcp(2, i, j)
-        ndag_n = bcp(3, i, j)
-        ndag_s = bcp(4, i, j)
-            dd = bcp(5, i, j)
+        ndag_e = A(1, i, j)
+        ndag_w = A(2, i, j)
+        ndag_n = A(3, i, j)
+        ndag_s = A(4, i, j)
+            dd = A(5, i, j)
         
            val = ndag_e*x(i+1, j  ) &
                + ndag_w*x(i-1, j  ) &
@@ -284,13 +284,13 @@ implicit none
 
 end subroutine cg_direct_3d
 
-subroutine cg_ax3d(nxyz, ng, v, x, bcp)
+subroutine cg_ax3d(nxyz, ng, v, x, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, j, k, ix, jy, kz 
     real    ::  ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss  
     real, dimension(     1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: v, x  
-    real, dimension(1:7, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: bcp 
+    real, dimension(1:7, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: A 
 
     ix = nxyz(1)
     jy = nxyz(2)
@@ -302,13 +302,13 @@ implicit none
     do k=1, kz
     do j=1, jy
     do i=1, ix
-        ndag_e = bcp(1, i, j, k)
-        ndag_w = bcp(2, i, j, k)
-        ndag_n = bcp(3, i, j, k)
-        ndag_s = bcp(4, i, j, k)
-        ndag_t = bcp(5, i, j, k)
-        ndag_b = bcp(6, i, j, k)
-            dd = bcp(7, i, j, k)
+        ndag_e = A(1, i, j, k)
+        ndag_w = A(2, i, j, k)
+        ndag_n = A(3, i, j, k)
+        ndag_s = A(4, i, j, k)
+        ndag_t = A(5, i, j, k)
+        ndag_b = A(6, i, j, k)
+            dd = A(7, i, j, k)
         
             ss = ndag_e*x(i+1, j,   k  ) &
                + ndag_w*x(i-1, j,   k  ) &
@@ -325,13 +325,13 @@ implicit none
 
 end subroutine cg_ax3d
 
-subroutine cg_rk3d(nxyz, ng, r, x, b, bcp)
+subroutine cg_rk3d(nxyz, ng, r, x, b, A)
 implicit none
     integer, dimension(3) :: nxyz 
     integer ::  ng, i, j, k, ix, jy, kz  
     real    ::  ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss  
     real, dimension(     1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: r, x, b  
-    real, dimension(1:7, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: bcp 
+    real, dimension(1:7, 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: A 
 
     ix = nxyz(1)
     jy = nxyz(2)
@@ -343,13 +343,13 @@ implicit none
     do k=1, kz
     do j=1, jy
     do i=1, ix
-        ndag_e = bcp(1, i, j, k)
-        ndag_w = bcp(2, i, j, k)
-        ndag_n = bcp(3, i, j, k)
-        ndag_s = bcp(4, i, j, k)
-        ndag_t = bcp(5, i, j, k)
-        ndag_b = bcp(6, i, j, k)
-            dd = bcp(7, i, j, k)
+        ndag_e = A(1, i, j, k)
+        ndag_w = A(2, i, j, k)
+        ndag_n = A(3, i, j, k)
+        ndag_s = A(4, i, j, k)
+        ndag_t = A(5, i, j, k)
+        ndag_b = A(6, i, j, k)
+            dd = A(7, i, j, k)
         
             ss = ndag_e*x(i+1, j,   k  ) &
                + ndag_w*x(i-1, j,   k  ) &

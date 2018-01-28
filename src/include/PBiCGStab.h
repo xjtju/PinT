@@ -14,7 +14,7 @@
 #include "blas.h"
 #include "blascg.h"
 #include "LS.h"
-#include "Driver.h"
+#include "SOR.h"
 
 class PBiCGStab : public LS{
 
@@ -32,16 +32,19 @@ protected:
     // these control parammeters can be over-writen by sub classes
     double eps = 1.0e-6;
     int itmax = 20; 
-    double sor_omg = 1.7;     // SOR : relaxation factor, used for preconditioner, 
     bool   isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
+
+    SOR *sor;
     
 public:
 
     inline void set_eps(double eps) { this->eps = eps; }
     inline void set_itmax(int iter) { this->itmax = iter;}
+    inline void set_precond(bool flag) { this->isPrecond = flag;}
 
     PBiCGStab(PinT* c, Grid *g):LS(c,g){
         init();
+        sor = new SOR(c,g);
     }
     
     ~PBiCGStab() {
@@ -54,32 +57,19 @@ public:
        free_mem(s_);
        free_mem(t);
 
+       delete sor;
+
        if(grid->myid==0 && conf->verbose)
        printf("INFO: the memory allocated by PBiCGStab solver has been released.\n");
     }
 
-
     // the template algorithm of PBiCBSTAB
-    void solve(double *x, double *b, double *bcp);
+    void solve(double *x, double *b, double *A);
 
     // preconditioner: solve Mp_=p, 
     // if sub class uses preconditioner, they must implement the virtual stencil function.  
-    void preconditioner(double *p_, double *p, bool isPrecond);
+    void preconditioner(double *p_, double *p, double *A, bool isPrecond);
 
-    // the wrapper red-black successive over-relaxation (sor2_core)
-    void sor2(double *p_, double *p, int lc_max, bool checkCnvg);
-
-    inline void sor2_core(double *p_, double *p, int *color){
-        /* 
-        if(ndim==1) sor2_core_1d(p_, p, color);
-        else if(ndim==2) sor2_core_2d(p_, p, color);
-        else if(ndim==3) { printf("3D is not finished\n"); }; 
-        */
-    }
-    /*
-    virtual void sor2_core_1d(double *p_, double *p, int *color) = 0;
-    virtual void sor2_core_2d(double *p_, double *p, int *color) = 0;
-    */
 
     /***** stencil related functions, specific problem must provide the stencil matrix (bcp) *****/
     //calcaluate the residual r = b - Ax 

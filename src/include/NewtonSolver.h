@@ -1,8 +1,8 @@
 #ifndef _PinT_NEWTONSOLVER_H_
 #define _PinT_NEWTONSOLVER_H_ 1
 
-#include "PBiCGStab.h"
 #include "util.h"
+#include "Solver.h"
 
 /**
  *
@@ -24,7 +24,7 @@ private:
         unk   = alloc_mem(this->size);
         soln_1= alloc_mem(this->size);
         G1    = alloc_mem(this->size);
-        hypre = getLS(conf, grid);
+        hypre = getLS(conf, grid);   // any linear solver implementing LS is OK
     }
 
 public:
@@ -59,11 +59,6 @@ protected:
     double *soln_1;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
     double *G1;
     double *unk;     // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) in Newton's method 
-
-    // default is BiCG
-    virtual LS* getLS(PinT *conf, Grid *grid){ 
-        return new PBiCGStab(conf, grid);
-    }
 
     void newton_raphson(); // the template of New-Raphson method iteration 
     

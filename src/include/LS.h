@@ -6,6 +6,10 @@
 
 /**
  * the abstract linear solver for PinT framework
+ * 
+ * two algorithms are provided in current version
+ *   0. BiCG
+ *   1. SOR
  */
 
 class LS {

@@ -1,4 +1,4 @@
-# PinT Performance Testing Framework
+# PinT-PTF : PinT Performance Testing Framework
 
 A performance and convergency testing framework for Parallel-in-Time methods, especially for [Parareal](https://en.wikipedia.org/wiki/Parareal).
 
@@ -17,12 +17,19 @@ At the current stage, all the 1D / 2D / 3D can be automatically supported, we us
 
 There are five main objects and other two auxiliary objects in the framework.
 - **PinT**: for ini configuration, see the pint.ini sample file for details
-- **Grid**: space parallel manager, manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
-- **Driver**: time parallel manager, and the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
-- **Solver**: the abstract interface of coarse/fine solvers used by Parareal method, perform the time integration over one time slice. Its most imporant sub class is NewtonSolver, which implemented the template for Newton-Raphson method. 
-- **LS**: the abstract interface of linear solvers used by the coarse/fine solver, its most imporant sub class is PBiCGStab implemented the [biconjugate gradient stabilized method](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method).
 
-- Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned, .h5 file includes two datasets, one for 2d N*3 coordinates  and the other for 1d N solution, where N is the total grid cellls. 
+- **Grid**: space parallel manager, manages the uniform mesh, holds the physical variables, iniializes variables and applys boundary conditions, synchonizes guard cells, outputs result, and so on. 
+
+- **Driver**: time parallel manager, and the driver of the PinT process. it implements the Parareal algorithm, and controls the execution flow of the program, especially the time parallel flow. The core function of the Driver is evolve(), it provides the template of Parareal algorithm, and drives the problem-specific coarse/fine solvers to evolve along the time slices within the whole time domain.    
+
+- **Solver**: the abstract interface of coarse/fine solvers used by Parareal method, perform the time integration over one time slice. Its most imporant sub class is NewtonSolver, which implemented the template of Newton-Raphson method for nonlinear system like Allen-Cahn equation. 
+
+- **LS**: the abstract interface of linear solvers used by the coarse/fine solver, two linear solvers are provided in the current release. 
+  - the most imporant solver is PBiCGStab which implemented the [biconjugate gradient stabilized method](https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method). 
+  - Red-Black [SOR](https://en.wikipedia.org/wiki/Successive_over-relaxation) solver is also provided, but it is less efficient than BiCG according to our experiments.
+
+- Output : outputs the grid variables for debugging, ASCII format is supported for small runnings. HDF5 output is now supported for dumping out large data, but not well tuned in current, '.h5' file includes two datasets, one is a 2d array for N*3 coordinates  and the other is 1d array for N solution variables, where N is the total grid cellls. 
+
 - Monitor: a simple wrapper of PMLib for easily open or close the profiling function.
 
 ## DEMO

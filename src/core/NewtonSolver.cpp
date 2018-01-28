@@ -1,4 +1,5 @@
 #include "NewtonSolver.h"
+#include "Driver.h"
 
 // overwrite the default evolve for New-Raphson method
 void NewtonSolver::evolve() {
@@ -59,21 +60,21 @@ void NewtonSolver::newton_raphson() {
 
 //NOTE : for space division, converge check must be performed in the whole geographical space 
 void NewtonSolver::chk_eps(double *err) {
-        double x_nrm2 = 1.0;
-        if(ndim==3) { 
-            blas_dot_3d_(grid->nxyz, &nguard, unk,  unk,  err     );
-            blas_dot_3d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
-        }
-        else if(ndim==2) {
-            blas_dot_2d_(grid->nxyz, &nguard, unk,  unk,  err     ); 
-            blas_dot_2d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
-        }
-        else if(ndim==1) {
-            blas_dot_1d_(grid->nxyz, &nguard, unk,  unk,  err     );
-            blas_dot_1d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
-        }
+    double x_nrm2 = 1.0;
+    if(ndim==3) { 
+        blas_dot_3d_(grid->nxyz, &nguard, unk,  unk,  err     );
+        blas_dot_3d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+    }
+    else if(ndim==2) {
+        blas_dot_2d_(grid->nxyz, &nguard, unk,  unk,  err     ); 
+        blas_dot_2d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+    }
+    else if(ndim==1) {
+        blas_dot_1d_(grid->nxyz, &nguard, unk,  unk,  err     );
+        blas_dot_1d_(grid->nxyz, &nguard, soln, soln, &x_nrm2 );
+    }
 
-        grid->sp_allreduce(err);
-        grid->sp_allreduce(&x_nrm2);
-        *err = sqrt(*err/x_nrm2);
+    grid->sp_allreduce(err);
+    grid->sp_allreduce(&x_nrm2);
+    *err = sqrt(*err/x_nrm2);
 }

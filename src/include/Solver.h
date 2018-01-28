@@ -5,6 +5,9 @@
 #include "Grid.h"
 #include "LS.h"
 
+#include "SOR.h"
+#include "PBiCGStab.h"
+
 /**
  * the abstract interface of fine/coarse solvers for PinT framework
  * the interface is designed as simple as possible to adapt to more problem-specific calcaluations.
@@ -41,7 +44,7 @@ protected:
     PinT *conf;
     
     double *b;   // RHS, b of Ax=b
-    double *A; // stencil matrix A of Ax=b 
+    double *A;   // stencil matrix A of Ax=b 
 
     // all the following variables are the same with the corresponding one in the Grid
     // holding the most being used variables here is just for convenience only 
@@ -66,14 +69,35 @@ protected:
     bool isFine = true;  // is fine solver or coarse solver, default is true
 
     LS *hypre;  // linear solver 
-    
-    // default is NULL 
-    virtual LS* getLS(PinT *conf, Grid *grid) { 
-        fprintf(stderr, "WARN : NO linear solver is used \n");
-        return NULL; 
-    }  
+   
+    /**
+     * sub classes can overwrite it, create any proper linear solver
+     *
+     * SOR  has less calculations but slow convergence rate;
+     * BiCG has more calculations but fast convergence rate. 
+     */
+    virtual LS* getLS(PinT *conf, Grid *grid) {
+        if(PinT::LS_SOR_ID  == conf->linear_solver){
+            if(grid->myid==0) printf("INFO: default linear solver is SOR \n");
+            return new SOR(conf, grid);
+        }
+        else if(PinT::LS_BiCG_ID == conf->linear_solver ) 
+        {
+            if(grid->myid==0) printf("INFO: default linear solver is BiCG \n");
+            return new PBiCGStab(conf, grid); 
+        }
+        else { 
+            if(grid->myid==0) fprintf(stderr, "WARN : default linear solver is not set \n");
+            return NULL; 
+        }
+    } 
 
 public:
+    // set a proper linear solver 
+    inline void set_LS(LS *ls){
+        hypre = ls;
+    }
+
     Solver(PinT *conf, Grid *g){
         init(conf, g);
     }

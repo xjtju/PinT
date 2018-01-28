@@ -13,18 +13,16 @@ def get_color():
 
 def main(argv):
     if(len(argv)<2):
-        print 'usage   : python pfm.py input_file xpoints'
-        print 'example : python pfm.py 1.txt 1000'
+        print 'usage   : python pfm.py input_file label'
+        print 'example : python pfm.py 1.txt bd4'
         return 1
 
     fname = argv[1]
-    cnt   = int(argv[2])
-    print 'input file is {0} with {1} points \n'.format(fname,cnt)
+    lname = argv[2]
+    print 'input file is {0} \n'.format(fname)
 
     xlen = 1.0
     ylen = 1.0
-    #posx  = np.zeros(cnt)
-    #posy  = np.zeros(cnt)
     
     labels = ['0.001', '0.01', '0.02', '0.1']
     color = get_color()
@@ -55,7 +53,7 @@ def main(argv):
     ax.set_xlim(0, 1.0)
     ax.set_ylim(0, 1.0)
     ax.set_zlim(0, 1.0)
-    plt.title(fname)
+    plt.title(lname)
 
     #axes = plt.gca()
     #axes.set_ylim([-0.1,1.1])

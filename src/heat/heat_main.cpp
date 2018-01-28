@@ -13,8 +13,8 @@
 #ifdef _TEST_HEAT_
 
 #include "Driver.h"
-#include "HeatSolverF.h"
 #include "HeatGrid.h"
+#include "HeatSolverF.h"
 
 int main(int argc, char* argv[]) {
     

@@ -30,3 +30,4 @@ void CNSolver::setup(){
     //this->steps = 1; // only for debug
     //conf->kpar_limit = 0; //only for debug
 }
+

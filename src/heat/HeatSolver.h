@@ -14,11 +14,6 @@ class HeatSolver : public Solver {
 private:
     void setup();
 
-protected:
-
-    virtual LS* getLS(PinT *conf, Grid *grid) { 
-        return new PBiCGStab(conf, grid); // choose a linear solver
-    }
 
 public:
     
@@ -57,16 +52,6 @@ public:
         else if(ndim==1) rhs_heat_1d_(grid->nxyz, lamdaxyz, &nguard, soln, b);
     }
 
-    /*
-    inline void sor2_core_1d(double *p_, double *p, int *color){
-         sor2_core_1d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;
-    }
-
-    // SOR for  Ap_=p
-    inline void sor2_core_2d(double *p_, double *p, int *color) {
-         sor2_core_2d_(grid->nxyz, lamdaxyz, &nguard, p_, p, color, &sor_omg) ;
-    }
-    */
 };
 
 #endif

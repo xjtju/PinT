@@ -103,6 +103,8 @@ public:
     int mytid;  // process id in time domain (slice number)
     MPI_Comm *sp_comm; //space within the same time slice
 
+    int linear_solver = 0;  // default linear solver, 0: BiCG; 1: SOR; ; >1: NULL
+
     double converge_eps = 1.0e-6;
     double smlr = 1.0e-15;
 
@@ -111,6 +113,14 @@ public:
     int with_coord = 1;
 
     int verbose = 0 ; // output some verbose information for debugging during execution
+
+    
+    const static int LS_BiCG_ID= 0;
+    const static int LS_SOR_ID = 1;
+
+    const char* LS_SOR = "SOR";
+    const char* LS_BiCG= "BiCG";
+    
 };
 
 int handler(void* pint, const char* section, const char* name, const char* value);
