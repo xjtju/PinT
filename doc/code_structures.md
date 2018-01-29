@@ -18,7 +18,7 @@
   - blascg.f90 : BiCG-specific calculations
 
 - utils
-  - util1d/2d/3d.f90 : fortran source file for 
+  - util1d/2d/3d.f90 : fortran source file for multi-dimension data manipulation 
   - Monitor : A wrapper of PMLib for performance measurement
   - ini.c   : .INI parser from https://github.com/benhoyt/inih  
 
