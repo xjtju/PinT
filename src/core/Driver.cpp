@@ -170,7 +170,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
          //STEP8
         if(pipelined == 0){
-            max_res = sqrt(max_res/tsnum);
+            max_res = sqrt(max_res);
             if( max_res < conf->converge_eps) {
                 if(myid==numprocs-1) printf("Parareal is converged at %d iteration, res = %e .\n", k , max_res);
                 break;   

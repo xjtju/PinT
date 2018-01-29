@@ -60,6 +60,11 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP REDUCTION(+:val) &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -67,6 +72,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
 end subroutine blas_dot_3d
 
 subroutine blas_vdist_1d(nxyz, ng, d, s, val)
@@ -115,6 +123,12 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP REDUCTION(+:val) &
+!$OMP PRIVATE(d2)      &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -123,6 +137,9 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
+
     val = sqrt(val)
 end subroutine blas_vdist_3d
 
@@ -141,9 +158,9 @@ implicit none
     ix = nxyz(1)
     do i=1, ix
         tmp1 = f(i) + ( g(i) - g_(i) )
-        tmp2 = u(i) -tmp1
-        res = res + tmp2*tmp2
+        tmp2 = u(i) - tmp1
         u(i) = tmp1
+        res    = res    + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
     
@@ -171,8 +188,8 @@ implicit none
     do i=1, ix
         tmp1 = f(i,j) + ( g(i,j) - g_(i,j) )
         tmp2 = u(i,j) - tmp1
-        res = res + tmp2*tmp2
         u(i,j) = tmp1
+        res    = res + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
     end do
@@ -198,20 +215,30 @@ implicit none
     ix = nxyz(1)
     jy = nxyz(2)
     kz = nxyz(3)
+!$OMP PARALLEL &
+!$OMP REDUCTION(+:res)    &
+!$OMP REDUCTION(+:u_nrm2) &
+!$OMP PRIVATE(tmp1, tmp2) &
+!$OMP FIRSTPRIVATE(ix, jy, kz)
+
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
         tmp1 = f(i,j,k) + ( g(i,j,k) - g_(i,j,k) )
-        tmp2 = u(i,j,k) -tmp1
-        res = res + tmp2*tmp2
+        tmp2 = u(i,j,k) - tmp1
         u(i,j,k) = tmp1
+        res    = res + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
 
     res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
     end if
+
 end subroutine blas_pint_sum_3d

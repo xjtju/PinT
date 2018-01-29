@@ -1,4 +1,4 @@
-# PinT-PTF : PinT Performance Testing Framework
+# PinT-TF : PinT Testing Framework
 
 A performance and convergency testing framework for Parallel-in-Time methods, especially for [Parareal](https://en.wikipedia.org/wiki/Parareal).
 
