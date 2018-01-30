@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
     driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
-    g->output_local(g->u_end, true);
-    g->output_global_h5("pfm"); 
+    //g->output_local(g->u_end, true); // ASCII mode
+    g->output_global_h5("pfm");        // HDF5  mode 
     
     driver.finalize();  // quit MPI 
 

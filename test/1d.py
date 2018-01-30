@@ -34,7 +34,8 @@ def main(argv):
 
     ds1 = pf.get('solution')
     
-
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
     #with open(fname) as fp:
     #    for line in fp:
         #line = fp.readline();
@@ -43,8 +44,8 @@ def main(argv):
     plt.plot(posx, ds1, color=acolor, linewidth=2.0, label=lname)
 
     plt.legend(loc='upper right', shadow=True)
-   #plt.tick_params(axis='both', which='major', labelsize=20,length=9)
-   #plt.tick_params(axis='both', which='minor', labelsize=12,length=5)
+    #plt.tick_params(axis='both', which='major', labelsize=20,length=9)
+    #plt.tick_params(axis='both', which='minor', labelsize=12,length=5)
 
     #plt.gca().xaxis.set_major_locator(MultipleLocator(1.0))
     #plt.gca().xaxis.set_minor_locator(MultipleLocator(0.1))
@@ -56,16 +57,17 @@ def main(argv):
     #P.ylabel('U',fontsize=24)
     #P.ylim(-0.1, 1.1)
 
-    plt.title(fname)
+    plt.title(lname)
     axes = plt.gca()
     axes.set_xlim([-0.02, xlen+0.02])
     axes.set_ylim([-0.02, ylen+0.02])
-    axes.set_xlabel(r'$X$')
+    axes.set_xlabel(r'$\textbf{x position}(m)$')
     axes.set_ylabel(r'$\Phi$', fontsize=18)
-    #P.savefig('pfm.eps',bbox_inches='tight')
     plt.grid()
     plt.xticks(np.arange(0, 1.0, 0.05))
-    plt.show()
+
+    plt.savefig('pfm.eps',bbox_inches='tight')
+    #plt.show()
 
 if __name__ == '__main__':
     main(sys.argv)

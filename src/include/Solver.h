@@ -74,7 +74,10 @@ protected:
      * sub classes can overwrite it, create any proper linear solver
      *
      * SOR  has less calculations but slow convergence rate;
-     * BiCG has more calculations but fast convergence rate. 
+     * BiCG has more calculations but fast convergence rate.
+     *
+     * NOTE: 
+     *   It is not necessary for sub classes to free the LS instance. 
      */
     virtual LS* getLS(PinT *conf, Grid *grid) {
         if(PinT::LS_SOR_ID  == conf->linear_solver){

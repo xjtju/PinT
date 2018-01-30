@@ -38,8 +38,6 @@ public:
 
     virtual ~NewtonSolver() {
 
-        delete hypre;
-
         free_mem(soln_1);
         free_mem(G1);
         free_mem(unk);

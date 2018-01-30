@@ -32,5 +32,6 @@
 *.h5
 *.out
 *.app
+*.eps
 
 .DS_Store
