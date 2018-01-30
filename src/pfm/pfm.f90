@@ -318,11 +318,9 @@ implicit none
 
     ix = nxyz(1)
     lamdax = lamdaxyz(1)
-
     do i=1, ix
-        ss = lamdax * ( soln(i-1) - 2*soln(i) + soln(i+1) )
+        ss = lamdax * ( soln(i+1) - 2*soln(i) + soln(i-1) )
         b(i) = ss - dtk * soln(i) * ( soln(i) - 1.0 ) * ( soln(i) - beta_ ) 
-        
     end do
 
 end subroutine euler_rhs_ac_1d

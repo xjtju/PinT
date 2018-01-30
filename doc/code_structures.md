@@ -39,7 +39,7 @@
   - CNSolver   : Newton-Raphson time integrator using Crank-Nicolson finite difference method 
   - BD4Solver  : Newton-Raphson time integrator using 4th-order backward differentiation formula 
   - PFMParams  : the holder of the problem-specific parameters 
-  - EulerSolver: explicit Euler method, unstable! just for example 
+  - EulerSolver: explicit Euler method, unstable! make sure the CFL 
   - pfm.90/pfm_bd4.f90 : problem-specific matrix calculations
   - pfm.ini    : configuration file
   - pfm_main.cpp : main program entry

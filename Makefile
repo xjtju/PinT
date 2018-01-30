@@ -2,7 +2,7 @@
 
 TARGET = pfm_alpha.exe
 
-_PMLib_ =1
+#_PMLib_ =1
 ifdef _PMLib_ 
 PMLIB_HOME = /Users/bamboo/Libs/PMlib
 PMLIB_INC  = -I${PMLIB_HOME}/include 

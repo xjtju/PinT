@@ -39,5 +39,6 @@ void HeatSolver::evolve() {
 
         // step5: update solution, 
         // for heat diffusion, soln has already updated by linear solver, noting need to be done 
+        grid->guardcell(soln); 
     }
 }

@@ -6,13 +6,21 @@
  */ 
 EulerSolver::EulerSolver(PinT *c, Grid *g) : Solver(c,g)
 {
-    param.init(c, g);
+    EulerSolver(c, g, true);
 }
 
 EulerSolver::EulerSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     param.init(c, g, isFS);
+    setup();
+    if(0 == grid->myid)
+        if(isFS) param.printLamda("Fine   Solver"); 
+        else fprintf(stderr, "WARN : EulerSolver is used as coarse solver, unstable !"); 
 }
     
+void EulerSolver::setup(){
+    beta_ = param.beta_;       
+    dtk   = param.dtk;         
+}
 /**
  * Forward Euler, 1st order
  */
@@ -26,6 +34,8 @@ void EulerSolver::evolve() {
         grid->bc(soln); 
         // step2 : call the solver
         euler(); 
+
+        grid->guardcell(soln); // do not forget synchonize guardcell 
     }
     // step3: return latest solution to PinT framework 
     // nothing need to do 
@@ -35,5 +45,4 @@ void EulerSolver::euler() {
 
     rhs();    // calcaluate RHS 
     update(); // Xn+1 = Xn + RHS (delta) 
-
 }

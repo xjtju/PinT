@@ -162,7 +162,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         g->sp_allreduce(&res_loc, &res_sp);
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         if(pipelined == 0) {
-            g->allreduce(&res_sp, &max_res,MPI_MAX);  // time space is enough ?!
+            g->allreduce(&res_sp, &max_res, MPI_MAX);  // time space is enough ?!
             //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         }
         monitorResidual(g, res_loc, max_res, size);

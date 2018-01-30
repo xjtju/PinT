@@ -11,6 +11,10 @@
  */
 class EulerSolver : public Solver {
 
+    double beta_;       // 0.5-beta
+    double dtk;         // dt*k
+
+    void setup();
 protected:
     PFMParams param;
 
@@ -27,9 +31,9 @@ public:
     void evolve(); // Forward method iteration 
 
     inline void rhs() {
-        if(ndim==3)      euler_rhs_ac_3d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &param.theta, &param.dtk, &param.beta_);
-        else if(ndim==2) euler_rhs_ac_2d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &param.theta, &param.dtk, &param.beta_);
-        else if(ndim==1) euler_rhs_ac_1d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &param.theta, &param.dtk, &param.beta_);
+        if(ndim==3)      euler_rhs_ac_3d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &dtk, &beta_);
+        else if(ndim==2) euler_rhs_ac_2d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &dtk, &beta_);
+        else if(ndim==1) euler_rhs_ac_1d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &dtk, &beta_);
     }
 
     inline void update() {

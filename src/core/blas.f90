@@ -1,5 +1,5 @@
-!! BLAS related functions
 
+!! BLAS related functions
 subroutine blas_cp(d, s, size)
 implicit none
     integer :: size
@@ -162,8 +162,9 @@ implicit none
         u(i) = tmp1
         res    = res    + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
-    end do
-    
+        end do
+
+    if( u_nrm2 < 1.0e-108) u_nrm2 = sml; !! avoid divided by ZERO
     res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
@@ -194,6 +195,7 @@ implicit none
     end do
     end do
 
+    if( u_nrm2 < 1.0e-108) u_nrm2 = sml; !! avoid divided by ZERO
     res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0
@@ -236,6 +238,7 @@ implicit none
 !$OMP END DO
 !$OMP END PARALLEL
 
+    if( u_nrm2 < 1.0e-108) u_nrm2 = sml; !! avoid divided by ZERO
     res = res/u_nrm2
     if( res < sml ) then 
         res = 0.0

@@ -5,7 +5,7 @@
 
 #include "CNSolver.h"
 #include "BD4Solver.h"
-//#include "EulerSolver.h"
+#include "EulerSolver.h"
 #include "PFMGrid.h"
 #include "PFMParams.h"
 
@@ -39,13 +39,16 @@ int main(int argc, char* argv[]) {
     PFMParams param;
     param.init(conf,g);
     Solver *G, *F;
+    
     if(param.csolver == param.ID_CN) 
         G =  new CNSolver (conf, g, false);    
     else G = new BD4Solver(conf, g, false);  
 
-    if(param.fsolver == param.ID_CN) 
-        F =  new CNSolver (conf, g, true);   
-    else F = new BD4Solver(conf, g, true); 
+    if(param.fsolver == param.ID_EU) 
+        F = new EulerSolver(conf, g, true);
+    else if(param.fsolver == param.ID_CN) 
+         F =  new CNSolver (conf, g, true);   
+    else F =  new BD4Solver(conf, g, true); 
 
     //driver.Abort("高次元テスト3D PFM:%d\n", 5); // DEBUG
     // run the parareal algorithm 

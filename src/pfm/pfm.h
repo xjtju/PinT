@@ -53,9 +53,9 @@ extern "C" {
     //
     //For first order forward Euler 
     //
-    void euler_rhs_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
-    void euler_rhs_ac_2d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
-    void euler_rhs_ac_1d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *theta, double *dtk, double *beta_);
+    void euler_rhs_ac_3d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *dtk, double *beta_);
+    void euler_rhs_ac_2d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *dtk, double *beta_);
+    void euler_rhs_ac_1d_(int *nxyz, double *lamdaxyz, int *ng, double *b, double *soln, double *dtk, double *beta_);
     
 
     //
