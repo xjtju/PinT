@@ -68,7 +68,7 @@ protected:
 
     bool isFine = true;  // is fine solver or coarse solver, default is true
 
-    LS *hypre;  // linear solver 
+    LS *hypre = NULL;  // linear solver 
    
     /**
      * sub classes can overwrite it, create any proper linear solver
@@ -114,7 +114,9 @@ public:
     virtual ~Solver() {
         free_mem(b);
         free_mem(A);
-        
+
+        delete hypre; 
+
         if(grid->myid==0 && conf->verbose)
         printf("INFO: The memory allocated by the base solver has been released.\n");
     }

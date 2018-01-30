@@ -14,8 +14,11 @@
     - PBiCGStab : Biconjugate gradient stabilized method with precondictioner
   - Solver : the time integrator used by time parallel
     - NewtonSolver : the template of Newton-Raphson method
+    - DefaultSolver: the template for linear problem, Newton-Raphson method is unnecessary.  
+  - common.cpp : a mini wrapper of memory related operations
   - blas.f90   : common matrix calculations  
   - blascg.f90 : BiCG-specific calculations
+  - blassor.f90: SOR-specific calculations
 
 - utils
   - util1d/2d/3d.f90 : fortran source file for multi-dimension data manipulation 
@@ -38,8 +41,8 @@
   - PFMGrid    : set initial value and provides customized BC function 
   - CNSolver   : Newton-Raphson time integrator using Crank-Nicolson finite difference method 
   - BD4Solver  : Newton-Raphson time integrator using 4th-order backward differentiation formula 
-  - PFMParams  : the holder of the problem-specific parameters 
   - EulerSolver: explicit Euler method, unstable! make sure the CFL 
+  - PFMParams  : the holder of the problem-specific parameters 
   - pfm.90/pfm_bd4.f90 : problem-specific matrix calculations
   - pfm.ini    : configuration file
   - pfm_main.cpp : main program entry
