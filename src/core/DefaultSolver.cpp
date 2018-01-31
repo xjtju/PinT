@@ -6,6 +6,7 @@ void DefaultSolver::evolve() {
      
     // step0: set initial value, the latest solution is used directly 
     soln = getSoln();     // pointer to the start point of this time slice  
+    grid->guardcell(soln);   // make sure the guardcell is at synchonization state before running
 
     for(int i=0; i<steps; i++){
         // step1 : set boundary condition, default bc function provided by Grid is enough

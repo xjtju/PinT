@@ -4,7 +4,9 @@
 // overwrite the default evolve for New-Raphson method
 void NewtonSolver::evolve() {
     // step0: set initial value
-    soln = getSoln();     // pointer to the start point  
+    soln = getSoln();        // pointer to the start point  
+    grid->guardcell(soln);   // make sure the guardcell is synchonized  
+
     init_holder();        // init holders from latest solution
     blas_clear_(unk, &size);
 

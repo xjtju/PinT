@@ -83,7 +83,7 @@ class Driver {
      * if it is the first time slice, it should not receive result from  any other slices.     
      * when there is only one MPI process, it is the first slice and also the last slice
      */
-    inline bool isFirstSlice(int myid) {
+    inline bool isFirstSlice() {
         return (mytid == 0) ? true : false ; 
     }
 
@@ -91,14 +91,17 @@ class Driver {
      * check whether the current slice is the last, 
      * if it is the last time slice, it should not send result to any other slices.     
      */
-    inline bool isLastSlice(int myid) {
+    inline bool isLastSlice() {
         return (mytid == (tsnum-1)) ? true : false ;
     }
 
-    inline int getSliceNum(int myid) {
+    inline int getSliceNum() {
         return mytid;
     }
 
+    inline bool isCurrentSlice(int kpar) {
+        return (mytid==kpar? true : false );
+    }
 };
 
 #endif

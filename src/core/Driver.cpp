@@ -54,6 +54,11 @@ void Driver::init(int argc, char* argv[]){
 }
 
 // the PinT algorithm template
+// NOTE:
+//  the guardcell synchonization is the task of space parallel (Grid), not time parallel (Driver) 
+//  according to the design principle of our framework. 
+//  Guardcell synchonization is not necessary to be called explictly here except the end of the time loop    
+//  for the consistency of output result with guardcell. 
 void Driver::evolve(Grid* g, Solver* G, Solver* F){
     // output the initial values for debugging or ...
     if(conf->dump_init) {
@@ -75,14 +80,14 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     monitor.start(Monitor::RECV);
-    if(!isFirstSlice(myid)) {
+    if(!isFirstSlice()) {
         source = myid - spnum;
         tag = myid*100;
         MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
     }
     monitor.stop(Monitor::RECV);
 
-    g->guardcell(u_start);    
+    //g->guardcell(u_start); // not necessary, the solver will do guardcell at the end of each time step   
 
     //coarse 
     monitor.start(Monitor::CSolver);
@@ -92,7 +97,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
-    if(!isLastSlice(myid)){
+    if(!isLastSlice()){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
@@ -112,7 +117,6 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         max_res = 0.0;
 
         kpar = kpar + 1;
-        //g->guardcell(u_c);
         
         // step1:
         blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
@@ -122,7 +126,6 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp_(u_f, u_start, &size);
         F->evolve();
         monitor.stop(Monitor::FSolver);
-        //g->guardcell(u_f);
 
         if(kpar == 1) {
             blas_cp_(u_end, u_f, &size); 
@@ -130,11 +133,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
         // step3:
          monitor.start(Monitor::RECV); 
-        if(!isFirstSlice(myid)){
+        if(!isFirstSlice()){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
 	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-            //g->guardcell(u_start);
         }
         monitor.stop(Monitor::RECV);
         // step4:
@@ -143,14 +145,13 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         blas_cp_(u_c, u_start, &size); 
         G->evolve();
         monitor.stop(Monitor::CSolver);
-        //g->guardcell(u_c); 
         
         // step5: 
         pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
         
         // step6:
         monitor.start(Monitor::SEND); 
-        if(!isLastSlice(myid)){
+        if(!isLastSlice()){
 	        dest = myid + spnum;
 	        tag  = (myid + spnum)*100 + kpar;
 	        ierr = MPI_Send(u_end, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
@@ -223,8 +224,8 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
         vector_dist(g, u_end, u_f,    &fdist); 
         printf("kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, myid, cdist, fdist, res_loc); 
     }
-
-    if(mytid == kpar-1){
+    // Fine solver has already evolved over the time slice, local residual should be ZERO
+    if(mytid == kpar-1){ 
         if(res_loc > 0 ) {
             res_loc = sqrt(res_loc);
             vector_dist(g, u_c,   u_cprev, &cdist); 
