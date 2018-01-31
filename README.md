@@ -221,3 +221,7 @@ In the current version, in order to make the framework usable as earlier as poss
 1. It uses more system memory (perhaps 5 times) than the traditional pure space parallel methodology. 
 2. In practice, for many real-world multi-physical simulations, it is hard to pack all the related solvers into Parareal algorithm framework. How to do ?   
 
+## Copyright
+
+Copyright (c) 2017-2018 Research Institute for Information Technology (RIIT), Kyushu University and Computer Software School (SCS), Tianjin University. All rights reserved.
+
