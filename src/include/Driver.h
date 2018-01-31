@@ -79,28 +79,42 @@ class Driver {
     }
 
     /**
-     * check whether the current slice is the first, 
-     * if it is the first time slice, it should not receive result from  any other slices.     
+     * check whether the current slice need to send solution to the next time slice   
+     * if it is the last time slice, it should not send result to any other slices.     
      * when there is only one MPI process, it is the first slice and also the last slice
      */
-    inline bool isFirstSlice() {
-        return (mytid == 0) ? true : false ; 
+    inline bool isSendSlice(int k) {
+        bool flg = (mytid < (tsnum-1)) ? true : false ;
+        if(conf->skip_mode == 0) 
+            return flg;
+        else return ( (mytid>=k-1) && flg );
     }
 
     /**
-     * check whether the current slice is the last, 
-     * if it is the last time slice, it should not send result to any other slices.     
+     * check whether the current slice need to receive solution from the previous time slice 
+     * if it is the first time slice, it should not receive result from  any other slices.     
      */
-    inline bool isLastSlice() {
-        return (mytid == (tsnum-1)) ? true : false ;
+    inline bool isRecvSlice(int k) {
+        bool flg = (mytid > 0) ? true : false ; 
+        if(conf->skip_mode == 0)
+            return flg;
+        else return ( (mytid>=k) && flg); 
     }
 
     inline int getSliceNum() {
         return mytid;
     }
-
-    inline bool isCurrentSlice(int kpar) {
-        return (mytid==kpar? true : false );
+    
+    // Fine solver has already continuously evolved over the time slice, 
+    // it is no meaningful to calcaluate again before the time slice 
+    inline bool isSkip(int k) {
+        if ( conf->skip_mode == 0 ) 
+            return false;
+        else return (mytid<k-1) ? true : false ;
+    }
+    // Whether the header of the rest time slices or not 
+    inline bool isHead(int k) {
+        return (mytid<=k-1) ? true : false ;
     }
 };
 

@@ -27,6 +27,7 @@ void EulerSolver::evolve() {
 
     // step0: set initial value
     soln = getSoln();     // pointer to the start point  
+    grid->guardcell(soln); // make sure the guardcell is at synchonization state  
 
     for(int i=0; i<steps; i++){
         // step1 : set boundary condition

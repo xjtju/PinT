@@ -104,7 +104,8 @@ void PinT::print() {
     printf("  coarse dt        : %e\n", c_dt);
     printf("  rfc_ (steps )    : %d\n", rfc_);
 
-    printf("  PIPELINED        : %d\n", pipelined);
+    printf("  PIPELINED        : %d %s\n", pipelined, pipelined ? "[O]" : "" );
+    printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
     printf("  linear solver    : %d\n", linear_solver);
     printf("  converge eps     : %e\n", converge_eps);
@@ -116,7 +117,7 @@ void PinT::print() {
 
     printf("  verbose output   : %d\n", verbose);
 
-    printf("  test serial mode : %d\n", test_serial);
+    printf("  test serial mode : %d %s\n", test_serial, test_serial ? "[O]" : "");
     printf("  dump init vars   : %d\n", dump_init);
 
     printf("\n");
@@ -155,6 +156,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "spnumz")) { conf->spnumz = atoi(value); } 
 
     else if (MATCH("parareal", "pipelined"))  { conf->pipelined  = atoi(value); } 
+    else if (MATCH("parareal", "skip_mode"))  { conf->skip_mode  = atoi(value); } 
     else if (MATCH("parareal", "kpar_limit")) { conf->kpar_limit = atoi(value); } 
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
 

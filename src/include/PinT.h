@@ -82,6 +82,7 @@ public:
 
     int pipelined = 0;
     int kpar_limit;
+    int skip_mode = 0;  // default is ZERO, not skip
 
     // only run the fine solver in serial mode, for measuring the orininal single process/thread performance  
     // NOTE: if the flag is valid, all the parameters related with time-space parallel will be ignored 

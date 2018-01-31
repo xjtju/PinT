@@ -1,5 +1,8 @@
 #include "Driver.h"
 #include "blas.h"
+
+#define TRACE(fmt, ...) ( (conf->verbose && mysid==0) ? printf(fmt, __VA_ARGS__ ): 0 ) 
+
 /**
  * load parammeter configuration file and check their consistency 
  */
@@ -53,12 +56,24 @@ void Driver::init(int argc, char* argv[]){
     monitor.setRankInfo(myid);
 }
 
-// the PinT algorithm template
-// NOTE:
-//  the guardcell synchonization is the task of space parallel (Grid), not time parallel (Driver) 
-//  according to the design principle of our framework. 
-//  Guardcell synchonization is not necessary to be called explictly here except the end of the time loop    
-//  for the consistency of output result with guardcell. 
+/* 
+ * the PinT algorithm template
+ *
+ * SKIP MODE:
+ *   IF fine solver has already continuously evolved over the time slice, denoted by TS_{k}, 
+ *   it is no meaningful to repeat the same calcaluatons until the TS_{k}, 
+ *   but all the time slices before TS_{k} have to wait for convergency check, 
+ *   there is NO way to quit safely for saving computing resources according to current MPI specification.
+ *   The only thing we can do is to skip these useless send/receive operations to reduce a few of communication overhead.  
+ *   Of course, the fine/coarse solver's calculation can also be skipped safely, but the MPI process has to wait anyway.
+ *   At current, we only skip send/receive, the calculation skip is tested, but commented out. 
+ * 
+ * NOTE:
+ *   the guardcell synchonization is the task of space parallel (Grid), not time parallel (Driver) 
+ *   according to the design principle of our framework. 
+ *   Guardcell synchonization is not necessary to be called explictly here except the end of the time loop    
+ *   for the consistency of output result with guardcell.
+ */
 void Driver::evolve(Grid* g, Solver* G, Solver* F){
     // output the initial values for debugging or ...
     if(conf->dump_init) {
@@ -80,11 +95,11 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     monitor.start(Monitor::RECV);
-    if(!isFirstSlice()) {
+    if(isRecvSlice(1)) {
         source = myid - spnum;
         tag = myid*100;
         MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-    }
+    } 
     monitor.stop(Monitor::RECV);
 
     //g->guardcell(u_start); // not necessary, the solver will do guardcell at the end of each time step   
@@ -97,7 +112,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
-    if(!isLastSlice()){
+    if(isSendSlice(1)){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
@@ -124,38 +139,44 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
         monitor.start(Monitor::FSolver);
         blas_cp_(u_f, u_start, &size);
-        F->evolve();
+        //if(!isSkip(k))
+            F->evolve(); 
+        //else TRACE("%d, F is skiped\n",mytid);
         monitor.stop(Monitor::FSolver);
 
         if(kpar == 1) {
             blas_cp_(u_end, u_f, &size); 
         }
-
+        
         // step3:
          monitor.start(Monitor::RECV); 
-        if(!isFirstSlice()){
+        if(isRecvSlice(k)){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
 	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-        }
+        } else TRACE("SKIP RECV : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::RECV);
         // step4:
         
         monitor.start(Monitor::CSolver);
         blas_cp_(u_c, u_start, &size); 
+        //if(!isSkip(k)) 
         G->evolve();
+        //else TRACE("%d, G is skiped\n",mytid);
         monitor.stop(Monitor::CSolver);
         
-        // step5: 
+        // step5:
+        //if(!isSkip(k))
         pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
+        //else TRACE("%d, SUM is skiped\n",mytid);
         
         // step6:
         monitor.start(Monitor::SEND); 
-        if(!isLastSlice()){
+        if(isSendSlice(k)){
 	        dest = myid + spnum;
 	        tag  = (myid + spnum)*100 + kpar;
 	        ierr = MPI_Send(u_end, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
-        }
+        } else TRACE("SKIP SEND : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::SEND); 
 
         //STEP7 gather residual
@@ -218,11 +239,11 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
     double *u_f    = g->u_f;
     double cdist, fdist;
 
-    if(debug && (myid==0)){
+    if(debug && (mysid==0)){
         res_loc = sqrt(res_loc);
         vector_dist(g, u_c,   u_cprev,&cdist); 
         vector_dist(g, u_end, u_f,    &fdist); 
-        printf("kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, myid, cdist, fdist, res_loc); 
+        printf("kpar:%d, mytid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, mytid, cdist, fdist, res_loc); 
     }
     // Fine solver has already evolved over the time slice, local residual should be ZERO
     if(mytid == kpar-1){ 
@@ -236,9 +257,9 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
 
     if(myid==numprocs-1){
         if(pipelined == 0)
-	        printf("kpar:%d, myid:%d, max_res:%13.8e \n", kpar, myid, max_res);
+	        printf("kpar:%d, mytid:%d, max_res:%13.8e \n", kpar, mytid, max_res);
         else 
-	        printf("kpar:%d, myid:%d, local_res:%13.8e \n", kpar, myid, res_loc);
+	        printf("kpar:%d, mytid:%d, local_res:%13.8e \n", kpar, mytid, res_loc);
     }
 }
 
