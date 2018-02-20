@@ -232,7 +232,7 @@ public:
     void sp_allreduce(double *d);  //d is input and output
     void sp_allreduce(double *d, double *o); //d is input, o is output
     // time-space domain
-    void allreduce(double *d, double *o, int op);
+    void allreduce(double *d, double *o, MPI_Op op);
     
     // the basic output function, write grid local variable for debug, 
     // the wrapper of Output.var_..._Z, writing the local variables into debug file only for the last time slice  

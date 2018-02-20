@@ -26,7 +26,7 @@ void PFMGrid::init1d() {
         val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
         val = 1.0 - 0.5*val;
         //xdist = x - midx; 
-        //if(abs(xdist) < 0.2) 
+        //if(fabs(xdist) < 0.2) 
         //   val = 0.8;
         //else val = 0;
         this->set_val4all(i,val);
@@ -42,7 +42,7 @@ void PFMGrid::init2d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        
        ind = this->getOuterIdx(i, j, 0);  
-       if( abs(xdist)<=0.4 &&  abs(ydist)<=0.4 )
+       if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
            unk = 1.0; 
        else unk = 0.0; 
        
@@ -60,7 +60,7 @@ void PFMGrid::init3d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        zdist = this->getZ(k) -  conf->Zspan/2 ;
        ind = this->getOuterIdx(i, j, k);  
-       if( (abs(xdist)<=0.4) &&  (abs(ydist)<=0.4) && (abs(zdist)<=0.4) )
+       if( (fabs(xdist)<=0.4) &&  (fabs(ydist)<=0.4) && (fabs(zdist)<=0.4) )
            unk = 1.0; 
        else unk = 0.0; 
        

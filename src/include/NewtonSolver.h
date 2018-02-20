@@ -1,7 +1,6 @@
 #ifndef _PinT_NEWTONSOLVER_H_
 #define _PinT_NEWTONSOLVER_H_ 1
 
-#include "util.h"
 #include "Solver.h"
 
 /**
