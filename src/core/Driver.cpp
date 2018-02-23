@@ -90,7 +90,6 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     int source, dest, tag;
     int ierr;
     size_t size = g->size; 
-    MPI_Request req;
     MPI_Status  stat;
 
     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
@@ -125,6 +124,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
     double res_loc, res_sp, max_res;
     res_loc = res_sp = max_res = 0.0;
+    kpar = 0;
     for(int k=1; k<=conf->kpar_limit; k++)
     {
         res_loc = 0.0;

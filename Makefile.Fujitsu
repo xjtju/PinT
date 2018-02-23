@@ -1,18 +1,18 @@
 #!/bin/bash
 
-TARGET = pfm_alpha.exe
+TARGET = ../pint/pint_pfm.exe
 
 _PMLib_ =1
 ifdef _PMLib_ 
-PMLIB_HOME = /Users/bamboo/Libs/PMlib
+PMLIB_HOME = /home/usr4/m70324a/libs/pmlib
 PMLIB_INC  = -I${PMLIB_HOME}/include 
 LDFLAGS_PM = -L${PMLIB_HOME}/lib -lPMmpi 
-OPTFLAGS_PM= -fopenmp -D_PMLib_  
+OPTFLAGS_PM= -D_PMLib_  
 endif
 
 _HDF5_=1
 ifdef _HDF5_
-HDF5_HOME  = /Users/bamboo/Libs/hdf5
+HDF5_HOME  = /home/app/a/HDF5-1.10.1-FJ/non-parallel
 HDF5_INC   = -I${HDF5_HOME}/include
 LDFLAGS_H5 = -L${HDF5_HOME}/lib -lhdf5 
 OPTFLAGS_H5= -D _HDF5_   
@@ -58,15 +58,14 @@ FOBJS = $(FSRC:.f90=.o)
 COBJS = $(CSRC:.cpp=.o) $(CSRC2:.c=.o)
 OBJS  = $(FOBJS) $(COBJS)
 
-CXX=mpic++
-FC=mpif90
+CXX=mpiFCC
+FC=mpifrt
 
 
-OPTFLAGS= -O3 ${OPTFLAGS_PM} ${OPTFLAGS_H5} $(HEAT_OPT) $(PFM_OPT)
+OPTFLAGS= -Kfast,parallel,openmp ${OPTFLAGS_PM} ${OPTFLAGS_H5} $(HEAT_OPT) $(PFM_OPT)
 CXXFLAGS= -std=c++11 $(OPTFLAGS) $(INCLUDES)
-FFLAGS  = $(OPTFLAGS) $(INCLUDES) -fdefault-real-8 -fdefault-double-8
+FFLAGS  = $(OPTFLAGS) $(INCLUDES) -x- -Qt -Cpp -C cdRR8
 LDFLAGS = ${LDFLAGS_PM} $(LDFLAGS_H5) 
-
 
 RM = rm
 
