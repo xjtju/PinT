@@ -144,20 +144,26 @@ implicit none
 end subroutine blas_vdist_3d
 
 !! PinT F = G + F - G  
+!! The real execution order of the formula is very important for residual error,
+!! when the difference between G and G_ is very small, 
+!! the machine epsilon will have an unignorable impact on the calculation result. 
+!! If using automatical compiling optimazation, 
+!! the operation order may be changed, it is possible to resulting in a small different result.        
+!! But in most cases, the degree of difference will not affect the final solution. 
 subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, ix 
     real, dimension( 1-ng:nxyz(1)+ng ) :: u, f, g, g_ 
     real :: res, sml, tmp1, tmp2, u_nrm2 
-
+    res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
     u_nrm2 = 0.0
 
     ix = nxyz(1)
     do i=1, ix
-        tmp1 = f(i) + ( g(i) - g_(i) )
+        tmp1 = ( g(i) - g_(i) ) + f(i)
         tmp2 = u(i) - tmp1
         u(i) = tmp1
         res    = res    + tmp2*tmp2
@@ -179,6 +185,7 @@ implicit none
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: u, f, g, g_ 
     real :: res, sml, tmp1, tmp2, u_nrm2
 
+    res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
     u_nrm2 = 0.0
@@ -187,7 +194,7 @@ implicit none
     jy = nxyz(2)
     do j=1, jy
     do i=1, ix
-        tmp1 = f(i,j) + ( g(i,j) - g_(i,j) )
+        tmp1 = ( g(i,j) - g_(i,j) ) + f(i,j)
         tmp2 = u(i,j) - tmp1
         u(i,j) = tmp1
         res    = res + tmp2*tmp2
@@ -210,6 +217,7 @@ implicit none
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: u, f, g, g_ 
     real :: res, sml, tmp1, tmp2, u_nrm2; 
 
+    res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
     u_nrm2 = 0.0
@@ -227,7 +235,7 @@ implicit none
     do k=1, kz
     do j=1, jy
     do i=1, ix
-        tmp1 = f(i,j,k) + ( g(i,j,k) - g_(i,j,k) )
+        tmp1 = ( g(i,j,k) - g_(i,j,k) ) + f(i,j,k)
         tmp2 = u(i,j,k) - tmp1
         u(i,j,k) = tmp1
         res    = res + tmp2*tmp2

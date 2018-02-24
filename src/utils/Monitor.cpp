@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h> 
 #include "Monitor.h"
 
 int Monitor::counter = -1;
@@ -77,7 +78,6 @@ void Monitor::gather(){
 #endif 
 }
 
-
 void Monitor::print(FILE* fp, const std::string hostname, const std::string comments, int seqSections) {
 #ifdef _PMLib_
     pm.print(fp, hostname, comments, seqSections);
@@ -89,17 +89,22 @@ void Monitor::printDetail(FILE* fp, int legend, int seqSections) {
 #endif 
 }
 
+
 /**
  * Form "man 2 close" : 
  *  A successful close does not guarantee that the data has been successfully saved to disk, as the kernel defers writes.
  *  The man page says that if you want to be sure that your data are on disk, you have to use fsync() yourself.
+ *
+ * THOUGH I had used all the tips, it still cannot make sure that the profiling information is completely written to the disk on the ITO supercomputer of Kyusyu university. But if using stdout/stderr instead of common files, it is OK. 
  */
 void Monitor::print(const char* fname, const std::string hostname, const std::string comments, int seqSections){
 #ifdef _PMLib_
     FILE *fp;
     fp = fopen(fname,"w");
     pm.print(fp, hostname, comments, seqSections);
-    fflush(fp); 
+    fflush(fp);
+   // int fd = fileno(fp);
+   // fsync(fd);
     fclose(fp);
 #endif
 }
@@ -110,6 +115,8 @@ void Monitor::printDetail(const char* fname, int legend, int seqSections){
     fp = fopen(fname,"w");
     pm.printDetail(fp, legend, seqSections);
     fflush(fp);
+    //int fd = fileno(fp);
+    //fsync(fd);
     fclose(fp);
 #endif
 }

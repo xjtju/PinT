@@ -88,8 +88,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     double *u_f    = g->u_f; 
 
     int source, dest, tag;
-    int ierr;
     size_t size = g->size; 
+    int ierr;
     MPI_Status  stat;
 
     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
@@ -144,7 +144,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //else TRACE("%d, F is skiped\n",mytid);
         monitor.stop(Monitor::FSolver);
 
-        if(kpar == 1) {
+        if( kpar==1 ) {
             blas_cp_(u_end, u_f, &size); 
         }
         
@@ -164,7 +164,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         G->evolve();
         //else TRACE("%d, G is skiped\n",mytid);
         monitor.stop(Monitor::CSolver);
-        
+
         // step5:
         //if(!isSkip(k))
         pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
@@ -216,7 +216,10 @@ void Driver::finalize() {
     sprintf(fname, "%s_%s_detail.txt", conf->monitor_pre, jobid); 
     monitor.printDetail(fname);
 
-    monitor.print(stdout, "The TAO of Programming", "The PinT performance test framework");
+    //Sometimes, profiling information cannot be completely written into common files like above in HPC environments,
+    //but stdout/stderr has no problem.  
+    monitor.print(stderr, "The TAO of Programming", "The PinT performance test framework");
+    monitor.printDetail(stderr);
 
     MPI_Finalize();
 }
@@ -251,7 +254,7 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
             res_loc = sqrt(res_loc);
             vector_dist(g, u_c,   u_cprev, &cdist); 
             vector_dist(g, u_end, u_f,     &fdist); 
-            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, myid, cdist, fdist, res_loc); 
+            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, mytid:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, mytid, myid, cdist, fdist, res_loc); 
         }
     }
 
@@ -267,7 +270,7 @@ void Driver::INFO(const char* fmt, ...) {
 
     if(myid != 0) return ;
      
-    int ret;
+    int ret; 
     va_list args;
 
     va_start(args, fmt);
@@ -279,8 +282,7 @@ void Driver::INFO(const char* fmt, ...) {
 void Driver::WARN(const char* fmt, ...) {
 
     if(myid != 0) return ;
-     
-    int ret;
+    int ret; 
     va_list args;
 
     va_start(args, fmt);
