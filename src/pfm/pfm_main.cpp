@@ -20,6 +20,17 @@
  * (2). if using profiling, the profiling output file is as the 2nd command line parameter, 
  * default profiling file is [monitor_pre].000.000.txt
  *
+ * OOPS: 
+ *   I have encountered the 'super-linear speedup' phenomenon at the ITO supercomputer of Kyusyu university.
+ *   When the  grid size is fixed at 128^3, the performance of 256 cores is nearly 3-fold of 128 cores.  
+ *   The CPU is Xeon Gold 6154(Skylake-SP) : 18 cores per CPU, non-inclusive 1.375 MB LLC per core. 
+ *  
+ *   The memory for holding solution variables ~ 128^3*8 bytes ~ 16MB.   
+ *   There are several data structures used by parareal algorithm and linear solvers,
+ *   if both fine and coarse solver using the combination of CN and PBiCG,  approximately 16MB*23, 
+ *   for each core is 16MB*23/256 ~ 1.4375MB, just a bit more than 1.375MB.
+ *
+ *   Perhaps I think it can be as an explanation to the best of my knowledge.  
  */
 
 int main(int argc, char* argv[]) {

@@ -1,4 +1,5 @@
 #include "common.h"
+#include <cstdlib>  // for exit() routine when using Fujitsu's compiler 
 
 double* alloc_mem(size_t size){
 
