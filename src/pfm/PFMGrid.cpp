@@ -1,5 +1,14 @@
 #include "PFMGrid.h"
 
+/**
+ * NOTE:  
+ *  1. The final (steady) shape of result is related with the initial value.
+ *
+ *  2. The steady condition is different for 1D/2D/3D due to the diffuse effect and reactive energy item. 
+ *     So the final results are also different at 1D/2D/3D even if the program is absolutely correct.
+ *     See PFMParams.h for details.
+ */
+
 // set the initial value
 void PFMGrid::init() {
 
@@ -23,12 +32,12 @@ void PFMGrid::init1d() {
     double xdist;
     for(int i=nguard; i<nx+nguard; i++){
         double x = this->getX(i); 
-        val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
-        val = 1.0 - 0.5*val;
-        //xdist = x - midx; 
-        //if(fabs(xdist) < 0.2) 
-        //   val = 0.8;
-        //else val = 0;
+        //val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
+        //val = 1.0 - 0.5*val;
+        xdist = this->getX(i) -  conf->Xspan/2 ; 
+        if(fabs(xdist) < 0.4) 
+           val = 1.0;
+        else val = 0;
         this->set_val4all(i,val);
     }
 }
@@ -42,7 +51,8 @@ void PFMGrid::init2d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        
        ind = this->getOuterIdx(i, j, 0);  
-       if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
+       //if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
+       if( xdist<=0 )
            unk = 1.0; 
        else unk = 0.0; 
        

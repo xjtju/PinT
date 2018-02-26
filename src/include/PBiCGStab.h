@@ -30,8 +30,8 @@ protected:
     //double *b;         //RHS
 
     // these control parammeters can be over-writen by sub classes
-    double eps = 1.0e-6;
-    int itmax = 20; 
+    double eps = 1.0e-10;
+    int itmax = 100; 
     bool   isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
 
     SOR *sor;

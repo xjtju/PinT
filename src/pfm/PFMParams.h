@@ -7,6 +7,29 @@
 //problem specific parameter parsing
 int pfm_inih(void* obj, const char* section, const char* name, const char* value);
 
+/*
+ *  NOTE :  
+ *
+ *  The steady condition is different for 1D/2D/3D due to the diffuse effect and reactive energy item. 
+ *     for 1D : beta=0 .and.  any bc condition
+ *     for 2/3D : still unknown 
+ *
+ *  So the final results are also different at 1D/2D/3D even if the program is absolutely correct.
+ *  There is a simple method to verify the correctness of the program separately at 1D/2D/3D. 
+ *  That is simulating the initial condition of 1D, 
+ *  for 2D example, assigning the same value to the cell with the same x-coordinate: grid[i,...]=ini_val,
+ *  that make all 1D vectors along y direction is the same (duplicated several 1D).
+ *  Therefore the 2D result can be comparable with the 1D.
+ *  
+ *  BUT..., it is not enough to do above only, 
+ *  the BC condition in Y direction will still have impact on the final result.
+ *  The reason just is that diffuse effect will occur in Y direction if the neighbour points have different value.
+ *  Thus, the 2D cannot completely simulate the 1D, their final result is no longer similar.
+ *  You can use the customized BC function provided by the framework to implement any conditions.  
+ *
+ *  As a summary, numerical analysis may become much more complicated when being applied to real world problems. 
+ *  That is a really hard work !!!
+ */
 struct PFMParams {
 
     double k;     // interfacial width related

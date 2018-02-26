@@ -340,6 +340,7 @@ implicit none
 
     do j=1, jy
     do i=1, ix
+
         ss = lamdax * ( soln(i-1, j   ) - 2*soln(i,j) + soln(i+1, j  ) ) &
            + lamday * ( soln(i,   j-1 ) - 2*soln(i,j) + soln(i,   j+1) ) 
         b(i,j) = ss - dtk * soln(i,j) * ( soln(i,j) - 1.0 ) * ( soln(i,j) - beta_ ) 
@@ -364,6 +365,9 @@ implicit none
     lamday = lamdaxyz(2)
     lamdaz = lamdaxyz(3)
 
+!$OMP PARALLEL &
+!$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, dtk, beta_)
+!$OMP DO SCHEDULE(static)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -375,6 +379,8 @@ implicit none
     end do
     end do
     end do
+!$OMP END DO
+!$OMP END PARALLEL
 
 end subroutine euler_rhs_ac_3d
 
