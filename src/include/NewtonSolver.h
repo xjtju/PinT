@@ -45,7 +45,7 @@ public:
         printf("INFO: the memory allocate by NewtonSolver has been released.\n");
     }
 
-    virtual void evolve();         // evolve over a time slice 
+    virtual unsigned long evolve();         // evolve over a time slice 
 
 protected:
     int newton_itmax = 10;
@@ -57,7 +57,7 @@ protected:
     double *G1;
     double *unk;     // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) in Newton's method 
 
-    void newton_raphson(); // the template of New-Raphson method iteration 
+    int newton_raphson(); // the template of New-Raphson method iteration 
     
     /*
      * NOTE : for space division, converge check must be performed in the whole geographical space 

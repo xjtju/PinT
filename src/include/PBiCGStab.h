@@ -64,7 +64,7 @@ public:
     }
 
     // the template algorithm of PBiCBSTAB
-    void solve(double *x, double *b, double *A);
+    int solve(double *x, double *b, double *A);
 
     // preconditioner: solve Mp_=p, 
     // if sub class uses preconditioner, they must implement the virtual stencil function.  

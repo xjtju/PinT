@@ -27,7 +27,7 @@ void PBiCGStab::init() {
     s_  = alloc_mem(size);
 }
 
-void PBiCGStab::solve(double *x, double *b, double *A){
+int PBiCGStab::solve(double *x, double *b, double *A){
 
     double rho0, rho, alpha, omega, beta;
     double res = 1000.0;
@@ -107,6 +107,7 @@ void PBiCGStab::solve(double *x, double *b, double *A){
     }
     if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
 
+    return i;
     //grid->guardcell(x); // necessary ?
 }
 

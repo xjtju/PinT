@@ -23,22 +23,24 @@ void EulerSolver::setup(){
 /**
  * Forward Euler, 1st order
  */
-void EulerSolver::evolve() {
+unsigned long EulerSolver::evolve() {
 
     // step0: set initial value
     soln = getSoln();     // pointer to the start point  
     grid->guardcell(soln); // make sure the guardcell is at synchonization state  
 
+    unsigned long counter = 0;
     for(int i=0; i<steps; i++){
         // step1 : set boundary condition
         grid->bc(soln); 
         // step2 : call the solver
         euler(); 
-
+        counter++;
         grid->guardcell(soln); // do not forget synchonize guardcell 
     }
     // step3: return latest solution to PinT framework 
     // nothing need to do 
+    return counter;
 }
 
 void EulerSolver::euler() {

@@ -35,7 +35,7 @@ public:
     bool checkCnvg = true;  //default is not check
 
     // the wrapper red-black successive over-relaxation (sor2_core)
-    void solve(double *x, double *b, double *A);
+    int solve(double *x, double *b, double *A);
     
     SOR(PinT* c, Grid *g):LS(c,g){ }
     

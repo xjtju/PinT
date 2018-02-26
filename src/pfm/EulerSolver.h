@@ -28,7 +28,7 @@ public:
 
     virtual ~EulerSolver() {}
 
-    void evolve(); // Forward method iteration 
+    unsigned long evolve(); // Forward method iteration 
 
     inline void rhs() {
         if(ndim==3)      euler_rhs_ac_3d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, &dtk, &beta_);

@@ -42,7 +42,7 @@ class Driver {
 
     void evolve(Grid* g, Solver* G, Solver* F); // the algorithm framework of Parareal method
 
-    void finalize();
+    void finalize(bool pfile=false);
 
     void INFO (const char* fmt, ...);
     void WARN (const char* fmt, ...);

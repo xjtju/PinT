@@ -28,7 +28,7 @@ public:
         hypre = getLS(conf, grid);   
     }
 
-    virtual void evolve();         // evolve over a time slice 
+    virtual unsigned long evolve();         // evolve over a time slice 
 };
 
 #endif

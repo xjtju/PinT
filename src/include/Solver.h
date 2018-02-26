@@ -136,7 +136,8 @@ public:
      } 
 
      // integrate over one time slice, that is one time slice iteration (each Kpar)
-     virtual void evolve() = 0;
+     // return total iteration count
+     virtual unsigned long  evolve() = 0;
 };
 
 #endif

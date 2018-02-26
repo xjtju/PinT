@@ -60,7 +60,8 @@ public:
     }
     virtual ~LS(){ }
     // the template algorithm for linear system etc. 
-    virtual void solve(double *x, double *b, double *bcp) {
+    // return the iteration count 
+    virtual int solve(double *x, double *b, double *bcp) {
         if(conf->myid == 0)
            fprintf(stderr, "WARN : blank solve function is used, NOTHING will be updated!\n" );
     }  

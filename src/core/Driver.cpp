@@ -91,6 +91,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     size_t size = g->size; 
     int ierr;
     MPI_Status  stat;
+    unsigned long icount = 0;  
 
     // except the first time slice, all others need to receive U^{0}_{n-1} as its start value  
     monitor.start(Monitor::RECV);
@@ -106,8 +107,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     //coarse 
     monitor.start(Monitor::CSolver);
     blas_cp_(u_c, u_start, &size);  
-    G->evolve();
-    monitor.stop(Monitor::CSolver);
+    icount = G->evolve();
+    monitor.stop(Monitor::CSolver, 1 ,icount);
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
@@ -140,9 +141,9 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.start(Monitor::FSolver);
         blas_cp_(u_f, u_start, &size);
         //if(!isSkip(k))
-            F->evolve(); 
+        icount = F->evolve(); 
         //else TRACE("%d, F is skiped\n",mytid);
-        monitor.stop(Monitor::FSolver);
+        monitor.stop(Monitor::FSolver, 1, icount);
 
         if( kpar==1 ) {
             blas_cp_(u_end, u_f, &size); 
@@ -161,9 +162,9 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.start(Monitor::CSolver);
         blas_cp_(u_c, u_start, &size); 
         //if(!isSkip(k)) 
-        G->evolve();
+        icount = G->evolve();
         //else TRACE("%d, G is skiped\n",mytid);
-        monitor.stop(Monitor::CSolver);
+        monitor.stop(Monitor::CSolver, 1, icount);
 
         // step5:
         //if(!isSkip(k))
@@ -203,18 +204,19 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void Driver::finalize() {
-    char fname[40];
-
+void Driver::finalize(bool pfile) {
     monitor.gather();
 
-    memset(fname, 0, sizeof(char)*40);
-    sprintf(fname, "%s_%s_basic.txt", conf->monitor_pre, jobid); 
-    monitor.print(fname, "The TAO of Programming", "The PinT performance test framework");
-
-    memset(fname, 0, sizeof(char)*40);
-    sprintf(fname, "%s_%s_detail.txt", conf->monitor_pre, jobid); 
-    monitor.printDetail(fname);
+    if(pfile) {
+        char fname[40];
+        memset(fname, 0, sizeof(char)*40);
+        sprintf(fname, "%s_%s_basic.txt", conf->monitor_pre, jobid); 
+        monitor.print(fname, "The TAO of Programming", "The PinT performance test framework");
+    
+        memset(fname, 0, sizeof(char)*40);
+        sprintf(fname, "%s_%s_detail.txt", conf->monitor_pre, jobid); 
+        monitor.printDetail(fname);
+    }
 
     //Sometimes, profiling information cannot be completely written into common files like above in HPC environments,
     //but stdout/stderr has no problem.  
