@@ -66,6 +66,7 @@ int main(int argc, char* argv[]) {
     driver.evolve(g, G, F);
 
     // output result to disk and for post-processing 
+    // For large scale performance test, it is best to close the output
     //g->output_local(g->u_end, true); // ASCII mode
     g->output_global_h5("pfm");        // HDF5  mode 
     

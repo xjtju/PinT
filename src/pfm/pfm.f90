@@ -217,7 +217,7 @@ implicit none
     lamdaz = lamdaxyz(3)
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2) 
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -255,7 +255,7 @@ implicit none
     lamdaz = lamdaxyz(3)
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2) 
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -288,7 +288,7 @@ implicit none
     lamdaz = lamdaxyz(3)
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, theta, dtk, beta_)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2) 
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -367,7 +367,7 @@ implicit none
 
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz, lamdax, lamday, lamdaz, dtk, beta_)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2) 
     do k=1, kz
     do j=1, jy
     do i=1, ix

@@ -188,12 +188,12 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
             g->allreduce(&res_sp, &max_res, MPI_MAX);  // time space is enough ?!
             //MPI_Allreduce(&res_sp,  &max_res, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         }
+        max_res = sqrt(max_res);
         monitorResidual(g, res_loc, max_res, size);
         monitor.stop(Monitor::RES);
 
          //STEP8
         if(pipelined == 0){
-            max_res = sqrt(max_res);
             if( max_res < conf->converge_eps) {
                 if(myid==numprocs-1) printf("Parareal is converged at %d iteration, res = %e .\n", k , max_res);
                 break;   

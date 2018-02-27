@@ -241,8 +241,13 @@ public:
 
     void output_local_h5(double *data); // for large inner data only
 
-    // aggregate all the final results from all the grids within the same space domain and output 
-    // only for X-Y cross sections along the Z direction   
+    // aggregate all the final results from all the grids within the same space domain and write to disk 
+    // ASCII mode only for X-Y cross sections along the Z direction   
+    //
+    // NOTE: 
+    // For large scale performance test on HPC environment, it is best not to use the global output, 
+    // the function has not yet used parallel I/O of HDF5, 
+    // it will take quite some time for collecting data and writing them serially at master process.     
     void output_global(const char* flagname, bool h5=false);
     inline void output_global_h5(const char* flagname) {
         output_global(flagname, true);

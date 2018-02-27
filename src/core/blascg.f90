@@ -217,7 +217,7 @@ implicit none
 
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -243,7 +243,7 @@ implicit none
     kz = nxyz(3)
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -271,7 +271,7 @@ implicit none
 !$OMP PARALLEL &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
 
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -298,7 +298,7 @@ implicit none
 !$OMP PARALLEL &
 !$OMP PRIVATE(ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss) & 
 !$OMP FIRSTPRIVATE(ix, jy, kz)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -339,7 +339,7 @@ implicit none
 !$OMP PARALLEL &
 !$OMP PRIVATE(ndag_e, ndag_w, ndag_n, ndag_s, ndag_t, ndag_b, dd, ss) & 
 !$OMP FIRSTPRIVATE(ix, jy, kz)
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix

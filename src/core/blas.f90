@@ -64,7 +64,7 @@ implicit none
 !$OMP REDUCTION(+:val) &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
 
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -128,7 +128,7 @@ implicit none
 !$OMP PRIVATE(d2)      &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
 
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
@@ -231,7 +231,7 @@ implicit none
 !$OMP PRIVATE(tmp1, tmp2) &
 !$OMP FIRSTPRIVATE(ix, jy, kz)
 
-!$OMP DO SCHEDULE(static)
+!$OMP DO SCHEDULE(static) COLLAPSE(2)
     do k=1, kz
     do j=1, jy
     do i=1, ix
