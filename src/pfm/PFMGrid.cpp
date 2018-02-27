@@ -63,6 +63,8 @@ void PFMGrid::init2d(){
 void PFMGrid::init3d(){
     long ind = 0;     
     double xdist, ydist, zdist, unk;
+    double r = 0.4;
+
     for(int k = nguard; k<nz+nguard; k++)
     for(int j = nguard; j<ny+nguard; j++)
     for(int i = nguard; i<nx+nguard; i++){
@@ -70,7 +72,7 @@ void PFMGrid::init3d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        zdist = this->getZ(k) -  conf->Zspan/2 ;
        ind = this->getOuterIdx(i, j, k);  
-       if( (fabs(xdist)<=0.4) &&  (fabs(ydist)<=0.4) && (fabs(zdist)<=0.4) )
+       if( (fabs(xdist)<=r) &&  (fabs(ydist)<=r) && (fabs(zdist)<=r) )
            unk = 1.0; 
        else unk = 0.0; 
        

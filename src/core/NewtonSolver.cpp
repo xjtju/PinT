@@ -65,7 +65,15 @@ int NewtonSolver::newton_raphson() {
            break;
         }
     }
-    if(!ifg) Driver::Abort("Newton Raphson loop does not converge, eps=%e\n" , err);
+    if(!ifg)
+    {
+        double s1 = 1.0;
+        double u1 = 1.0; 
+        // for debug
+        blas_dot_3d_(grid->nxyz, &nguard, unk,  unk,  &u1 );
+        blas_dot_3d_(grid->nxyz, &nguard, soln, soln, &s1 );
+        Driver::Abort("Newton Raphson loop does not converge, eps=%e, |unk|=%e, |sln|=%e\n" , err, u1, s1);
+    }
     return counter;
 }
 

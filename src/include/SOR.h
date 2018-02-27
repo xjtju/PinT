@@ -30,9 +30,13 @@ private:
 public:
     // these control parammeters can be over-writen by sub classes
     double eps = 1.0e-6;
-    double  omega= 1.7;      // SOR : relaxation factor, used for preconditioner, 
+    // SOR : relaxation factor, the omega value must be carefully chosen according the real problem. 
+    // for heat equation, the optimal value may be 1.7,
+    // but for Allen-Cahn equation, 1.0 may be a better choice.
+    double  omega= 1.0;      
+
     int itmax = 20; 
-    bool checkCnvg = true;  //default is not check
+    bool checkCnvg = false;  //default is not check
 
     // the wrapper red-black successive over-relaxation (sor2_core)
     int solve(double *x, double *b, double *A);

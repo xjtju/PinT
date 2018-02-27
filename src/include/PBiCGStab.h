@@ -30,7 +30,10 @@ protected:
     //double *b;         //RHS
 
     // these control parammeters can be over-writen by sub classes
-    double eps = 1.0e-10;
+    double eps = 1.0e-6;
+    // NOTE : 
+    //  commonly, itmax is set to 0.1% of the degrees of freedom ( size of the unknowns),
+    //  if convergence is bad, multiplied by 10, that is 1% of freedom degrees 
     int itmax = 100; 
     bool   isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
 
@@ -43,8 +46,8 @@ public:
     inline void set_precond(bool flag) { this->isPrecond = flag;}
 
     PBiCGStab(PinT* c, Grid *g):LS(c,g){
-        init();
         sor = new SOR(c,g);
+        init();
     }
     
     ~PBiCGStab() {

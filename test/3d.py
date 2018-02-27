@@ -52,7 +52,7 @@ def main(argv):
     ax.set_zlabel('Z')
     ax.set_xlim(0, 1.0)
     ax.set_ylim(0, 1.0)
-    ax.set_zlim(0, 1.0)
+    ax.set_zlim(0, 1.0) 
     plt.title(lname)
 
     #axes = plt.gca()

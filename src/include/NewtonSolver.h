@@ -48,7 +48,7 @@ public:
     virtual unsigned long evolve();         // evolve over a time slice 
 
 protected:
-    int newton_itmax = 10;
+    int newton_itmax = 50;
     double newton_eps= 1.0e-6;
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c

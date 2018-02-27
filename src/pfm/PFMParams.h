@@ -29,6 +29,22 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  *
  *  As a summary, numerical analysis may become much more complicated when being applied to real world problems. 
  *  That is a really hard work !!!
+ *
+ * *********************************
+ *
+ *  WARN : 
+ *  Nonlinear easily lead to unconvergence. 
+ *  Though implict algorithms usually don't require a smalll timestep,    
+ *  if the timestep is big enough, the nonlinear item will also cause unconvergence or unphysical result.    
+ *  for the following Allen-Cahn equation, 
+ *  according our experiments, if the dtk parameter is bigger than 1.6, newton_raphson method is easily broken. 
+ * 
+ *  d{u}/d{t} = D*(Laplace operator){u} - k*{u}*({u}-1.0)*({u}-0.5+beta)
+ *    {u} : unknown variables
+ *    {t} : time
+ *     D  : diffusion coefficient
+ *     k  : interfacial width related
+ *
  */
 struct PFMParams {
 
