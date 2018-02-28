@@ -51,8 +51,8 @@ void PFMGrid::init2d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        
        ind = this->getOuterIdx(i, j, 0);  
-       //if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
-       if( xdist<=0 )
+       if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
+       //if( xdist<=0 )
            unk = 1.0; 
        else unk = 0.0; 
        

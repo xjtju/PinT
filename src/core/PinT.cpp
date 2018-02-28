@@ -24,6 +24,7 @@ int PinT::init(char* fname){
 
     f_steps = Nt/tsnum ; 
     c_steps = f_steps/rfc_ ;    
+    
 
     f_dt = Tspan/Nt;              
     c_dt = f_dt*rfc_; 
@@ -61,6 +62,16 @@ bool PinT::check(){
     if(tsnum != (numprocs/spnum)) {
         flag = false;
         if(myid==0) fprintf(stderr, "ERROR : (the space num)*(the time num) should be equal with the total process num.\n");
+    }
+    
+    if( Nt%tsnum != 0) {
+        flag = false;
+        if(myid==0) fprintf(stderr, "ERROR : the number of total steps should be divided exactly by number of time slices.\n");
+    }
+
+    if(f_steps%rfc_  != 0) {
+        flag = false;
+        if(myid==0) fprintf(stderr, "ERROR : the number of total steps in one time slice should be divided exactly by Rfc.\n");
     }
 
     if( (0 != Nx%spnumx) 
