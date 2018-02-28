@@ -16,6 +16,12 @@
 #include "LS.h"
 #include "SOR.h"
 
+/**
+ * NOTE : 
+ *   commonly, itmax is set to 0.1% of the degrees of freedom ( size of the unknowns),
+ *   if convergence is bad, multiplied by 10, that is 1% of freedom degrees 
+ */
+
 class PBiCGStab : public LS{
 
 private:
@@ -29,13 +35,7 @@ protected:
     double *t;
     //double *b;         //RHS
 
-    // these control parammeters can be over-writen by sub classes
-    double eps = 1.0e-6;
-    // NOTE : 
-    //  commonly, itmax is set to 0.1% of the degrees of freedom ( size of the unknowns),
-    //  if convergence is bad, multiplied by 10, that is 1% of freedom degrees 
-    int itmax = 100; 
-    bool   isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
+    bool isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
 
     SOR *sor;
     
@@ -46,7 +46,7 @@ public:
     inline void set_precond(bool flag) { this->isPrecond = flag;}
 
     PBiCGStab(PinT* c, Grid *g):LS(c,g){
-        sor = new SOR(c,g);
+        sor = new SOR(c,g); // not well coded
         init();
     }
     

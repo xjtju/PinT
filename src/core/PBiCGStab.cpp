@@ -52,6 +52,7 @@ int PBiCGStab::solve(double *x, double *b, double *A){
 
     double b_nrm2 = cg_vdot(b, b);
     grid->sp_allreduce(&b_nrm2);
+    bool ifg = false; // converge flag
     int i;
     for(i=1; i<=itmax; i++){
         rho = cg_vdot(r0_, r);
@@ -98,6 +99,7 @@ int PBiCGStab::solve(double *x, double *b, double *A){
         res = sqrt(tmp/b_nrm2);
 
         if(res < eps) {
+            ifg = true;  
             break;
         }
         rho0 = rho;
@@ -105,7 +107,7 @@ int PBiCGStab::solve(double *x, double *b, double *A){
         // In this condition, problem-specific sub grid must be implemented
         // grid->bc(x); // necessary ?
     }
-    if(i>=itmax) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
+    if(!ifg && force_abort) Driver::Abort("PBiCG is not converged: Iter: %d, rho : %e, beta : %e, alpha : %e, omega : %e, res : %e \n",i,  rho, beta, alpha, omega, res);
 
     return i;
     //grid->guardcell(x); // necessary ?

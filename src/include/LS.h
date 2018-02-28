@@ -36,7 +36,13 @@ protected:
     size_t outer_size; // guard cells included
     size_t &size = outer_size;      // alias of outer_size 
     
-    int steps;     // the number of time steps in one time slice
+    // these control parammeters can be over-writen by sub classes
+    // the max iterations of iterative algorithms 
+    int itmax = 20; 
+    // the convergence error tolerance of iterative algorithms 
+    double eps = 1.0e-6;
+
+    int force_abort = 0; 
 
 public:
     LS(PinT *conf, Grid *g){
@@ -57,6 +63,11 @@ public:
 
         this->inner_size = g->inner_size; 
         this->outer_size = g->size;
+
+        this->itmax = conf->ls_itmax;
+        this->eps = conf->ls_eps;
+        this->force_abort = conf->ls_abort;
+
     }
     virtual ~LS(){ }
     // the template algorithm for linear system etc. 

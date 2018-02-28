@@ -108,6 +108,9 @@ void PinT::print() {
     printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
     printf("  linear solver    : %d\n", linear_solver);
+    printf("  lsolver itmax    : %d\n", ls_itmax);
+    printf("  lsolver eps      : %e\n", ls_eps);
+    printf("  lsolver abortflg : %d\n", ls_abort);
     printf("  converge eps     : %e\n", converge_eps);
     printf("  small residual   : %e\n", smlr);
 
@@ -161,6 +164,9 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
 
     else if (MATCH("parareal", "linear_solver")){ conf->linear_solver = atoi(value); } 
+    else if (MATCH("parareal", "ls_itmax")){ conf->ls_itmax = atoi(value); } 
+    else if (MATCH("parareal", "ls_eps"))  { conf->ls_eps = atof(value); } 
+    else if (MATCH("parareal", "ls_abort"))  { conf->ls_abort = atoi(value); } 
     else if (MATCH("parareal", "converge_eps")) { conf->converge_eps = atof(value); } 
     else if (MATCH("parareal", "sml_res")) { conf->smlr = atof(value); } 
     

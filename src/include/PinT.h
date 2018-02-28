@@ -105,6 +105,10 @@ public:
     MPI_Comm *sp_comm; //space within the same time slice
 
     int linear_solver = 0;  // default linear solver, 0: BiCG; 1: SOR; ; >1: NULL
+    // the parameters of linear solver should be moved to corresponding solver class in later
+    int ls_itmax = 20;      
+    double ls_eps = 1.0e-6;
+    int ls_abort  = 0;  // when convergence condition is not satisfied until the max iterations, break down the program or not 
 
     double converge_eps = 1.0e-6;
     double smlr = 1.0e-15;

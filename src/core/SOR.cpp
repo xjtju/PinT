@@ -24,7 +24,7 @@ int SOR::solve(double *x, double *b, double *A) {
             }
         }
     }
-    //if(checkCnvg && (!ifg)) Driver::Abort("SOR loop does not converge, eps=%e\n" , err);
+    if(checkCnvg && (!ifg) && force_abort) Driver::Abort("SOR loop does not converge, eps=%e\n" , err);
     return lc;
 }
 
