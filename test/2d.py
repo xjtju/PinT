@@ -11,7 +11,7 @@ def get_color():
         yield item
 
 def main(argv):
-    if(len(argv)<2):
+    if(len(argv)<3):
         print 'usage   : python pfm.py input_file label'
         print 'example : python pfm.py 1.txt bd4'
         return 1

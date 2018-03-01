@@ -33,7 +33,8 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  * *********************************
  *
  *  WARN : 
- *  Nonlinear easily lead to unconvergence. 
+ *
+ *  Nonlinear easily lead to unconvergence of linear solver. 
  *  Though implict algorithms usually don't require a smalll timestep,    
  *  if the timestep is big enough, the nonlinear item will also cause unconvergence or unphysical result.    
  *  for the following Allen-Cahn equation, 
@@ -43,7 +44,13 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  *    {u} : unknown variables
  *    {t} : time
  *     D  : diffusion coefficient
- *     k  : interfacial width related
+ *     k  : interfacial width related param, it is more bigger, the interfacial width is more thiner 
+ *
+ * The convergence of time direction will become more difficult from 1D to 3D if there isn't a steady state of the equation.
+ * It is hard to find the proper paramters that can quickly lead to a heat equilibrium at 3D than 1D/2D. 
+ * We had to reduce the timestep by a factor of 0.2~0.5 at 3D than that of 1D. 
+ * Bigger timestep will lead Crank-Nicolson method to a more divergent initial result before the first time iteration, 
+ * that will absolutely cause the following calculations much more divergent.  
  *
  */
 struct PFMParams {

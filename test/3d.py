@@ -2,6 +2,7 @@
 import sys
 import os
 import h5py
+import math
 import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
@@ -12,13 +13,14 @@ def get_color():
         yield item
 
 def main(argv):
-    if(len(argv)<2):
-        print 'usage   : python pfm.py input_file label'
-        print 'example : python pfm.py 1.txt bd4'
+    if(len(argv)<4):
+        print 'usage   : python pfm.py input_file label side_length'
+        print 'example : python pfm.py result.h5 bd4 32'
         return 1
 
     fname = argv[1]
     lname = argv[2]
+    sidelen =  int(argv[3]) 
     print 'input file is {0} \n'.format(fname)
 
     xlen = 1.0
@@ -29,30 +31,38 @@ def main(argv):
     ind = 0
     pf = h5py.File(fname, 'r')
     ds1 = pf.get('solution')
-    
     ds2 = pf.get('coords')
     (totalcount, dims) = ds2.shape
-    print 'coords shape is ({0},{1})\n'.format(totalcount, dims)
+    print 'coords shape is ( {0}^3, {1} )\n'.format(sidelen, dims)
+    if(sidelen*sidelen*sidelen != totalcount):
+        print 'error: totalcount must be equal to sidelen^3 {0}!={1}^3 \n'.format(totalcount, sidelen)
     posx = ds2[..., 0]
     posy = ds2[..., 1]
     posz = ds2[..., 2]
-    #posz=0
-    grid = ds1[...]
-   # grid = tmp.reshape(cnt, cnt) 
     
+    # calculate the coordinates of a crosssection of Z direction
+    iz = np.arange(sidelen*sidelen) * sidelen + sidelen/2
+    iy = np.arange(sidelen*sidelen) + sidelen 
+    ix = np.arange(sidelen*sidelen) 
+
+    grid = ds1[...]
+    sgrid = grid[iz]  
+
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    #plt.scatter(posx, posy, c=grid )
-    p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none', cmap=cm.binary)
-    #p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none')
+    p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none')
+    #p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none', cmap=cm.binary)
+    # add a cross section of Z direction for clearly seeing the figure  
+    plt.scatter(posx[ix], posy[iy], c=sgrid, edgecolor='none' )
     #plt.colorbar()
     fig.colorbar(p)
+    ax = plt.gca()
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    #ax.set_zlabel('Z')
     ax.set_xlim(0, 1.0)
     ax.set_ylim(0, 1.0)
-    ax.set_zlim(0, 1.0) 
+    #ax.set_zlim(0, 1.0) 
     plt.title(lname)
 
     #axes = plt.gca()

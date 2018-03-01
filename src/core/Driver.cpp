@@ -262,9 +262,9 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
 
     if(myid==numprocs-1){
         if(pipelined == 0)
-	        printf("kpar:%d, mytid:%d, max_res:%13.8e \n", kpar, mytid, max_res);
+	        printf("kpar:%03d, mytid:%03d, max_res:%13.8e \n", kpar, mytid, max_res);
         else 
-	        printf("kpar:%d, mytid:%d, local_res:%13.8e \n", kpar, mytid, res_loc);
+	        printf("kpar:%03d, mytid:%03d, local_res:%13.8e \n", kpar, mytid, res_loc);
     }
 }
 
@@ -298,13 +298,13 @@ void Driver::Abort(const char* fmt, ...) {
    
     int myid;
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-    if(myid==0){  
-        va_list args;
-        va_start(args, fmt);
-        fputs("ERROR: ", stderr);
-        vfprintf(stderr, fmt, args);
-        va_end(args);
-    }
+
+    va_list args;
+    va_start(args, fmt);
+    fputs("ERROR: ", stderr);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    
     MPI_Abort(MPI_COMM_WORLD, 2018); // the project since 2018 new year
 
     exit(1);
