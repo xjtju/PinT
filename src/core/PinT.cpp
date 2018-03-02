@@ -118,6 +118,7 @@ void PinT::print() {
     printf("  PIPELINED        : %d %s\n", pipelined, pipelined ? "[O]" : "" );
     printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
+    printf("  relaxation factor: %f\n", relax_factor);
     printf("  linear solver    : %d\n", linear_solver);
     printf("  lsolver itmax    : %d\n", ls_itmax);
     printf("  lsolver eps      : %e\n", ls_eps);
@@ -172,7 +173,8 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "pipelined"))  { conf->pipelined  = atoi(value); } 
     else if (MATCH("parareal", "skip_mode"))  { conf->skip_mode  = atoi(value); } 
     else if (MATCH("parareal", "kpar_limit")) { conf->kpar_limit = atoi(value); } 
-    else if (MATCH("parareal", "rfc_")) { conf->rfc_ = atoi(value); } 
+    else if (MATCH("parareal", "rfc_"))       { conf->rfc_ = atoi(value); } 
+    else if (MATCH("parareal", "relax_factor")){ conf->relax_factor = atof(value); } 
 
     else if (MATCH("parareal", "linear_solver")){ conf->linear_solver = atoi(value); } 
     else if (MATCH("parareal", "ls_itmax")){ conf->ls_itmax = atoi(value); } 

@@ -83,6 +83,9 @@ public:
     int pipelined = 0;
     int kpar_limit;
     int skip_mode = 0;  // default is ZERO, not skip
+    // relaxation factor to speed up convergence, 
+    // details at (Shulin Wu, 2009, Parareal-Richardson Algorithm) 
+    double relax_factor = 1.0 ; 
 
     // only run the fine solver in serial mode, for measuring the orininal single process/thread performance  
     // NOTE: if the flag is valid, all the parameters related with time-space parallel will be ignored 

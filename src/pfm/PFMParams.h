@@ -37,8 +37,9 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  *  Nonlinear easily lead to unconvergence of linear solver. 
  *  Though implict algorithms usually don't require a smalll timestep,    
  *  if the timestep is big enough, the nonlinear item will also cause unconvergence or unphysical result.    
- *  for the following Allen-Cahn equation, 
- *  according our experiments, if the dtk parameter is bigger than 1.6, newton_raphson method is easily broken. 
+ *  The reaction item of the following Allen-Cahn equation, has a max value nearly 0.05 when u in [0,1] region if beta=0 and k=1  
+ *  If making sure convergence, the value of dt*k*0.05 is better less than ONE, so the dtk=dt*k is should be less 20. 
+ *  According our experiments, if the dtk parameter is bigger than 1.6, newton_raphson method is easily broken. 
  * 
  *  d{u}/d{t} = D*(Laplace operator){u} - k*{u}*({u}-1.0)*({u}-0.5+beta)
  *    {u} : unknown variables
@@ -48,9 +49,15 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  *
  * The convergence of time direction will become more difficult from 1D to 3D if there isn't a steady state of the equation.
  * It is hard to find the proper paramters that can quickly lead to a heat equilibrium at 3D than 1D/2D. 
- * We had to reduce the timestep by a factor of 0.2~0.5 at 3D than that of 1D. 
- * Bigger timestep will lead Crank-Nicolson method to a more divergent initial result before the first time iteration, 
+ * Bigger timestep will also lead Crank-Nicolson method to a more divergent initial result before the first time iteration, 
  * that will absolutely cause the following calculations much more divergent.  
+ *
+ * Let lamda = D*dt/{dx^2}, dx=dy=dz
+ * The CFL condition is lamda<1/2  at 1D, lamda<1/4 at 2D, and lamda<1/6 at 3D 
+ * Therefore, even the number of space division is same in 1D and 3D, the max timestep in 3D becomes 1/3 of that in 1D.
+ * max timestep = 1/6*dx^2
+ * We further reduced the theoretical max timestep of explict solver by a factor of 0.311 for both convergence and testing convenience. 
+ * Thus in a 144^3 unit cube, dt=2.5e-6 and the total timesteps=20k (serial fine solver) 
  *
  */
 struct PFMParams {
