@@ -209,7 +209,9 @@ implicit none
     end if
 end subroutine blas_pint_sum_2d
 
-
+!! There are several formula of calculating residual value.
+!! Maybe the relative value is better than the absolute mean value in most cases. 
+!! Any way, absolute sum value is not proper because the sum will become bigger as the size of grid increases. 
 subroutine blas_pint_sum_3d(nxyz, ng, u, f, g, g_, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
@@ -247,7 +249,8 @@ implicit none
 !$OMP END PARALLEL
 
     if( u_nrm2 < 1.0e-108) u_nrm2 = sml; !! avoid divided by ZERO
-    res = res/u_nrm2
+    res = res/u_nrm2       !! relative
+    !res =  res/(ix*jy*kz) !! absolute
     if( res < sml ) then 
         res = 0.0
     end if

@@ -73,6 +73,10 @@ void Driver::init(int argc, char* argv[]){
  *   according to the design principle of our framework. 
  *   Guardcell synchonization is not necessary to be called explictly here except the end of the time loop    
  *   for the consistency of output result with guardcell.
+ *
+ *   There should be several different forms of the residual expressions,
+ *   the current version used a relative value |res|^2 / |u|^2 
+ *   it is recommended to choose a proper calcaluation formula for specific problem.   
  */
 void Driver::evolve(Grid* g, Solver* G, Solver* F){
     // output the initial values for debugging or ...
@@ -166,7 +170,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //else TRACE("%d, G is skiped\n",mytid);
         monitor.stop(Monitor::CSolver, 1, icount);
 
-        // step5:
+        // step5: correct the value and calculate the local residual
         //if(!isSkip(k))
         pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
         //else TRACE("%d, SUM is skiped\n",mytid);
