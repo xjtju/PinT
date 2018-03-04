@@ -52,7 +52,7 @@ def main(argv):
         plt.plot(x125,v125, color='black',    linewidth=2, marker='h', label='125')
 
         plt.legend(loc='lower right', title='time slices', frameon=False, columnspacing=None)
-        plt.title(r'CN-EU : ${\delta}T/{\delta}t=100$, ${\delta}t=1.0e-6s$')
+        plt.title(r'CN-EU : ${\delta}T/{\delta}t=100$, ${\delta}t=1.0e-6s$', fontsize=20)
 
     elif( name == 'bd4-eu-5'):
         x10  = np.arange(10)+1  
@@ -75,7 +75,7 @@ def main(argv):
         plt.plot(x100,v100, color='red',     linewidth=2, marker='v', label='100')
         plt.plot(x125,v125, color='black',   linewidth=2, marker='h', label='125')
         plt.legend(loc='lower right', title='time slices', frameon=False, columnspacing=None)
-        plt.title(r'BD4-EU : ${\delta}T/{\delta}t=100$, ${\delta}t=1.0e-6s$')
+        plt.title(r'BD4-EU : ${\delta}T/{\delta}t=100$, ${\delta}t=1.0e-6s$', fontsize=20)
 
     ax = plt.gca()
     ax.set_xscale("log", nonposx='clip')
@@ -83,14 +83,16 @@ def main(argv):
     ax.set_xlim([1, 100])
     ax.set_xticks([1, 5, 10, 20, 50, 100])
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    plt.setp(ax.get_xticklabels(), fontsize=18)
+    plt.setp(ax.get_yticklabels(), fontsize=18)
 
     ax.set_ylim([1e-15, 1e2])
     ax.set_yticks([1.0e-15, 1.0e-12, 1.0e-9, 1.0e-8, 1.0e-7, 1.0e-6, 1.0e-3, 1.0])
-    ax.set_xlabel(r'$Iteration number K^{par}$')
-    ax.set_ylabel(r'$Residual$')
+    ax.set_xlabel(r'$Iteration number K^{par}$', fontsize=20)
+    ax.set_ylabel(r'$Residual$', fontsize=20)
     ax.yaxis.grid(True)
 
-    plt.savefig(name+'.eps',bbox_inches='tight')
+    plt.savefig(name+'.png',bbox_inches='tight')
     #plt.show()
 
 if __name__ == '__main__':

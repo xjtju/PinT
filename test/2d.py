@@ -45,7 +45,7 @@ def main(argv):
     axes.set_ylim([0.0, 1.0])
     axes.set_xlim([0.0, 1.0])
     axes.set_xlabel(r"$X$")
-    axes.set_ylabel(r"$Y$")
+    axes.set_ylabel(r"$\phi$")
     #p.savefig('pfm3d.png',bbox_inches='tight')
     plt.show()
 
