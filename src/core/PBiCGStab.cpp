@@ -25,6 +25,13 @@ void PBiCGStab::init() {
     p_  = alloc_mem(size);
     s   = alloc_mem(size);
     s_  = alloc_mem(size);
+
+    if(isPrecond) { 
+        sor = new SOR(conf, grid); 
+        //sor->set_omega(1.4);  
+        sor->set_itmax(4);     // experience value from Ono Sensei, overwrite the default value
+        sor->set_checkCnvg(false);  // not need to check 
+    }
 }
 
 int PBiCGStab::solve(double *x, double *b, double *A){
@@ -61,7 +68,7 @@ int PBiCGStab::solve(double *x, double *b, double *A){
         //   blas_cp_(p, r, &size);
         //}else {
         beta = (rho/rho0) * (alpha/omega);
-        cg_direct(p, r, v, beta, omega); 
+        cg_direct(p, r, v, beta, omega); //p = r + beta * ( p - omg * v )
        //}
 
         grid->guardcell(p);
@@ -167,14 +174,16 @@ void PBiCGStab::cg_xi2d(double* x, double* y, double* z, double alpha, double om
     ==  reverse(M1)*t=I*t=t and reverse(M1)*s=I*s=s ==  
  * so the matrix reverse and matrix multiplying vector calculations can also be skipped.   
  *
- * BUT: the above approach did not worked, that is NO EFFECT, moreover, when iterations < 10, even become worse. 
- * so we have to do matrix decomposition, and now there is no effective preconditioner in the current version.
+ * NOTE: 
+ *   the SOR preconditioner used here is problem specific, you must choose a proper relaxation factor for your problem.
+ *   The preconditioner will also consume computing time, 
+ *   so the final effect is decided by the reduced iterations and the extra time used for reducing iterations  
  */
 void PBiCGStab::preconditioner(double* p_, double* p, double *A, bool isPrecond){
-    if(!isPrecond)   
-        blas_cp_(p_, p, &size);
-    else {  
+    if(isPrecond)   
         sor->solve(p_, p, A);
+    else {  
+        blas_cp_(p_, p, &size);
     }
 }
 

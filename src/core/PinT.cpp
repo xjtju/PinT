@@ -118,13 +118,16 @@ void PinT::print() {
     printf("  PIPELINED        : %d %s\n", pipelined, pipelined ? "[O]" : "" );
     printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
-    printf("  relaxation factor: %f\n", relax_factor);
-    printf("  linear solver    : %d\n", linear_solver);
+    printf("  relaxation factor: %f (%s)\n", relax_factor, "not implemented yet");
+    printf("  converge eps     : %e\n", converge_eps);
+    printf("  small residual   : %e\n", smlr);
+    
+    printf("  linear solver    : %d\n", ls_solver);
     printf("  lsolver itmax    : %d\n", ls_itmax);
     printf("  lsolver eps      : %e\n", ls_eps);
     printf("  lsolver abortflg : %d\n", ls_abort);
-    printf("  converge eps     : %e\n", converge_eps);
-    printf("  small residual   : %e\n", smlr);
+    printf("  lsolver precond  : %s\n", ls_precond ? "true" : "false");
+    printf("  lsolver relaxfac : %f\n", ls_relaxfactor);
 
     printf("  debug out prefix : %s\n", debug_pre);
     printf("  monitor   prefix : %s\n", monitor_pre);
@@ -174,15 +177,19 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "skip_mode"))  { conf->skip_mode  = atoi(value); } 
     else if (MATCH("parareal", "kpar_limit")) { conf->kpar_limit = atoi(value); } 
     else if (MATCH("parareal", "rfc_"))       { conf->rfc_ = atoi(value); } 
-    else if (MATCH("parareal", "relax_factor")){ conf->relax_factor = atof(value); } 
 
-    else if (MATCH("parareal", "linear_solver")){ conf->linear_solver = atoi(value); } 
-    else if (MATCH("parareal", "ls_itmax")){ conf->ls_itmax = atoi(value); } 
-    else if (MATCH("parareal", "ls_eps"))  { conf->ls_eps = atof(value); } 
-    else if (MATCH("parareal", "ls_abort"))  { conf->ls_abort = atoi(value); } 
     else if (MATCH("parareal", "converge_eps")) { conf->converge_eps = atof(value); } 
     else if (MATCH("parareal", "sml_res")) { conf->smlr = atof(value); } 
-    
+    else if (MATCH("parareal", "relax_factor")){ conf->relax_factor = atof(value); } 
+
+
+    else if (MATCH("linear_solver", "ls_solver")){ conf->ls_solver = atoi(value); } 
+    else if (MATCH("linear_solver", "ls_itmax")){ conf->ls_itmax = atoi(value); } 
+    else if (MATCH("linear_solver", "ls_eps"))  { conf->ls_eps = atof(value); } 
+    else if (MATCH("linear_solver", "ls_abort"))  { conf->ls_abort = atoi(value); } 
+    else if (MATCH("linear_solver", "ls_relaxfactor"))  { conf->ls_relaxfactor = atof(value); } 
+    else if (MATCH("linear_solver", "ls_precond"))  { conf->ls_precond = atoi(value)==0 ? false : true ; } 
+
     else if (MATCH("monitor", "debug_pre")) { conf->debug_pre = strdup(value); } 
     else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 
     else if (MATCH("monitor", "with_coord")) { conf->with_coord = atoi(value); } 

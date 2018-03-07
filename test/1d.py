@@ -66,8 +66,8 @@ def main(argv):
     plt.grid()
     plt.xticks(np.arange(0, 1.0, 0.05))
 
-    plt.savefig('pfm.eps',bbox_inches='tight')
-    #plt.show()
+    #plt.savefig('pfm.png',bbox_inches='tight')
+    plt.show()
 
 if __name__ == '__main__':
     main(sys.argv)

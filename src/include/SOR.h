@@ -9,6 +9,7 @@
  *  Though the calculations of SOR are much less than BiCG, the convergence rate is much slow.
  *  BiCG is recommended in practice.
  *
+ *  The relaxation factor, the omega value must be carefully chosen according the real problem. 
  */
 
 #include "common.h"
@@ -29,32 +30,20 @@ private:
 
 public:
 
-    // SOR : relaxation factor, the omega value must be carefully chosen according the real problem. 
-    // for heat equation, the optimal value may be 1.7,
-    // but for Allen-Cahn equation, 1.0 may be a better choice.
-    double  omega= 1.0;      
 
     bool checkCnvg = true;  //default is not check
+    double omega;  //relaxation factor, alias of relaxfactor
 
     // the wrapper red-black successive over-relaxation (sor2_core)
     int solve(double *x, double *b, double *A);
     
-    SOR(PinT* c, Grid *g):LS(c,g){ }
+    SOR(PinT* c, Grid *g):LS(c,g){ 
+        omega = relaxfactor; 
+    }
     
     void chk_eps(double *x, double res_nrm2, double *err); 
-
-    void set_omega(double omg) {
-        omega = omg;
-    }
-
-    void set_eps(double err) {
-        eps = err;
-    }
-    void set_itmax(int iter) {
-        itmax = iter;
-    }
-    void set_checkCnvg(bool ifg) {
-        checkCnvg = ifg;
-    }
+    
+    void set_omega(double omg)   { omega     = omg; }
+    void set_checkCnvg(bool ifg) { checkCnvg = ifg; }
 };
 #endif

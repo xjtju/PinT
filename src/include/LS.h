@@ -10,6 +10,10 @@
  * two algorithms are provided in current version
  *   0. BiCG
  *   1. SOR
+ *
+ *  NOTE:
+ *    I had considered creating an independent section for each solver,
+ *    but it will introduce confusion if multiple instances of a solver need different settings.   
  */
 
 class LS {
@@ -44,6 +48,12 @@ protected:
 
     int force_abort = 0; 
 
+    // NOTE : 
+    // Neither of preconditioner and omega is a common attribute for linear solver 
+    // but it will be very convenient for debugging if adding them to the .INI file   
+    bool   isPrecond  = false; // if preconditioner is needed.
+    double relaxfactor= 1.5;     // For SOR only 
+
 public:
     LS(PinT *conf, Grid *g){
         this->conf = conf; 
@@ -67,8 +77,15 @@ public:
         this->itmax = conf->ls_itmax;
         this->eps = conf->ls_eps;
         this->force_abort = conf->ls_abort;
+        this->isPrecond  = conf->ls_precond; 
+        this->relaxfactor = conf->ls_relaxfactor;
 
     }
+
+    void set_eps(double eps) { this->eps = eps; }
+    void set_itmax(int iter) { this->itmax = iter;}
+    void set_precond(bool flag) { this->isPrecond = flag;}
+
     virtual ~LS(){ }
     // the template algorithm for linear system etc. 
     // return the iteration count 

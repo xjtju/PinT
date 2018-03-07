@@ -80,11 +80,11 @@ protected:
      *   It is not necessary for sub classes to free the LS instance. 
      */
     virtual LS* getLS(PinT *conf, Grid *grid) {
-        if(PinT::LS_SOR_ID  == conf->linear_solver){
+        if(PinT::LS_SOR_ID  == conf->ls_solver){
             if(grid->myid==0) printf("INFO: default linear solver is SOR \n");
             return new SOR(conf, grid);
         }
-        else if(PinT::LS_BiCG_ID == conf->linear_solver ) 
+        else if(PinT::LS_BiCG_ID == conf->ls_solver ) 
         {
             if(grid->myid==0) printf("INFO: default linear solver is BiCG \n");
             return new PBiCGStab(conf, grid); 

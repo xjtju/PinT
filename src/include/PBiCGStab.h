@@ -35,18 +35,11 @@ protected:
     double *t;
     //double *b;         //RHS
 
-    bool isPrecond = false; // in the current version, no preconditioner is BETTER according to experiments.
-
     SOR *sor;
     
 public:
 
-    inline void set_eps(double eps) { this->eps = eps; }
-    inline void set_itmax(int iter) { this->itmax = iter;}
-    inline void set_precond(bool flag) { this->isPrecond = flag;}
-
     PBiCGStab(PinT* c, Grid *g):LS(c,g){
-        sor = new SOR(c,g); // not well coded
         init();
     }
     
@@ -60,7 +53,8 @@ public:
        free_mem(s_);
        free_mem(t);
 
-       delete sor;
+       if(isPrecond)
+           delete sor;
 
        if(grid->myid==0 && conf->verbose)
        printf("INFO: the memory allocated by PBiCGStab solver has been released.\n");

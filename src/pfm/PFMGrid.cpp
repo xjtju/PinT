@@ -35,7 +35,7 @@ void PFMGrid::init1d() {
         //val = 1.0 + tanh( (x-0.5)/xi);    // initial value 
         //val = 1.0 - 0.5*val;
         xdist = this->getX(i) -  conf->Xspan/2 ; 
-        if(fabs(xdist) < 0.4) 
+        if(fabs(xdist) < 0.3) 
            val = 1.0;
         else val = 0;
         this->set_val4all(i,val);
@@ -44,6 +44,7 @@ void PFMGrid::init1d() {
 
 void PFMGrid::init2d(){
     long ind = 0;     
+    double r = 0.4;
     double xdist, ydist, unk;
     for(int j = nguard; j<ny+nguard; j++)
     for(int i = nguard; i<nx+nguard; i++){
@@ -51,7 +52,7 @@ void PFMGrid::init2d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        
        ind = this->getOuterIdx(i, j, 0);  
-       if( fabs(xdist)<=0.4 &&  fabs(ydist)<=0.4 )
+       if( fabs(xdist)<=r  && fabs(ydist)<=r )
        //if( xdist<=0 )
            unk = 1.0; 
        else unk = 0.0; 
@@ -63,7 +64,7 @@ void PFMGrid::init2d(){
 void PFMGrid::init3d(){
     long ind = 0;     
     double xdist, ydist, zdist, unk;
-    double r = 0.4;
+    double r = 0.3;
 
     for(int k = nguard; k<nz+nguard; k++)
     for(int j = nguard; j<ny+nguard; j++)
@@ -72,7 +73,7 @@ void PFMGrid::init3d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        zdist = this->getZ(k) -  conf->Zspan/2 ;
        ind = this->getOuterIdx(i, j, k);  
-       if( (fabs(xdist)<=r) &&  (fabs(ydist)<=r) && (fabs(zdist)<=r) )
+       if( (fabs(xdist)<=r)) // &&  (fabs(ydist)<=r) && (fabs(zdist)<=r) )
            unk = 1.0; 
        else unk = 0.0; 
        
