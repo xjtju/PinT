@@ -19,7 +19,15 @@
 class NewtonSolver : public Solver {
 
 private:
+    bool ls_eps_dynamic;
+    double ls_eps;
+    double ls_eps_factor;
+
     void setup(){
+        ls_eps_dynamic = conf->ls_eps_dynamic;
+        ls_eps_factor = conf->ls_eps_factor;
+        ls_eps = conf->ls_eps;
+
         unk   = alloc_mem(this->size);
         soln_1= alloc_mem(this->size);
         G1    = alloc_mem(this->size);

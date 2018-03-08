@@ -128,6 +128,8 @@ void PinT::print() {
     printf("  lsolver abortflg : %d\n", ls_abort);
     printf("  lsolver precond  : %s\n", ls_precond ? "true" : "false");
     printf("  lsolver relaxfac : %f\n", ls_relaxfactor);
+    printf("  lsolver dyn  eps : %s\n", ls_eps_dynamic ? "true" : "false");
+    printf("  lsolver epsfactor: %f\n", ls_eps_factor);
 
     printf("  debug out prefix : %s\n", debug_pre);
     printf("  monitor   prefix : %s\n", monitor_pre);
@@ -189,6 +191,8 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("linear_solver", "ls_abort"))  { conf->ls_abort = atoi(value); } 
     else if (MATCH("linear_solver", "ls_relaxfactor"))  { conf->ls_relaxfactor = atof(value); } 
     else if (MATCH("linear_solver", "ls_precond"))  { conf->ls_precond = atoi(value)==0 ? false : true ; } 
+    else if (MATCH("linear_solver", "ls_eps_dynamic"))  { conf->ls_eps_dynamic = atoi(value)==0 ? false : true; } 
+    else if (MATCH("linear_solver", "ls_eps_factor"))  { conf->ls_eps_factor = atof(value); } 
 
     else if (MATCH("monitor", "debug_pre")) { conf->debug_pre = strdup(value); } 
     else if (MATCH("monitor", "monitor_pre")) { conf->monitor_pre = strdup(value); } 

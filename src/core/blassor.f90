@@ -81,7 +81,7 @@ implicit none
         ndag_s = A(4, i, j, k)
         ndag_t = A(5, i, j, k)
         ndag_b = A(6, i, j, k)
-            dd = A(7, i, j, k)
+            dd = A(7, i, j, k) !! diagonal
             ss = ndag_e*x(i+1, j,   k  ) &
                + ndag_w*x(i-1, j,   k  ) &
                + ndag_n*x(i,   j+1, k  ) &

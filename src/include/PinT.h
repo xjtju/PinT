@@ -118,7 +118,11 @@ public:
     double ls_eps = 1.0e-6;
     int ls_abort  = 0;  // when convergence condition is not satisfied until the max iterations, break down the program or not 
     bool ls_precond = false; 
-    double ls_relaxfactor = 1.5;
+    double ls_relaxfactor = 1.5; 
+    //use dynamic eps or not, in order to reduce the useless iterations of linear_solver within the Newton solver
+    bool ls_eps_dynamic = true ;
+    //dynamic eps decreasing factor, eps = 1.0/pow(factor, iterations)  
+    double ls_eps_factor  = 1.2 ; 
 
     char* debug_pre;
     char* monitor_pre;

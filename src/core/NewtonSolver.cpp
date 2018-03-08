@@ -29,6 +29,7 @@ int NewtonSolver::newton_raphson() {
     
     bool ifg = false; // converge flag
     double err = 0;   // eps check 
+    double itr_eps;
 
     // step0 : set F_{n-1} and calcaluate RHS G1 
     update_holder();
@@ -48,6 +49,11 @@ int NewtonSolver::newton_raphson() {
         stencil();
 
         // step4 : call the linear solver
+        if(ls_eps_dynamic) { // decrease the eps of linear solver  gradually
+            itr_eps = 1.0/pow(ls_eps_factor, i);
+            if(ls_eps < itr_eps)
+                hypre->set_eps(itr_eps);
+        }
         iter = hypre->solve(unk, b, A);  
         counter = counter + iter; 
 
