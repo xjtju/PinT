@@ -101,9 +101,24 @@ void PinT::print() {
     printf("  space division   : [%d, %d, %d]\n", spnumx, spnumy, spnumz);
     printf("  guard cells      : %d\n",nguard);
 
-    printf("  boundary type    : %d\n",bc_type);
-    printf("  bc_val(type=0)   : %f\n",bc_val);
+    printf("  boundary type    : %d [%s] (%s)\n",bc_type, "default", "0/1/2 : constant/reflect/customized"); 
+    printf("  bc_val(type=0)   : %f [%s]\n",bc_val,  "default");
 
+    printf("  boundary type xl : %d\n",bc_type_xl);
+    printf("  boundary type xr : %d\n",bc_type_xr);
+    printf("  boundary type yl : %d\n",bc_type_yl);
+    printf("  boundary type yr : %d\n",bc_type_yr);
+    printf("  boundary type zl : %d\n",bc_type_zl);
+    printf("  boundary type zr : %d\n",bc_type_zr);
+
+    printf("  bc value x left  : %f\n",bc_val_xl);
+    printf("  bc value x right : %f\n",bc_val_xr);
+    printf("  bc value y left  : %f\n",bc_val_yl);
+    printf("  bc value y right : %f\n",bc_val_yr);
+    printf("  bc value z left  : %f\n",bc_val_zl);
+    printf("  bc value z right : %f\n",bc_val_zr);
+
+    printf("  \n");
     printf("  time domin       : %f\n", Tspan);
     printf("  time  parallel   : %d\n", tsnum);
     printf("  space parallel   : %d\n", spnum);
@@ -118,10 +133,11 @@ void PinT::print() {
     printf("  PIPELINED        : %d %s\n", pipelined, pipelined ? "[O]" : "" );
     printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
-    printf("  relaxation factor: %f (%s)\n", relax_factor, "not implemented yet");
+    printf("  relaxation factor: %f (%s)\n", relax_factor, "NOT implemented yet");
     printf("  converge eps     : %e\n", converge_eps);
     printf("  small residual   : %e\n", smlr);
     
+    printf("  \n");
     printf("  linear solver    : %d\n", ls_solver);
     printf("  lsolver itmax    : %d\n", ls_itmax);
     printf("  lsolver eps      : %e\n", ls_eps);
@@ -131,6 +147,7 @@ void PinT::print() {
     printf("  lsolver dyn  eps : %s\n", ls_eps_dynamic ? "true" : "false");
     printf("  lsolver epsfactor: %f\n", ls_eps_factor);
 
+    printf("  \n");
     printf("  debug out prefix : %s\n", debug_pre);
     printf("  monitor   prefix : %s\n", monitor_pre);
     printf("  coord is output  : %d\n", with_coord);
@@ -143,11 +160,26 @@ void PinT::print() {
     printf("\n");
 
 }
-
 int PinT::init_module(void *obj, ini_handler handler) {
     return ini_parse(ini_file, handler, obj);  
 }
-
+// set default value, can be overwrien by the following configurations 
+void PinT::set_bc_type(int t){
+   bc_type_xl = t; 
+   bc_type_xr = t; 
+   bc_type_yl = t; 
+   bc_type_yr = t; 
+   bc_type_zl = t; 
+   bc_type_zr = t; 
+}
+void PinT::set_bc_val(double v){
+   bc_val_xl  = bc_val;
+   bc_val_xr  = bc_val;
+   bc_val_yl  = bc_val;
+   bc_val_yr  = bc_val;
+   bc_val_zl  = bc_val;
+   bc_val_zr  = bc_val;
+}
 // the global ini handler
 int handler(void* pint, const char* section, const char* name, const char* value)
 {
@@ -167,8 +199,22 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("domain", "Nz"))    { conf->Nz = atoi(value); } 
     else if (MATCH("domain", "nguard")){ conf->nguard = atoi(value); } 
 
-    else if (MATCH("domain", "bc_type")){ conf->bc_type = atoi(value); } 
-    else if (MATCH("domain", "bc_val")) { conf->bc_val  = atof(value); } 
+    else if (MATCH("domain", "bc_type")){ conf->bc_type = atoi(value); conf->set_bc_type(conf->bc_type); } 
+    else if (MATCH("domain", "bc_val")) { conf->bc_val  = atof(value); conf->set_bc_val(conf->bc_val);   } 
+
+    else if (MATCH("domain", "bc_type_xl")){ conf->bc_type_xl = atoi(value); } 
+    else if (MATCH("domain", "bc_type_xr")){ conf->bc_type_xr = atoi(value); } 
+    else if (MATCH("domain", "bc_type_yl")){ conf->bc_type_yl = atoi(value); } 
+    else if (MATCH("domain", "bc_type_yr")){ conf->bc_type_yr = atoi(value); } 
+    else if (MATCH("domain", "bc_type_zl")){ conf->bc_type_zl = atoi(value); } 
+    else if (MATCH("domain", "bc_type_zr")){ conf->bc_type_zr = atoi(value); } 
+
+    else if (MATCH("domain", "bc_val_xl")) { conf->bc_val_xl  = atof(value); } 
+    else if (MATCH("domain", "bc_val_xr")) { conf->bc_val_xr  = atof(value); } 
+    else if (MATCH("domain", "bc_val_yl")) { conf->bc_val_yl  = atof(value); } 
+    else if (MATCH("domain", "bc_val_yr")) { conf->bc_val_yr  = atof(value); } 
+    else if (MATCH("domain", "bc_val_zl")) { conf->bc_val_zl  = atof(value); } 
+    else if (MATCH("domain", "bc_val_zr")) { conf->bc_val_zr  = atof(value); } 
 
     else if (MATCH("parareal", "tsnum")) { conf->tsnum = atoi(value); } 
     else if (MATCH("parareal", "spnumx")) { conf->spnumx = atoi(value); } 

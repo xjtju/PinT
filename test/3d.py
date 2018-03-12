@@ -36,6 +36,7 @@ def main(argv):
     print 'coords shape is ( {0}^3, {1} )\n'.format(sidelen, dims)
     if(sidelen*sidelen*sidelen != totalcount):
         print 'error: totalcount must be equal to sidelen^3 {0}!={1}^3 \n'.format(totalcount, sidelen)
+        return 2
     posx = ds2[..., 0]
     posy = ds2[..., 1]
     posz = ds2[..., 2]

@@ -11,8 +11,23 @@ Grid::Grid(PinT *conf) {
     this->ndim = conf->ndim;
 
     this->nguard = conf->nguard;
+
     this->bc_type = conf->bc_type;
     this->bc_val = conf->bc_val;
+
+    this->bc_type_xl = conf->bc_type_xl; 
+    this->bc_type_xr = conf->bc_type_xr; 
+    this->bc_type_yl = conf->bc_type_yl; 
+    this->bc_type_yr = conf->bc_type_yr; 
+    this->bc_type_zl = conf->bc_type_zl; 
+    this->bc_type_zr = conf->bc_type_zr; 
+
+    this->bc_val_xl  = conf->bc_val_xl;
+    this->bc_val_xr  = conf->bc_val_xr;
+    this->bc_val_yl  = conf->bc_val_yl;
+    this->bc_val_yr  = conf->bc_val_yr;
+    this->bc_val_zl  = conf->bc_val_zl;
+    this->bc_val_zr  = conf->bc_val_zr;
 
     this->nx = conf->nx;
     this->ny = conf->ny;
@@ -355,70 +370,81 @@ void Grid::bc(double* d){
 // nguard = 1, now space parallel is not considered
 void Grid::bc_1d(double* d) {
     int ng = nguard;
-    if( 0==bc_type ){ //fixed value
-       if(MPI_PROC_NULL==left)   bc_val_1d_l_(nxyz, &ng, d, &bc_val);
-       if(MPI_PROC_NULL==right)  bc_val_1d_r_(nxyz, &ng, d, &bc_val);
+    
+    if(MPI_PROC_NULL==left) {
+        if     ( 0 == bc_type_xl )  bc_val_1d_l_(nxyz, &ng, d, &bc_val_xl); // fixed value
+        else if( 1 == bc_type_xl )  bc_ref_1d_l_(nxyz, &ng, d);          // reflected value 
+        else if( 2 == bc_type_xl )  bc_1d_l(d);   // customized bc function is called
     }
-    else if( 1==bc_type ) { //reflected
-       if(MPI_PROC_NULL==left)   bc_ref_1d_l_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==right)  bc_ref_1d_r_(nxyz, &ng, d);
-   }
-   else if( 2==bc_type ) {  // customized bc function is called
-       if(MPI_PROC_NULL==left)   bc_1d_l(d);
-       if(MPI_PROC_NULL==right)  bc_1d_r(d);
-   }
+    if(MPI_PROC_NULL==right){
+        if     ( 0 == bc_type_xr )  bc_val_1d_r_(nxyz, &ng, d, &bc_val_xr);
+        else if( 1 == bc_type_xr )  bc_ref_1d_r_(nxyz, &ng, d);
+        else if( 2 == bc_type_xr )  bc_1d_r(d);
+    }
 }
 void Grid::bc_2d(double* d) {
     int ng = nguard;
-    if( 0==bc_type ) {
-       if(MPI_PROC_NULL==left)   bc_val_2d_l_(nxyz, &ng, d, &bc_val);
-       if(MPI_PROC_NULL==right)  bc_val_2d_r_(nxyz, &ng, d, &bc_val);
-       if(MPI_PROC_NULL==front)  bc_val_2d_f_(nxyz, &ng, d, &bc_val);
-       if(MPI_PROC_NULL==back)   bc_val_2d_b_(nxyz, &ng, d, &bc_val);
+
+    if(MPI_PROC_NULL==left) {
+        if     ( 0 == bc_type_xl )  bc_val_2d_l_(nxyz, &ng, d, &bc_val_xl); // fixed value
+        else if( 1 == bc_type_xl )  bc_ref_2d_l_(nxyz, &ng, d);          // reflected value 
+        else if( 2 == bc_type_xl )  bc_2d_l(d);   // customized bc function is called
     }
-    else if( 1==bc_type ) { //reflected
-       if(MPI_PROC_NULL==left)   bc_ref_2d_l_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==right)  bc_ref_2d_r_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==front)  bc_ref_2d_f_(nxyz, &ng, d);
-       if(MPI_PROC_NULL==back)   bc_ref_2d_b_(nxyz, &ng, d);
+    if(MPI_PROC_NULL==right){
+        if     ( 0 == bc_type_xr )  bc_val_2d_r_(nxyz, &ng, d, &bc_val_xr);
+        else if( 1 == bc_type_xr )  bc_ref_2d_r_(nxyz, &ng, d);
+        else if( 2 == bc_type_xr )  bc_2d_r(d);
     }
-    else if( 2==bc_type ) { //reflected
-       if(MPI_PROC_NULL==left)   bc_2d_l(d);
-       if(MPI_PROC_NULL==right)  bc_2d_r(d);
-       if(MPI_PROC_NULL==front)  bc_2d_f(d);
-       if(MPI_PROC_NULL==back)   bc_2d_b(d);
+    if(MPI_PROC_NULL==front){
+        if     ( 0 == bc_type_yl )  bc_val_2d_f_(nxyz, &ng, d, &bc_val_yl); 
+        else if( 1 == bc_type_yl )  bc_ref_2d_f_(nxyz, &ng, d);          
+        else if( 2 == bc_type_yl )  bc_2d_f(d);   
+    }
+    if(MPI_PROC_NULL==back) {
+        if     ( 0 == bc_type_yr )  bc_val_2d_b_(nxyz, &ng, d, &bc_val_yr); 
+        else if( 1 == bc_type_yr )  bc_ref_2d_b_(nxyz, &ng, d);          
+        else if( 2 == bc_type_yr )  bc_2d_b(d);  
     }
 }
 /**
- * NOTE : unlike 1D/2D, the outer size is used in 3D 
+ * Important NOTE :  
+ *   unlike 1D/2D, the outer size (sxyz) is used in 3D 
  */
 void Grid::bc_3d(double *d){
     int ng = nguard;
-    if( 0==bc_type) {
-        if(MPI_PROC_NULL==left)   bc_val_3d_l_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==right)  bc_val_3d_r_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==front)  bc_val_3d_f_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==back)   bc_val_3d_b_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==down)   bc_val_3d_d_(sxyz, &ng, d, &bc_val);
-        if(MPI_PROC_NULL==up)     bc_val_3d_u_(sxyz, &ng, d, &bc_val);
+     
+    if(MPI_PROC_NULL==left) {
+        if     ( 0 == bc_type_xl )  bc_val_3d_l_(sxyz, &ng, d, &bc_val_xl); // fixed value
+        else if( 1 == bc_type_xl )  bc_ref_3d_l_(sxyz, &ng, d);          // reflected value 
+        else if( 2 == bc_type_xl )  bc_3d_l(d);   // customized bc function is called
     }
-    else if( 1==bc_type ){
-        if(MPI_PROC_NULL==left)   bc_ref_3d_l_(sxyz, &ng, d);
-        if(MPI_PROC_NULL==right)  bc_ref_3d_r_(sxyz, &ng, d);
-        if(MPI_PROC_NULL==front)  bc_ref_3d_f_(sxyz, &ng, d);
-        if(MPI_PROC_NULL==back)   bc_ref_3d_b_(sxyz, &ng, d);
-        if(MPI_PROC_NULL==down)   bc_ref_3d_d_(sxyz, &ng, d);
-        if(MPI_PROC_NULL==up)     bc_ref_3d_u_(sxyz, &ng, d);
+    if(MPI_PROC_NULL==right){
+        if     ( 0 == bc_type_xr )  bc_val_3d_r_(sxyz, &ng, d, &bc_val_xr);
+        else if( 1 == bc_type_xr )  bc_ref_3d_r_(sxyz, &ng, d);
+        else if( 2 == bc_type_xr )  bc_3d_r(d);
     }
-    else if( 2==bc_type ){
-        if(MPI_PROC_NULL==left)   bc_3d_l(d);
-        if(MPI_PROC_NULL==right)  bc_3d_r(d);
-        if(MPI_PROC_NULL==front)  bc_3d_f(d);
-        if(MPI_PROC_NULL==back)   bc_3d_b(d);
-        if(MPI_PROC_NULL==down)   bc_3d_d(d);
-        if(MPI_PROC_NULL==up)     bc_3d_u(d);
+    if(MPI_PROC_NULL==front){
+        if     ( 0 == bc_type_yl )  bc_val_3d_f_(sxyz, &ng, d, &bc_val_yl); 
+        else if( 1 == bc_type_yl )  bc_ref_3d_f_(sxyz, &ng, d);          
+        else if( 2 == bc_type_yl )  bc_3d_f(d);   
+    }
+    if(MPI_PROC_NULL==back) {
+        if     ( 0 == bc_type_yr )  bc_val_3d_b_(sxyz, &ng, d, &bc_val_yr); 
+        else if( 1 == bc_type_yr )  bc_ref_3d_b_(sxyz, &ng, d);          
+        else if( 2 == bc_type_yr )  bc_3d_b(d);  
+    }
+    if(MPI_PROC_NULL==down) {
+        if     ( 0 == bc_type_zl )  bc_val_3d_d_(sxyz, &ng, d, &bc_val_zl); 
+        else if( 1 == bc_type_zl )  bc_ref_3d_d_(sxyz, &ng, d);          
+        else if( 2 == bc_type_zl )  bc_3d_d(d);   
+    }
+    if(MPI_PROC_NULL==up)  {
+        if     ( 0 == bc_type_zr )  bc_val_3d_u_(sxyz, &ng, d, &bc_val_zr); 
+        else if( 1 == bc_type_zr )  bc_ref_3d_u_(sxyz, &ng, d);          
+        else if( 2 == bc_type_zr )  bc_3d_u(d);  
     }
 }
+
 /**
  * MPI_Allreduce double
  */

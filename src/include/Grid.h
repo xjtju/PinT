@@ -16,6 +16,9 @@
  *    In PinT, for each physical variable, it has to use five times memory space as its real size. 
  *
  *    There should be only one instance of Grid in the whole application ,that is singleton.
+ *
+ *  TO DO:
+ *    As the number of parameters of grid increases, it is necessary to seperate the its configuration code from PinT.    
  *    
  */
 
@@ -37,8 +40,24 @@ public:
     int inner_size; // size not including guard cells
 
     int nguard = 1;
+
     int bc_type;  // 0: fixed value;  1: reflected; 2: customize
     double bc_val;
+
+    int bc_type_xl = 0;      // left x boundary  
+    int bc_type_xr = 0;      // left x boundary  
+    double bc_val_xl = 0.0;  
+    double bc_val_xr = 0.0;  
+
+    int bc_type_yl = 0;      // left x boundary  
+    int bc_type_yr = 0;      // left x boundary  
+    double bc_val_yl = 0.0;  
+    double bc_val_yr = 0.0;  
+
+    int bc_type_zl =0;      // left  z boundary (bottom/down) 
+    int bc_type_zr =0;      // right z boundary (upper) 
+    double bc_val_zl = 0.0;  
+    double bc_val_zr = 0.0;  
 
     // in order to automatically adapt to multi-dimension  
     int ngxyz[3];  

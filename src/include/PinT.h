@@ -38,6 +38,9 @@ public:
     int init(char* fname);
     void print();
     bool check();      
+    void set_bc_type(int t); // should be moved to Grid in later 
+    void set_bc_val(double v);  // should be moved to Grid in later 
+
     // the interface for problem-specific init 
     int init_module(void *obj, ini_handler handler);
 
@@ -77,8 +80,24 @@ public:
     double dz = 1;
     
     int nguard = 1; // the nguard cell number 
-    int bc_type =0; // boundary type. 0:always unchanged, default is ZERO; 1: reflect
+
+    int bc_type =0; // boundary type. 0:always unchanged, default is ZERO; 1: reflect; 2: customized 
     double bc_val = 0.0; // valid when bc_type=0 
+    // more detailedly control over the boundary  
+    int bc_type_xl =0;      // left  x boundary  
+    int bc_type_xr =0;      // right x boundary  
+    double bc_val_xl = 0.0;  
+    double bc_val_xr = 0.0;  
+
+    int bc_type_yl =0;      // left  y boundary (front) 
+    int bc_type_yr =0;      // right y boundary (back) 
+    double bc_val_yl = 0.0;  
+    double bc_val_yr = 0.0;  
+
+    int bc_type_zl =0;      // left  z boundary (bottom/down) 
+    int bc_type_zr =0;      // right z boundary (upper) 
+    double bc_val_zl = 0.0;  
+    double bc_val_zr = 0.0;  
 
     int pipelined = 0;
     int kpar_limit;
