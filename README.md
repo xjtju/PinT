@@ -36,7 +36,7 @@ There are five main objects and other two auxiliary objects in the framework.
 
 For example, [1D/2D/3D heat equation](https://commons.wikimedia.org/wiki/File:Heatequation_exampleB.gif), sample codes are under the src/heat directory.
 
-1. establishs a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables. 
+1. construct a grid (HeatGrid) for heat diffuse problem, the main and only task is to set the initial value to variables. 
 
 ```c++
 HeatGrid::HeatGrid(PinT *conf) : Grid(conf){ } 
@@ -52,7 +52,7 @@ void HeatGrid::init(){
     }
 }
 ```
-2. creates a sub class (HeatSolver) of the **Solver**, provides the RHS and stencil matrix, and choose a linear solver to perform time integration, the sample code uses the classic [Crank–Nicolson method](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method) for deducing the stencil of heat equation.
+2. create a sub class (HeatSolver) of the **DefaultSolver**, calcaluates the RHS and stencil matrix, the sample code uses the classic [Crank–Nicolson method](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method) for deducing the stencil of heat equation.
 
 ```c++
 // set diffuse coefficient and tune the default parameter, problem specific
@@ -61,35 +61,13 @@ void HeatSolver::setup(){
     k = 0.061644;        // diffuse coefficient 
 }
 
-// set diffuse coefficient and tune the default parameter, problem specific
-void HeatSolver::setup(){
-    if(ndim==1) k = 0.061644; 
-    hypre = new PBiCGStab(conf, grid); // choose a linear solver
+void stencil() {
+    stencil_heat_(grid->nxyz, lamdaxyz, &nguard, soln, A);
 }
 
-// evolve along one time slice for Crank-Nicolson method  
-void HeatSolver::evolve() {
-     
-    // step0: set initial value, 
-    soln = getSoln();     
-
-    for(int i=0; i<steps; i++){
-        // step1 : set boundary condition, default bc function provided by Grid is enough
-        grid->bc(soln);
-        
-        // step2 : calcaluate RHS, the b of Ax=b 
-        rhs();
-
-        // step3 : set / update the stencil struct matrix, the A of Ax=b 
-        stencil();
-
-        // step4 : call the linear solver 
-        hypre->solve(soln, b, A);
-
-        // step5: update solution, 
-    }
+void rhs() {
+    rhs_heat_(grid->nxyz, lamdaxyz, &nguard, soln, b);
 }
-
 ```
 
 The calculations of RHS and stencil matrix are performed by Fortran.
@@ -138,7 +116,7 @@ end subroutine stencil_heat_1d
 
 ```
 
-3. defines fine/coarse solver based on the HeatSolver, and the fine and coarse solver is not necessary to use the same linear solver and time integrating method. For the Fine and Coarse solver, the only thing is to set their specific variables in most cases. 
+3. define fine/coarse solver based on the HeatSolver, please note that the fine and coarse solver is not necessary to use the same linear solver and time integrating method. For the Fine and Coarse solver, the only thing is to set their specific parameters in most cases. 
 
 ```c++
 HeatSolverF::HeatSolverF(PinT *conf, Grid *g):HeatSolver(conf,g, true) {
@@ -185,16 +163,15 @@ int main(int argc, char* argv[]) {
 }
 
 ```
-5. changes the .ini file according to the real run time envirement and the test request. For better performance, ```pipelined mode```  can be activated by setting ```pipelined=1```,  See pint.ini sample for details, and the .INI file is very direct and simple. 
+5. Finally, edit the .ini file according to the real run time envirement and the test request. In .ini file, you can define the time and space domain size and their divisions in each dimension, choose a proper linear solver, assign the output filename, and activate some optimization option etc.  See pint.ini sample for details, and the parameter file is very direct and simple. 
 
 
-
-From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself as shown in the following picture.
+From the above sample codes, in most cases it is not necessary for users to care many boilerplate tasks explicitly such as managing MPI envirement, mesh division, guard cell synchonization etc. The framework can perform most housekeeping tasks well, so users can focus on phyical moddel or problem itself as shown in the following picture.
 
 <p align="center"><img src="./doc/images/usage.png" align="center" height="250px"></img></p>
 
 
-For more comprehensive examples and usages, please check the 'pfm' directory. PFM stands for Phase Field Model, we implemented two solvers for a simplied  Allen-Cahn equation. All 1D/2D/3D are supported, OpenMP is also used to accelerate matrix calculations further in multi-core envirement.  Examples for customized boundary condition and problem-specific configuration are also located in 'pfm'.
+For more comprehensive examples and usages, please check the wiki and the 'pfm' directory. PFM stands for Phase Field Model, we implemented two solvers for a simplied  Allen-Cahn equation. All 1D/2D/3D are supported, OpenMP is also used to accelerate matrix calculations further in multi-core envirement.  Examples for customized boundary condition and problem-specific configuration are also located in 'pfm'.
 
 ## Build
 
