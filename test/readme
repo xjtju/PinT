@@ -1,0 +1,4 @@
+There are two types of python script in this folder. 
+One is the examples to demonstrate how to read and plot the data from the .h5 output file, including 1d/2d/3d.py
+
+the other is the script for plotting some test data of our experiments.  

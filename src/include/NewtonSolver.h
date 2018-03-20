@@ -62,8 +62,16 @@ protected:
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
     // structure preservation 
     double *soln_1;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
-    double *G1;
-    double *unk;     // the unknown 'x' of Ax=b, that is (Xn+1 - Xn) in Newton's method 
+
+    /** 
+     * the U^{n-1} part of RHS,
+     *    CN : F^{n} = U^{n}-U^{n-1} - theta*G2 - (1-theta)*G1 
+     *   BD4 : F^{n} = 25*U^{n} + G1 - 12*G2
+     * Because there are iterations in Newton method, the G1 is calcaluated just once before entering iterations, 
+     * but G2 is necessary to be re-calcaluated in each iteration, so G1 is reserved for reuse, and G2 is temporary.     
+     */
+    double *G1;      
+    double *unk;     // the unknown 'x' of Ax=b, that is (U_{n+1} - U_{n}) in Newton's method 
 
     int newton_raphson(); // the template of New-Raphson method iteration 
     
@@ -85,9 +93,9 @@ protected:
     
     virtual void stencil() = 0; 
     
-    virtual void rhs() = 0;
+    virtual void rhs() = 0;   // calcaluate the whole RHS
     
-    virtual void rhs_g1() = 0; 
+    virtual void rhs_g1() = 0; // calcaluate G1 part of RHS 
 
     void update() {
         if(ndim==3)      update_soln_3d_(grid->nxyz, &nguard, soln, unk);
