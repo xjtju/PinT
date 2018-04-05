@@ -1,1 +1,1 @@
-mpirun -host localhost -np 4 ./pfm_alpha.exe src/heat/heat.ini heat.01
+mpirun -host localhost -np 4 ./heat_alpha.exe src/heat/heat.ini heat

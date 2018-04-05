@@ -59,11 +59,11 @@ class Driver {
      * despite it is very small, it will has an unignorable impact on convergency due to  accumulating effect.
      * the "smlr" is the threshold for residual control, when res < smlr, res is regarded as ZERO.
      */
-    inline void pint_sum(Grid *grid, double *u, double *f, double *g, double *g_, double *res, double *sml)  {
+    inline void pint_sum(Grid *grid, double *u, double *f, double *g, double *g_, double *relax_factor, double *res, double *sml)  {
         switch(grid->ndim) {
-            case 1: blas_pint_sum_1d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
-            case 2: blas_pint_sum_2d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
-            case 3: blas_pint_sum_3d_(grid->nxyz, &grid->nguard, u, f, g, g_, res, sml); break;
+            case 1: blas_pint_sum_1d_(grid->nxyz, &grid->nguard, u, f, g, g_, relax_factor, res, sml); break;
+            case 2: blas_pint_sum_2d_(grid->nxyz, &grid->nguard, u, f, g, g_, relax_factor, res, sml); break;
+            case 3: blas_pint_sum_3d_(grid->nxyz, &grid->nguard, u, f, g, g_, relax_factor, res, sml); break;
         }
     }
     

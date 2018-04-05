@@ -150,12 +150,12 @@ end subroutine blas_vdist_3d
 !! If using automatical compiling optimazation, 
 !! the operation order may be changed, it is possible to resulting in a small different result.        
 !! But in most cases, the degree of difference will not affect the final solution. 
-subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, res, sml)
+subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, ix 
     real, dimension( 1-ng:nxyz(1)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2, u_nrm2 
+    real :: factor, res, sml, tmp1, tmp2, u_nrm2 
     res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
@@ -163,7 +163,7 @@ implicit none
 
     ix = nxyz(1)
     do i=1, ix
-        tmp1 = ( g(i) - g_(i) ) + f(i)
+        tmp1 = ( g(i) - g_(i) )*factor + f(i)
         tmp2 = u(i) - tmp1
         u(i) = tmp1
         res    = res    + tmp2*tmp2
@@ -178,12 +178,12 @@ implicit none
 end subroutine blas_pint_sum_1d
 
 !! PinT F = G + F - G  
-subroutine blas_pint_sum_2d(nxyz, ng, u, f, g, g_, res, sml)
+subroutine blas_pint_sum_2d(nxyz, ng, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2, u_nrm2
+    real :: factor, res, sml, tmp1, tmp2, u_nrm2
 
     res = 0.0
     tmp1 = 0.0
@@ -194,7 +194,7 @@ implicit none
     jy = nxyz(2)
     do j=1, jy
     do i=1, ix
-        tmp1 = ( g(i,j) - g_(i,j) ) + f(i,j)
+        tmp1 = ( g(i,j) - g_(i,j) )*factor + f(i,j)
         tmp2 = u(i,j) - tmp1
         u(i,j) = tmp1
         res    = res + tmp2*tmp2
@@ -212,12 +212,12 @@ end subroutine blas_pint_sum_2d
 !! There are several formula of calculating residual value.
 !! Maybe the relative value is better than the absolute mean value in most cases. 
 !! Any way, absolute sum value is not proper because the sum will become bigger as the size of grid increases. 
-subroutine blas_pint_sum_3d(nxyz, ng, u, f, g, g_, res, sml)
+subroutine blas_pint_sum_3d(nxyz, ng, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, k, ix, jy, kz
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng ) :: u, f, g, g_ 
-    real :: res, sml, tmp1, tmp2, u_nrm2; 
+    real :: factor, res, sml, tmp1, tmp2, u_nrm2; 
 
     res = 0.0
     tmp1 = 0.0
@@ -237,7 +237,7 @@ implicit none
     do k=1, kz
     do j=1, jy
     do i=1, ix
-        tmp1 = ( g(i,j,k) - g_(i,j,k) ) + f(i,j,k)
+        tmp1 = ( g(i,j,k) - g_(i,j,k) )*factor + f(i,j,k)
         tmp2 = u(i,j,k) - tmp1
         u(i,j,k) = tmp1
         res    = res + tmp2*tmp2
@@ -254,5 +254,4 @@ implicit none
     if( res < sml ) then 
         res = 0.0
     end if
-
 end subroutine blas_pint_sum_3d

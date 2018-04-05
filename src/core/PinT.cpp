@@ -133,7 +133,7 @@ void PinT::print() {
     printf("  PIPELINED        : %d %s\n", pipelined, pipelined ? "[O]" : "" );
     printf("  SKIP MODE        : %d %s\n", skip_mode, skip_mode ? "[O]" : "" );
     printf("  kpar_limit       : %d\n", kpar_limit);
-    printf("  relaxation factor: %f (%s)\n", relax_factor, "NOT implemented yet");
+    printf("  relaxation factor: %f %s\n", relax_factor, (relax_factor<1.0) ? "[O]" : "" );
     printf("  converge eps     : %e\n", converge_eps);
     printf("  small residual   : %e\n", smlr);
     

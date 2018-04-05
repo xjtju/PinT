@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+# the earlier scripts for plotting a 2D solution from ASCII file 
+# not recommended to use.
+# for HDF5 format, see 2d.py 
+
 import sys
 import os
 import numpy as np
@@ -21,13 +27,7 @@ def main(argv):
 
     xlen = 1.0
     ylen = 1.0
-    posx  = np.zeros(cnt)
-    posy  = np.zeros(cnt)
-    for i in range(cnt):
-        posx[i] = i*xlen/cnt
-        posy[i] = i*ylen/cnt
 
-    labels = ['0.001', '0.01', '0.02', '0.1']
     color = get_color()
     ind = 0
     tmp = np.loadtxt(fname);
@@ -37,6 +37,7 @@ def main(argv):
     plt.colorbar()
     plt.xlabel('X')
     plt.ylabel('Y')
+
     plt.title(fname)
     #axes = plt.gca()
     #axes.set_ylim([-0.1,1.1])

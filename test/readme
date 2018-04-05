@@ -1,4 +1,16 @@
-There are two types of python script in this folder. 
-One is the examples to demonstrate how to read and plot the data from the .h5 output file, including 1d/2d/3d.py
+There are three types of python script in this folder.  
 
-the other is the script for plotting some test data of our experiments.  
+1. The first is the examples to demonstrate how to read and plot the data from the .h5 output file, including :
+
+  1.1 1d/2d/3d.py : for 1D, 2D, 3D respectively. Because matplotlib does not provide 3D-to-2D/1D projection directly, in 3D case, 1D and 2D cross section will be also plotted manully, but the cross section or projection may be incorrect when space parallel is used, you can comment out related code.    
+
+  1.2 1d_pro.py : overlap several solutions from various file in one figure, especially for displayting the evolving process of the solution as the time goes by 
+
+  1.3 soln_vs.py : calculate the deviation between two sultions for the same problem but with different parameters.
+
+2. The second is some early scripts to plot result from ASCII file. NOTE THAT: the ASCII type does not contain the coordinate information, and sometimes for easy reading, it will contain some other auxiliary information, in such cases, you need to edit the text file manully in order to use the two scripts: 1d_text.py, 2d_text.py 
+
+3. The last is the script for plotting some test data in our experiments. At current, only for the Allen-Cahn equation(PFM). These scripts are problem specific.   
+
+
+After all, all the scripts are sample codes, some settings are hard-coded, for examples: figure title, the x/y/z scales, and x/y/z labels etc., you need to make some modifications for you problem.  

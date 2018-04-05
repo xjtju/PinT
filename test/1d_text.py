@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# the earlier script for ploting the result in ASCII format 
+# for ploting the HDF5 file, see the scripts in th 'pfm' directory   
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt 
@@ -9,8 +13,8 @@ def get_color():
 
 def main(argv):
     if(len(argv)<2):
-        print 'usage   : python heat.py input_file count'
-        print 'example : python heat.py 1.txt 100'
+        print 'usage   : python 1d_text.py input_file count'
+        print 'example : python 1d_text.py 1.txt 100'
         return 1
 
     fname = argv[1]

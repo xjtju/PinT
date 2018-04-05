@@ -1,6 +1,6 @@
 #!/bin/bash
-
-TARGET = pfm_alpha.exe
+# there are several option flag to controll the compiling process, 
+# you can activate them or not according the running environment 
 
 _PMLib_ =1
 ifdef _PMLib_ 
@@ -20,6 +20,7 @@ endif
 
 #_HEAT_ = 1
 ifdef _HEAT_
+TARGET = heat_alpha.exe
 HEAT_INC = -Isrc/heat
 HEAT_FSRC = $(wildcard src/heat/*.f90) 
 HEAT_CSRC = $(wildcard src/heat/*.cpp) 
@@ -28,6 +29,7 @@ endif
 
 _PFM_ = 1
 ifdef _PFM_
+TARGET = pfm_alpha.exe
 PFM_INC = -Isrc/pfm
 PFM_FSRC = $(wildcard src/pfm/*.f90) 
 PFM_CSRC = $(wildcard src/pfm/*.cpp) 

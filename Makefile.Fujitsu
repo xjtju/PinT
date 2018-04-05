@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Only for ITO supercomputer in Kyushu University, Japan 
+
 TARGET = ../pint/pint_pfm.exe
 
 _PMLib_ =1

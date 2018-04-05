@@ -62,6 +62,7 @@ def main(argv):
     #p = ax.scatter3D(posx, posy, posz, c=grid, s=1, edgecolor='none', cmap=cm.binary)
     # add a cross section of Z direction for clearly seeing the figure  
     plt.scatter(posx[indxy], posy[indxy], c=xygrid, edgecolor='none')  # x-y plane projection
+    #plt.scatter(posx[indxy], posy[indxy], c=xygrid, edgecolor='none', cmap=cm.binary)  # x-y plane projection
     plt.plot(posx[indx], xgrid, color='yellow', linewidth=3.0)         # x direction plot
     #plt.colorbar()
     fig.colorbar(p)

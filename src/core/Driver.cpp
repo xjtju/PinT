@@ -90,6 +90,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     double *u_end  = g->u_end;  
     double *u_c    = g->u_c;  
     double *u_f    = g->u_f; 
+    double relax_factor = conf->relax_factor;  // convergence accelerator 
 
     int source, dest, tag;
     size_t size = g->size; 
@@ -172,7 +173,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
         // step5: correct the value and calculate the local residual
         //if(!isSkip(k))
-        pint_sum(g, u_end, u_f, u_c, u_cprev, &res_loc, &smlr);  
+        pint_sum(g, u_end, u_f, u_c, u_cprev, &relax_factor, &res_loc, &smlr);  
         //else TRACE("%d, SUM is skiped\n",mytid);
         
         // step6:

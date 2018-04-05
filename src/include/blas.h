@@ -20,8 +20,8 @@ extern "C" {
      * Sometimes, in theory, the residual should be ZERO, but in practice, the calculation value is not ZERO, 
      * despite it is very small, it will has an unignorable impact on convergency due to  accumulating effect.  
      */
-     void blas_pint_sum_1d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *res, double *sml);  
-     void blas_pint_sum_2d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *res, double *sml);  
-     void blas_pint_sum_3d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *res, double *sml);  
+     void blas_pint_sum_1d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
+     void blas_pint_sum_2d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
+     void blas_pint_sum_3d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
 }
 #endif
