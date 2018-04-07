@@ -101,7 +101,7 @@ void PinT::print() {
     printf("  space division   : [%d, %d, %d]\n", spnumx, spnumy, spnumz);
     printf("  guard cells      : %d\n",nguard);
 
-    printf("  boundary type    : %d [%s] (%s)\n",bc_type, "default", "0/1/2 : constant/reflect/customized"); 
+    printf("  boundary type    : %d [%s] (%s)\n",bc_type, "default", "0/1/2 : Dirichlet/Homo Neumann/customized"); 
     printf("  bc_val(type=0)   : %f [%s]\n",bc_val,  "default");
 
     printf("  boundary type xl : %d\n",bc_type_xl);

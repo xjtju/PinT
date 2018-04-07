@@ -27,7 +27,7 @@ unsigned long EulerSolver::evolve() {
 
     // step0: set initial value
     soln = getSoln();     // pointer to the start point  
-    grid->guardcell(soln); // make sure the guardcell is at synchonization state  
+    grid->guardcell(soln); // make sure the guardcell is at synchronization state  
 
     unsigned long counter = 0;
     for(int i=0; i<steps; i++){
@@ -36,7 +36,7 @@ unsigned long EulerSolver::evolve() {
         // step2 : call the solver
         euler(); 
         counter++;
-        grid->guardcell(soln); // do not forget synchonize guardcell 
+        grid->guardcell(soln); // do not forget synchronize guardcell 
     }
     // step3: return latest solution to PinT framework 
     // nothing need to do 

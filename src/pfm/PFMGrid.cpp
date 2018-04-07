@@ -93,8 +93,8 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
     if (MATCH("pfm","ac_beta"))        { pfm->beta = atof(value); }
     if (MATCH("pfm", "newton_itmax"))  { pfm->newton_itmax = atoi(value); }
     if (MATCH("pfm", "theta"))         { pfm->theta = atof(value); }
-    if (MATCH("pfm", "csolver"))         { pfm->csolver = atof(value); }
-    if (MATCH("pfm", "fsolver"))         { pfm->fsolver = atof(value); }
+    if (MATCH("pfm", "csolver"))       { pfm->csolver = atof(value); }
+    if (MATCH("pfm", "fsolver"))       { pfm->fsolver = atof(value); }
 
     return 0;
 }

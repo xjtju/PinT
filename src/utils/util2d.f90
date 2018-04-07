@@ -51,8 +51,8 @@ end subroutine bc_val_2d_b
 
 
 
-!! 2D bounday reflected
-subroutine bc_ref_2d_l(nxyz, ng, p)
+!! 2D bounday homogenerous Neumann, derivative(du/dx)=0 
+subroutine bc_der_2d_l(nxyz, ng, p)
 implicit none
     integer :: ng, sy
     integer, dimension(3) :: nxyz
@@ -60,9 +60,9 @@ implicit none
 
     sy = nxyz(2) + 2*ng 
     p(1-ng:0, 1-ng:sy-ng) = p(1:1, 1-ng:sy-ng) 
-end subroutine bc_ref_2d_l
+end subroutine bc_der_2d_l
 
-subroutine bc_ref_2d_r(nxyz, ng,  p)
+subroutine bc_der_2d_r(nxyz, ng,  p)
 implicit none
     integer :: ng, nx, sy
     integer, dimension(3) :: nxyz
@@ -71,10 +71,10 @@ implicit none
     nx = nxyz(1)
     sy = nxyz(2) + 2*ng 
     p(nx+1:nx+ng, 1-ng:sy-ng) = p(nx:nx, 1-ng:sy-ng)
-end subroutine bc_ref_2d_r
+end subroutine bc_der_2d_r
 
 !! 2D front
-subroutine bc_ref_2d_f(nxyz, ng, p)
+subroutine bc_der_2d_f(nxyz, ng, p)
 implicit none
     integer :: ng, sx
     integer, dimension(3) :: nxyz
@@ -82,10 +82,10 @@ implicit none
     
     sx = nxyz(1)+2*ng
     p(1-ng:sx-ng , 1-ng:0) = p(1-ng:sx-ng , 1:1) 
-end subroutine bc_ref_2d_f    
+end subroutine bc_der_2d_f    
 
 !! 2D back
-subroutine bc_ref_2d_b(nxyz, ng, p)
+subroutine bc_der_2d_b(nxyz, ng, p)
 implicit none
     integer :: ng, sx, ny
     integer, dimension(3) :: nxyz
@@ -95,7 +95,7 @@ implicit none
     sx = nxyz(1)+2*ng
     ny = nxyz(2)
     p(1-ng:sx-ng , ny+1:ny+ng) = p(1-ng:sx-ng , ny:ny) 
-end subroutine bc_ref_2d_b    
+end subroutine bc_der_2d_b    
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! 2D pack and unpack !!

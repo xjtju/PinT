@@ -372,13 +372,13 @@ void Grid::bc_1d(double* d) {
     int ng = nguard;
     
     if(MPI_PROC_NULL==left) {
-        if     ( 0 == bc_type_xl )  bc_val_1d_l_(nxyz, &ng, d, &bc_val_xl); // fixed value
-        else if( 1 == bc_type_xl )  bc_ref_1d_l_(nxyz, &ng, d);          // reflected value 
+        if     ( 0 == bc_type_xl )  bc_val_1d_l_(nxyz, &ng, d, &bc_val_xl); // Dirichlet, fixed value 
+        else if( 1 == bc_type_xl )  bc_der_1d_l_(nxyz, &ng, d);             // Homogenerous Neumann, derivative = 0  
         else if( 2 == bc_type_xl )  bc_1d_l(d);   // customized bc function is called
     }
     if(MPI_PROC_NULL==right){
         if     ( 0 == bc_type_xr )  bc_val_1d_r_(nxyz, &ng, d, &bc_val_xr);
-        else if( 1 == bc_type_xr )  bc_ref_1d_r_(nxyz, &ng, d);
+        else if( 1 == bc_type_xr )  bc_der_1d_r_(nxyz, &ng, d);
         else if( 2 == bc_type_xr )  bc_1d_r(d);
     }
 }
@@ -386,23 +386,23 @@ void Grid::bc_2d(double* d) {
     int ng = nguard;
 
     if(MPI_PROC_NULL==left) {
-        if     ( 0 == bc_type_xl )  bc_val_2d_l_(nxyz, &ng, d, &bc_val_xl); // fixed value
-        else if( 1 == bc_type_xl )  bc_ref_2d_l_(nxyz, &ng, d);          // reflected value 
-        else if( 2 == bc_type_xl )  bc_2d_l(d);   // customized bc function is called
+        if     ( 0 == bc_type_xl )  bc_val_2d_l_(nxyz, &ng, d, &bc_val_xl); 
+        else if( 1 == bc_type_xl )  bc_der_2d_l_(nxyz, &ng, d);           
+        else if( 2 == bc_type_xl )  bc_2d_l(d);   
     }
     if(MPI_PROC_NULL==right){
         if     ( 0 == bc_type_xr )  bc_val_2d_r_(nxyz, &ng, d, &bc_val_xr);
-        else if( 1 == bc_type_xr )  bc_ref_2d_r_(nxyz, &ng, d);
+        else if( 1 == bc_type_xr )  bc_der_2d_r_(nxyz, &ng, d);
         else if( 2 == bc_type_xr )  bc_2d_r(d);
     }
     if(MPI_PROC_NULL==front){
         if     ( 0 == bc_type_yl )  bc_val_2d_f_(nxyz, &ng, d, &bc_val_yl); 
-        else if( 1 == bc_type_yl )  bc_ref_2d_f_(nxyz, &ng, d);          
+        else if( 1 == bc_type_yl )  bc_der_2d_f_(nxyz, &ng, d);          
         else if( 2 == bc_type_yl )  bc_2d_f(d);   
     }
     if(MPI_PROC_NULL==back) {
         if     ( 0 == bc_type_yr )  bc_val_2d_b_(nxyz, &ng, d, &bc_val_yr); 
-        else if( 1 == bc_type_yr )  bc_ref_2d_b_(nxyz, &ng, d);          
+        else if( 1 == bc_type_yr )  bc_der_2d_b_(nxyz, &ng, d);          
         else if( 2 == bc_type_yr )  bc_2d_b(d);  
     }
 }
@@ -414,33 +414,33 @@ void Grid::bc_3d(double *d){
     int ng = nguard;
      
     if(MPI_PROC_NULL==left) {
-        if     ( 0 == bc_type_xl )  bc_val_3d_l_(sxyz, &ng, d, &bc_val_xl); // fixed value
-        else if( 1 == bc_type_xl )  bc_ref_3d_l_(sxyz, &ng, d);          // reflected value 
-        else if( 2 == bc_type_xl )  bc_3d_l(d);   // customized bc function is called
+        if     ( 0 == bc_type_xl )  bc_val_3d_l_(sxyz, &ng, d, &bc_val_xl); 
+        else if( 1 == bc_type_xl )  bc_der_3d_l_(sxyz, &ng, d);          
+        else if( 2 == bc_type_xl )  bc_3d_l(d);   
     }
     if(MPI_PROC_NULL==right){
         if     ( 0 == bc_type_xr )  bc_val_3d_r_(sxyz, &ng, d, &bc_val_xr);
-        else if( 1 == bc_type_xr )  bc_ref_3d_r_(sxyz, &ng, d);
+        else if( 1 == bc_type_xr )  bc_der_3d_r_(sxyz, &ng, d);
         else if( 2 == bc_type_xr )  bc_3d_r(d);
     }
     if(MPI_PROC_NULL==front){
         if     ( 0 == bc_type_yl )  bc_val_3d_f_(sxyz, &ng, d, &bc_val_yl); 
-        else if( 1 == bc_type_yl )  bc_ref_3d_f_(sxyz, &ng, d);          
+        else if( 1 == bc_type_yl )  bc_der_3d_f_(sxyz, &ng, d);          
         else if( 2 == bc_type_yl )  bc_3d_f(d);   
     }
     if(MPI_PROC_NULL==back) {
         if     ( 0 == bc_type_yr )  bc_val_3d_b_(sxyz, &ng, d, &bc_val_yr); 
-        else if( 1 == bc_type_yr )  bc_ref_3d_b_(sxyz, &ng, d);          
+        else if( 1 == bc_type_yr )  bc_der_3d_b_(sxyz, &ng, d);          
         else if( 2 == bc_type_yr )  bc_3d_b(d);  
     }
     if(MPI_PROC_NULL==down) {
         if     ( 0 == bc_type_zl )  bc_val_3d_d_(sxyz, &ng, d, &bc_val_zl); 
-        else if( 1 == bc_type_zl )  bc_ref_3d_d_(sxyz, &ng, d);          
+        else if( 1 == bc_type_zl )  bc_der_3d_d_(sxyz, &ng, d);          
         else if( 2 == bc_type_zl )  bc_3d_d(d);   
     }
     if(MPI_PROC_NULL==up)  {
         if     ( 0 == bc_type_zr )  bc_val_3d_u_(sxyz, &ng, d, &bc_val_zr); 
-        else if( 1 == bc_type_zr )  bc_ref_3d_u_(sxyz, &ng, d);          
+        else if( 1 == bc_type_zr )  bc_der_3d_u_(sxyz, &ng, d);          
         else if( 2 == bc_type_zr )  bc_3d_u(d);  
     }
 }

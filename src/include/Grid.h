@@ -41,7 +41,7 @@ public:
 
     int nguard = 1;
 
-    int bc_type;  // 0: fixed value;  1: reflected; 2: customize
+    int bc_type;  // 0: Dirichlet ;  1: homogeneous Neuman; 2: customize
     double bc_val;
 
     int bc_type_xl = 0;      // left x boundary  

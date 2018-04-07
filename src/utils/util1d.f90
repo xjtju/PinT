@@ -24,8 +24,8 @@ implicit none
     p(nx+1:nx+ng) = val 
 end subroutine bc_val_1d_r
 
-!! reflected bc reft: outer border is equal with the most nearest(neibhbour) cell of inner grid 
-subroutine bc_ref_1d_l(nxyz, ng, p)
+!! homogenerous Neumann bc reft: outer border is equal with the most nearest(neighbour) cell of inner grid 
+subroutine bc_der_1d_l(nxyz, ng, p)
 implicit none
     integer :: ng
     integer :: i, j, k, nx, ny, nz 
@@ -33,9 +33,9 @@ implicit none
     real, dimension(1-ng:nxyz(1)+ng) :: p
 
     p(1-ng:0) = p(1:1) 
-end subroutine bc_ref_1d_l
-!! reflected bc right 
-subroutine bc_ref_1d_r(nxyz, ng, p)
+end subroutine bc_der_1d_l
+!! Neumann bc right 
+subroutine bc_der_1d_r(nxyz, ng, p)
 implicit none
     integer :: ng
     integer :: i, j, k, nx, ny, nz 
@@ -44,7 +44,7 @@ implicit none
 
     nx = nxyz(1)
     p(nx+1:nx+ng) = p(nx:nx) 
-end subroutine bc_ref_1d_r
+end subroutine bc_der_1d_r
 
 !!!!!!!!!!!!!!!!!!!!!!!!
 !! 1D pack and unpack !!

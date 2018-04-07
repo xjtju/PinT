@@ -33,13 +33,13 @@ int pfm_inih(void* obj, const char* section, const char* name, const char* value
  * 7 March 2018 
  * I found a combination of paramters for a steady state in 1/2/3D  
  * D=1, k=16000, beta=0 
- * bc = 'reflected' 
+ * bc = 'Homogenerous Neuman' 
  * initial value : a central segment/square/cube in 1/2/3D is set to 1, otherwise is 0.  
  *
  * 12 March 2018 
  * Using .INI file, we can take more control over boundary conditions, 
  * and obtain another steady configuration without depending k and beta too much   
- * bc_type_xl is 'fixed' at 1, and other borders are 'reflected' 
+ * bc_type_xl is 'fixed' at 1, and other borders are 'Homogenerous Neuman' 
  *  
  * *********************************
  *
@@ -75,7 +75,7 @@ struct PFMParams {
 
     double k;     // interfacial width related
     double d;     // diffuse coefficient 
-    double beta;  // potential engrgy parameter
+    double beta;  // potential energy parameter
     double beta_;       // 0.5-beta
 
     double theta = 0.5;  //Crank-Nicolson; 0: Ex.Euler; 1: Im.Euler

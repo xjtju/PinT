@@ -1,0 +1,27 @@
+1. Allen-Cahn equation
+\frac{\partial \phi }{\partial t} &= RHS \\ &= \lambda\nabla^2\phi-k\phi(\phi-1.0)(\phi-0.5+\beta)
+
+2. RHS
+RHS_i=\frac {\lambda} {\Delta x^2} (\phi_{i-1} - 2.0 \phi_i + \phi_{i+1}) - k \phi (\phi_i-1.0)(\phi_i-0.5+\beta)
+
+3. CN
+F^{CN}_i(\phi_{i-1},\phi_i,\phi_{i+1}) = \phi^l_i - \phi^{l-1}_i - 0.5\delta T(RHS^l_i + RHS^{l-1}_i)=0
+
+4. BD4
+F^{BD4}_i(\phi_{i-1},\phi_i,\phi_{i+1}) = 25\phi^l_i + (-48\phi^{l-1}_i + 36\phi^{l-2}_i + 16\phi^{l-3}_i + 3\phi^{l-4}_i) - 12\delta T \cdot RHS^l_i = 0
+
+5. Newton
+\big[ \frac{\partial F_i}{\partial \phi_{i-1}} , \frac{\partial F_i}{\partial \phi_{i}}, \frac{\partial F_i}{\partial \phi_{i+1}} \big] \begin{Bmatrix} d\phi^l_{i-1} \\  d\phi^l_{i1} \\ d\phi^l_{i+1} \end{Bmatrix}^k = -F_i(\phi^{l,k-1}_{i-1}, \phi^{l,k-1}_{i}, \phi^{l,k-1}_{i+1})
+
+
+6. detail
+
+CN G1/G2
+F^l_i &=\phi^i_i - \phi^{l-1}_i - \Delta t \left\{ \theta \cdot RHS^l_i + (1- \theta) \cdot RHS^{l-1}_i \right\} \\ &= \phi^i_i - \phi^{l-1}_i - \theta \cdot G2 - (1- \theta ) \cdot G1 
+
+G2 = \frac {\Delta t \lambda}{\Delta x^2}(\phi^l_{i-1}-2 \phi^l_i + \phi^l_{i+1}) - \Delta t k \phi^l_i(\phi^l_i-1.0)(\phi^l_i-0.5+\beta)
+
+G1 = \frac {\Delta t \lambda}{\Delta x^2}(\phi^{l-1}_{i-1}-2 \phi^{l-1}_i + \phi^{l-1}_{i+1}) - \Delta t k \phi^{l-1}_i(\phi^{l-1}_i-1.0)(\phi^{l-1}_i-0.5+\beta)
+
+BD4 G1
+F^l_i = & 25\phi^l_i + (-48\phi^{l-1}_i + 36\phi^{l-2}_i + 16\phi^{l-3}_i + 3\phi^{l-4}_i) \\ & - 12\left\{ \frac {\Delta t \lambda}{\Delta x^2}(\phi^l_{i-1}-2 \phi^l_i + \phi^l_{i+1}) - \Delta t k \phi^l_i(\phi^l_i-1.0)(\phi^l_i-0.5+\beta) \right\} \\ = & 25\phi^l_i +  G1 -12G2

@@ -81,7 +81,12 @@ public:
     
     int nguard = 1; // the nguard cell number 
 
-    int bc_type =0; // boundary type. 0:always unchanged, default is ZERO; 1: reflect; 2: customized 
+    // boundary type. 
+    //   0: Dirichlet, constant value, default is ZERO; 
+    //   1: homogeneous Neumann, derivative at border = 0, that is  U_{n+1} = U_{n}
+    //   2: customized 
+    int bc_type =0; 
+
     double bc_val = 0.0; // valid when bc_type=0 
     // more detailedly control over the boundary  
     int bc_type_xl =0;      // left  x boundary  

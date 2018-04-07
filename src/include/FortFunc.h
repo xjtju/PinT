@@ -8,8 +8,8 @@ extern "C" {
     void bc_val_1d_l_(int* nxyz, int *ng, double* p, double *val);
     void bc_val_1d_r_(int* nxyz, int *ng, double* p, double *val);
 
-    void bc_ref_1d_l_(int* nxyz, int *ng, double* p);
-    void bc_ref_1d_r_(int* nxyz, int *ng, double* p);
+    void bc_der_1d_l_(int* nxyz, int *ng, double* p);
+    void bc_der_1d_r_(int* nxyz, int *ng, double* p);
 
     void packgc_1d_l_(int* nxyz, int *ng, double* p, double* gdata);
     void packgc_1d_r_(int* nxyz, int *ng, double* p, double* gdata);
@@ -25,10 +25,10 @@ extern "C" {
     void bc_val_2d_f_(int* nxyz, int *ng, double* p, double *val);
     void bc_val_2d_b_(int* nxyz, int *ng, double* p, double *val);
 
-    void bc_ref_2d_l_(int* nxyz, int *ng, double* p);
-    void bc_ref_2d_r_(int* nxyz, int *ng, double* p);
-    void bc_ref_2d_f_(int* nxyz, int *ng, double* p);
-    void bc_ref_2d_b_(int* nxyz, int *ng, double* p);
+    void bc_der_2d_l_(int* nxyz, int *ng, double* p);
+    void bc_der_2d_r_(int* nxyz, int *ng, double* p);
+    void bc_der_2d_f_(int* nxyz, int *ng, double* p);
+    void bc_der_2d_b_(int* nxyz, int *ng, double* p);
 
     // left right : X
     void packgc_2d_l_(int* nxyz, int *ng, double* p, double* gdata);
@@ -57,8 +57,8 @@ extern "C" {
 
     void bc_val_3d_l_(int* sxyz, int *ng, double* p, double *val);
     void bc_val_3d_r_(int* sxyz, int *ng, double* p, double *val);
-    void bc_ref_3d_l_(int* sxyz, int *ng, double* p );
-    void bc_ref_3d_r_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_l_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_r_(int* sxyz, int *ng, double* p );
 
     // front back : Y
     void packgc_3d_f_(int* sxyz, int *ng, double* p, double* gdata);
@@ -68,8 +68,8 @@ extern "C" {
 
     void bc_val_3d_f_(int* sxyz, int *ng, double* p, double *val);
     void bc_val_3d_b_(int* sxyz, int *ng, double* p, double *val);
-    void bc_ref_3d_f_(int* sxyz, int *ng, double* p );
-    void bc_ref_3d_b_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_f_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_b_(int* sxyz, int *ng, double* p );
   
 
     // down up : Z
@@ -81,8 +81,8 @@ extern "C" {
 
     void bc_val_3d_d_(int* sxyz, int *ng, double* p, double *val);
     void bc_val_3d_u_(int* sxyz, int *ng, double* p, double *val);
-    void bc_ref_3d_d_(int* sxyz, int *ng, double* p );
-    void bc_ref_3d_u_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_d_(int* sxyz, int *ng, double* p );
+    void bc_der_3d_u_(int* sxyz, int *ng, double* p );
 
 
 

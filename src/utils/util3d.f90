@@ -29,7 +29,7 @@ implicit none
     p(nx+1:nx+ng, 1:sy, 1:sz) = val 
 end subroutine bc_val_3d_r
 
-subroutine bc_ref_3d_l(sxyz, ng, p)
+subroutine bc_der_3d_l(sxyz, ng, p)
 implicit none
     integer :: ng, sy, sz
     integer, dimension(3) :: sxyz
@@ -38,9 +38,9 @@ implicit none
     sy = sxyz(2) 
     sz = sxyz(3) 
     p(1-ng:0, 1:sy, 1:sz) = p(1:1, 1:sy, 1:sz); 
-end subroutine bc_ref_3d_l
+end subroutine bc_der_3d_l
 
-subroutine bc_ref_3d_r(sxyz, ng, p)
+subroutine bc_der_3d_r(sxyz, ng, p)
 implicit none
     integer :: ng, sy, sz, nx
     integer, dimension(3) :: sxyz
@@ -50,7 +50,7 @@ implicit none
     sy = sxyz(2) 
     sz = sxyz(3) 
     p(nx+1:nx+ng, 1:sy, 1:sz) = p(nx:nx, 1:sy, 1:sz)  
-end subroutine bc_ref_3d_r
+end subroutine bc_der_3d_r
 
 !! 3D's guard cell of X direction is a cuboid (ng:Y:Z), Y-Z cross section 
 subroutine packgc_3d_l(sxyz, ng, p, gdata)
@@ -132,7 +132,7 @@ implicit none
     p(1:sx, ny+1:ny+ng, 1:sz) = val 
 end subroutine bc_val_3d_b
 
-subroutine bc_ref_3d_f(sxyz, ng, p)
+subroutine bc_der_3d_f(sxyz, ng, p)
 implicit none
     integer :: ng, sx, sz
     integer, dimension(3) :: sxyz
@@ -142,9 +142,9 @@ implicit none
     sx = sxyz(1) 
     sz = sxyz(3) 
     p(1:sx, 1-ng:0, 1:sz) = p(1:sx, 1:1, 1:sz) 
-end subroutine bc_ref_3d_f
+end subroutine bc_der_3d_f
 
-subroutine bc_ref_3d_b(sxyz, ng, p)
+subroutine bc_der_3d_b(sxyz, ng, p)
 implicit none
     integer :: ng, sx, sz, ny
     integer, dimension(3) :: sxyz
@@ -155,7 +155,7 @@ implicit none
     sx = sxyz(1) 
     sz = sxyz(3) 
     p(1:sx, ny+1:ny+ng, 1:sz) = p(1:sx, ny:ny, 1:sz) 
-end subroutine bc_ref_3d_b
+end subroutine bc_der_3d_b
 
 subroutine packgc_3d_f(sxyz, ng, p, gdata)
 implicit none
@@ -236,7 +236,7 @@ implicit none
     p(1:sx, 1:sy, nz+1:nz+ng) = val 
 end subroutine bc_val_3d_u
 
-subroutine bc_ref_3d_d(sxyz, ng, p)
+subroutine bc_der_3d_d(sxyz, ng, p)
 implicit none
     integer :: ng, sx, sy
     integer, dimension(3) :: sxyz
@@ -245,9 +245,9 @@ implicit none
     sx = sxyz(1) 
     sy = sxyz(2) 
     p(1:sx, 1:sy, 1-ng:0) = p(1:sx, 1:sy, 1:1) 
-end subroutine bc_ref_3d_d
+end subroutine bc_der_3d_d
 
-subroutine bc_ref_3d_u(sxyz, ng, p)
+subroutine bc_der_3d_u(sxyz, ng, p)
 implicit none
     integer :: ng, sx, sy, nz
     integer, dimension(3) :: sxyz
@@ -257,7 +257,7 @@ implicit none
     sy = sxyz(2) 
     nz = sxyz(3) - 2*ng
     p(1:sx, 1:sy, nz+1:nz+ng) = p(1:sx, 1:sy, nz:nz) 
-end subroutine bc_ref_3d_u
+end subroutine bc_der_3d_u
 
 subroutine packgc_3d_d(sxyz, ng, p, gdata)
 implicit none
