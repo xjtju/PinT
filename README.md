@@ -171,7 +171,7 @@ From the above sample codes, in most cases it is not necessary for users to care
 <p align="center"><img src="./doc/images/usage.png" align="center" height="250px"></img></p>
 
 
-For more comprehensive examples and usages, please check the wiki and the 'pfm' directory. PFM stands for Phase Field Model, we implemented two solvers for a simplied  Allen-Cahn equation. All 1D/2D/3D are supported, OpenMP is also used to accelerate matrix calculations further in multi-core envirement.  Examples for customized boundary condition and problem-specific configuration are also located in 'pfm'.
+For more comprehensive examples and usages, please check the wiki and the 'pfm' directory. PFM stands for Phase Field Model, we implemented two solvers for a simplied  Allen-Cahn equation. All 1D/2D/3D are supported, OpenMP is also used to accelerate matrix calculations further in multi-core envirement.  Examples for customized boundary condition and problem-specific configuration are also located in 'pfm'. A step by step tutorial of developing a space-time parallel solver for Allen-Cahn equation is at the 'doc' directory.
 
 ## Build
 
