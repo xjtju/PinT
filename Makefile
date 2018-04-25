@@ -2,7 +2,7 @@
 # there are several option flag to controll the compiling process, 
 # you can activate them or not according the running environment 
 
-_PMLib_ =1
+#_PMLib_ =1
 ifdef _PMLib_ 
 PMLIB_HOME = /Users/bamboo/Libs/PMlib
 PMLIB_INC  = -I${PMLIB_HOME}/include 

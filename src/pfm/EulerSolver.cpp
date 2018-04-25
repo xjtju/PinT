@@ -18,7 +18,14 @@ EulerSolver::EulerSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     
 void EulerSolver::setup(){
     beta_ = param.beta_;       
-    dtk   = param.dtk;         
+    dtk   = param.dtk;
+    dsize = size*conf->num_std;
+    if(conf->num_std == 4){
+        soln_1 = alloc_mem(size);
+        soln_2 = alloc_mem(size);
+        soln_3 = alloc_mem(size);
+        slns   = alloc_mem(dsize);
+    }
 }
 /**
  * Forward Euler, 1st order
@@ -44,7 +51,20 @@ unsigned long EulerSolver::evolve() {
 }
 
 void EulerSolver::euler() {
+    if(conf->num_std == 4) {
+        blas_cp_(soln_3, soln_2, &size); 
+        blas_cp_(soln_2, soln_1, &size); 
+        blas_cp_(soln_1, soln, &size); 
+    }
 
     rhs();    // calcaluate RHS 
-    update(); // Xn+1 = Xn + RHS (delta) 
+    update(); // Xn+1 = Xn + RHS (delta)
+}
+
+double* EulerSolver::curr_solns(){
+    if(conf->num_std == 4) {
+        bd4_pack_(slns, soln_3, soln_2, soln_1, soln, &size);
+        return slns;
+    }
+    else return getSoln();  
 }

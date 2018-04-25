@@ -20,13 +20,27 @@ protected:
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
 
+    size_t dsize; 
+    double *soln_1;
+    double *soln_2;
+    double *soln_3;
+    double *slns;
+
     void euler();
 
 public:
     EulerSolver(PinT *c, Grid *g); 
     EulerSolver(PinT *c, Grid *g, bool isFS); 
 
-    virtual ~EulerSolver() {}
+    virtual ~EulerSolver() {
+        if(conf->num_std == 4) {
+            free_mem(soln_1);
+            free_mem(soln_2);
+            free_mem(soln_3);
+            free_mem(slns);
+        }
+    }
+    virtual double* curr_solns();
 
     unsigned long evolve(); // Forward method iteration 
 

@@ -5,7 +5,7 @@
 #include "pfm.h"
 #include "PFMParams.h"
 #include "NewtonSolver.h"
-
+#include "Driver.h"
 /*
  * The 4th order backward differentiation formula for Allen-Cahn Equation
  * 
@@ -17,13 +17,19 @@ private:
     void setup();
     void create_holder(); 
 
-    double *soln_2;  // the holder of -F^{n-2} 
-    double *soln_3;  // the holder of -F^{n-3}  
-    double *soln_4;  // the holder of -F^{n-4} 
+    double *soln_2;  // the holder of U^{l-2} 
+    double *soln_3;  // the holder of U^{l-3}  
+    double *soln_4;  // the holder of U^{l-4}, where 'l' is the index of timestep  
 
+    double *prevslns;
+    double *slns;
+    double *sbuf;
+    double *rbuf;
+    
     PFMParams param;
     double dtk;
     double beta_;
+    size_t dsize;
 
 public:
     BD4Solver(PinT *c, Grid *g) ; 
@@ -33,6 +39,10 @@ public:
         free_mem(soln_2);
         free_mem(soln_3);
         free_mem(soln_4);
+        free_mem(sbuf);
+        free_mem(rbuf);
+        free_mem(prevslns);
+        free_mem(slns);
         if(grid->myid==0 && conf->verbose)
             printf("INFO: the memory allocate by BD4Solver has been released.\n");
     }
@@ -43,6 +53,34 @@ protected:
     virtual void update_holder();
     virtual void init_holder();
 
+
+     virtual double* prev_solns() {
+         return prevslns;
+     }
+
+     virtual double* curr_solns();
+
+     // preserve the solution of coarse solver
+     virtual void backup_prevs();
+
+     // pack and unpack the send/recv data for BD4 
+    virtual void pack();   
+    virtual void unpack(); 
+
+    virtual size_t varsize() { // the size of send/recv variables
+        return dsize; 
+    }
+    
+    virtual double* sendslns() {
+        return sbuf; 
+    }
+     // unpack the received content into local variable(s) 
+    virtual double* recvslns() {
+        return rbuf;  
+    }
+     // write back the final solution (u_end) from correction item (Driver.pint_sum) 
+    virtual void update_uend();
+    
     virtual void rhs() {
         if(ndim==3)      rhs_ac_bd4_3d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, soln_1, G1, &dtk, &beta_);
         else if(ndim==2) rhs_ac_bd4_2d_(grid->nxyz, param.lamdaxyz, &nguard, b, soln, soln_1, G1, &dtk, &beta_);

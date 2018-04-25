@@ -154,7 +154,8 @@ public:
 
     int verbose = 0 ; // output some verbose information for debugging during execution
 
-    
+    int num_std = 1 ; // the number of preserved structures 
+
     const static int LS_BiCG_ID= 0;
     const static int LS_SOR_ID = 1;
 

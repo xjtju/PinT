@@ -14,6 +14,9 @@
  *  Proper differentiation formulas can be easily implemented by overwriting all the virtual functions.
  *  See the CNSolver (Crank-Nicolson) and BD4Solver (4th order backward euler) for example in PFM.
  *
+ *  NOTE :
+ *    the template is not a general implementation of Newton-Raphson method, 
+ *    we coupled it with CN and BD4 in some degree, see the doc/tutorial for detail. 
  */
 
 class NewtonSolver : public Solver {
@@ -61,17 +64,20 @@ protected:
 
     double *soln;   // the current solution, pointer to the grid->u_f/u_c
     // structure preservation 
-    double *soln_1;  // the holder of -F^{k-1} in Newton's method when applying to nonlinear systems of equations 
+    double *soln_1;  // the holder of U^{l-1} in Newton's method when applying to nonlinear systems of equations 
 
     /** 
      * the U^{n-1} part of RHS,
-     *    CN : F^{n} = U^{n}-U^{n-1} - theta*G2 - (1-theta)*G1 
-     *   BD4 : F^{n} = 25*U^{n} + G1 - 12*G2
+     *    CN : F^{n} = U^{l}-U^{l-1} - theta*G2 - (1-theta)*G1 
+     *   BD4 : F^{n} = 25*U^{l} + G1 - 12*G2, where 'l' is the index of time step
      * Because there are iterations in Newton method, the G1 is calcaluated just once before entering iterations, 
-     * but G2 is necessary to be re-calcaluated in each iteration, so G1 is reserved for reuse, and G2 is temporary.     
+     * but G2 is necessary to be re-calcaluated in each iteration, 
+     * so G1 is reserved for reuse, and G2 is temporary.     
      */
-    double *G1;      
-    double *unk;     // the unknown 'x' of Ax=b, that is (U_{n+1} - U_{n}) in Newton's method 
+    double *G1;     
+
+    // the unknown 'x' of Ax=b, that is (U^{k+1}_n - U^{k}_n) in Newton's method, k is the iteration number 
+    double *unk;     
 
     int newton_raphson(); // the template of New-Raphson method iteration 
     
@@ -80,8 +86,10 @@ protected:
      */
     void chk_eps(double *err); 
 
-    // init previous solution holder for backward method, the structure preservation
-    // at the starting, all of them are identical to the initial condition of the problem 
+    // init previous solution holder for backward method
+    // at the starting of the first time slice, all of holders are identical to the initial condition of the problem 
+    // but for other time slices, them are received from the previous slice   
+    // NOTE that: there is only one holder for standard parareal  
     virtual void init_holder() {
         blas_cp_(soln_1, soln, &size); 
     }

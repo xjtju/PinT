@@ -7,7 +7,7 @@ unsigned long NewtonSolver::evolve() {
     soln = getSoln();        // pointer to the start point  
     grid->guardcell(soln);   // make sure the guardcell is synchonized  
 
-    init_holder();        // init holders from latest solution
+    init_holder();        // init holders from latest solution at the start of the current time slice
     blas_clear_(unk, &size);
 
     unsigned counter = 0;
@@ -39,7 +39,8 @@ int NewtonSolver::newton_raphson() {
     int iter = 0; 
 
     for(int i=0; i<newton_itmax; i++) {
-        // step1 : set initial guess value
+        // step1 : set initial guess value 
+        // the initial guess of unk must be consistent with the value of soln 
         blas_clear_(unk, &size);
      
         // step2 : calcaluate RHS: b 

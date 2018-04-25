@@ -90,6 +90,11 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     double *u_end  = g->u_end;  
     double *u_c    = g->u_c;  
     double *u_f    = g->u_f; 
+
+    double *sendslns = G->sendslns();
+    double *recvslns = G->recvslns();
+    size_t varsize = G->varsize();
+
     double relax_factor = conf->relax_factor;  // convergence accelerator 
 
     int source, dest, tag;
@@ -103,7 +108,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     if(isRecvSlice(1)) {
         source = myid - spnum;
         tag = myid*100;
-        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+        MPI_Recv(recvslns, varsize, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+        G->unpack();
     } 
     monitor.stop(Monitor::RECV);
 
@@ -113,7 +119,9 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     monitor.start(Monitor::CSolver);
     blas_cp_(u_c, u_start, &size);  
     icount = G->evolve();
-    monitor.stop(Monitor::CSolver, 1 ,icount);
+    // in order to unify the process flow of send/recv, in a sence, u_c can be regarded as u_end at the init step 
+    blas_cp_(u_end, u_c, &size);  
+    monitor.stop(Monitor::CSolver, 1, icount);
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
@@ -121,7 +129,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
-        ierr = MPI_Rsend(u_c, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
+        G->pack(); //pack is necessary only at initialization of parareal
+        ierr = MPI_Rsend(sendslns, varsize, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
     monitor.stop(Monitor::SEND);
 
@@ -140,8 +149,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         kpar = kpar + 1;
         
         // step1:
-        blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
-
+        //blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
+        G->backup_prevs();
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
         monitor.start(Monitor::FSolver);
         blas_cp_(u_f, u_start, &size);
@@ -151,7 +160,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.stop(Monitor::FSolver, 1, icount);
 
         if( kpar==1 ) {
-            blas_cp_(u_end, u_f, &size); 
+            blas_cp_(sendslns, F->curr_solns(), &varsize); 
         }
         
         // step3:
@@ -159,7 +168,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         if(isRecvSlice(k)){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
-	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+	        MPI_Recv(recvslns, varsize, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+            G->unpack();
         } else TRACE("SKIP RECV : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::RECV);
         // step4:
@@ -173,7 +183,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
 
         // step5: correct the value and calculate the local residual
         //if(!isSkip(k))
-        pint_sum(g, u_end, u_f, u_c, u_cprev, &relax_factor, &res_loc, &smlr);  
+        pint_sum(g, &conf->num_std, sendslns, F->curr_solns(), G->curr_solns(), G->prev_solns(), &relax_factor, &res_loc, &smlr);  
+        G->update_uend(); //make sure the u_end has the latest solution 
         //else TRACE("%d, SUM is skiped\n",mytid);
         
         // step6:
@@ -181,7 +192,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         if(isSendSlice(k)){
 	        dest = myid + spnum;
 	        tag  = (myid + spnum)*100 + kpar;
-	        ierr = MPI_Send(u_end, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
+            //there, pack is unnecessary
+	        ierr = MPI_Send(sendslns, varsize, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
         } else TRACE("SKIP SEND : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::SEND); 
 
@@ -225,7 +237,7 @@ void Driver::finalize(bool pfile) {
 
     //Sometimes, profiling information cannot be completely written into common files like above in HPC environments,
     //but stdout/stderr has no problem.  
-    monitor.print(stderr, "The TAO of Programming", "The PinT performance test framework");
+    monitor.print(stderr, "ITO supercomputer in Kyushu University", "The PinT performance test framework");
     monitor.printDetail(stderr);
 
     MPI_Finalize();

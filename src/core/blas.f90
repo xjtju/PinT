@@ -8,6 +8,15 @@ implicit none
     d(1:size) = s(1:size)
 end subroutine blas_cp
 
+subroutine blas_cp2(d, s, l1, l2, i1, i2)
+implicit none
+    integer :: l1, l2, i1, i2 
+    real, dimension(1: l1) :: d  
+    real, dimension(1: l2 ) :: s  
+
+    d(1:l1) = s(i1:i2)
+end subroutine blas_cp2 
+
 subroutine blas_clear(d, size)
 implicit none
     integer :: size
@@ -150,6 +159,20 @@ end subroutine blas_vdist_3d
 !! If using automatical compiling optimazation, 
 !! the operation order may be changed, it is possible to resulting in a small different result.        
 !! But in most cases, the degree of difference will not affect the final solution. 
+
+subroutine blas_pint_sum_1dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i, ix 
+    real, dimension( 1-ng:nxyz(1)+ng,1:num ) :: u, f, g, g_ 
+    real :: factor, res, sml, tmp1, tmp2, u_nrm2, val 
+    
+    do i=1, num 
+        call blas_pint_sum_1d(nxyz, ng, u(:,i), f(:,i), g(:,i), g_(:,i), factor, res, sml)
+    end do  
+
+end subroutine blas_pint_sum_1dn 
+
 subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
