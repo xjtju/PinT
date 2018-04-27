@@ -62,8 +62,8 @@ class Driver {
     inline void pint_sum(Grid *grid, int* num, double *u, double *f, double *g, double *g_, double *relax_factor, double *res, double *sml)  {
         switch(grid->ndim) {
             case 1: blas_pint_sum_1dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
-            case 2: blas_pint_sum_2d_(grid->nxyz, &grid->nguard, u, f, g, g_, relax_factor, res, sml); break;
-            case 3: blas_pint_sum_3d_(grid->nxyz, &grid->nguard, u, f, g, g_, relax_factor, res, sml); break;
+            case 2: blas_pint_sum_2dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
+            case 3: blas_pint_sum_3dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
         }
     }
 

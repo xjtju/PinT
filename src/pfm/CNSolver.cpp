@@ -13,8 +13,8 @@ CNSolver::CNSolver(PinT *c, Grid *g, bool isFS) : NewtonSolver(c,g,isFS){
     setup();
 
     if(0 == grid->myid)
-        if(isFS) param.printLamda("Fine   Solver"); 
-        else     param.printLamda("Coarse Solver"); 
+        if(isFS) param.printLamda("CN Fine Solver"); 
+        else     param.printLamda("CN Coar Solver"); 
 }
 
 // set diffuse coefficient and tune the default parameter, problem specific
@@ -44,7 +44,7 @@ void CNSolver::setup(){
 
 double* CNSolver::curr_solns(){
     if(conf->num_std == 4) {
-        bd4_pack_(slns, soln_3, soln_2, soln_1, soln, &size);
+        bd4_pack_(slns, soln_3, soln_2, soln_1, getSoln(), &size);
         return slns;
     }
     else return getSoln();  
@@ -54,5 +54,5 @@ void CNSolver::update_holder(){
         blas_cp_(soln_3, soln_2, &size); 
         blas_cp_(soln_2, soln_1, &size); 
     }
-    blas_cp_(soln_1, soln,   &size);
+    blas_cp_(soln_1, getSoln(),   &size);
 }

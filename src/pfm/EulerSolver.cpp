@@ -12,7 +12,7 @@ EulerSolver::EulerSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     param.init(c, g, isFS);
     setup();
     if(0 == grid->myid)
-        if(isFS) param.printLamda("Fine   Solver"); 
+        if(isFS) param.printLamda("EU Fine Solver"); 
         else fprintf(stderr, "WARN : EulerSolver is used as coarse solver, unstable !"); 
 }
     
@@ -54,7 +54,7 @@ void EulerSolver::euler() {
     if(conf->num_std == 4) {
         blas_cp_(soln_3, soln_2, &size); 
         blas_cp_(soln_2, soln_1, &size); 
-        blas_cp_(soln_1, soln, &size); 
+        blas_cp_(soln_1, getSoln(), &size); 
     }
 
     rhs();    // calcaluate RHS 
@@ -63,7 +63,7 @@ void EulerSolver::euler() {
 
 double* EulerSolver::curr_solns(){
     if(conf->num_std == 4) {
-        bd4_pack_(slns, soln_3, soln_2, soln_1, soln, &size);
+        bd4_pack_(slns, soln_3, soln_2, soln_1, getSoln(), &size);
         return slns;
     }
     else return getSoln();  

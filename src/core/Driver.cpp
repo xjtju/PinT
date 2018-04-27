@@ -159,22 +159,22 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //else TRACE("%d, F is skiped\n",mytid);
         monitor.stop(Monitor::FSolver, 1, icount);
 
-        if( kpar==1 ) {
-            blas_cp_(sendslns, F->curr_solns(), &varsize); 
-        }
-        
         // step3:
          monitor.start(Monitor::RECV); 
         if(isRecvSlice(k)){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
 	        MPI_Recv(recvslns, varsize, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
-            G->unpack();
         } else TRACE("SKIP RECV : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::RECV);
+
         // step4:
-        
         monitor.start(Monitor::CSolver);
+        if((mytid==0) && (kpar==1) ) {
+            blas_cp_(sendslns, G->curr_solns(), &varsize);
+        } 
+        if(mytid!=0) G->unpack();
+
         blas_cp_(u_c, u_start, &size); 
         //if(!isSkip(k)) 
         icount = G->evolve();
@@ -182,10 +182,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.stop(Monitor::CSolver, 1, icount);
 
         // step5: correct the value and calculate the local residual
-        //if(!isSkip(k))
+        //if(!isSkip(k)) {
         pint_sum(g, &conf->num_std, sendslns, F->curr_solns(), G->curr_solns(), G->prev_solns(), &relax_factor, &res_loc, &smlr);  
         G->update_uend(); //make sure the u_end has the latest solution 
-        //else TRACE("%d, SUM is skiped\n",mytid);
+        //}else TRACE("%d, SUM is skiped\n",mytid);
         
         // step6:
         monitor.start(Monitor::SEND); 
@@ -259,21 +259,20 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
     double *u_cprev = g->u_cprev;  
     double *u_end  = g->u_end;  
     double *u_f    = g->u_f;
-    double cdist, fdist;
+    double cdist;
 
     if(debug && (mysid==0)){
         res_loc = sqrt(res_loc);
         vector_dist(g, u_c,   u_cprev,&cdist); 
-        vector_dist(g, u_end, u_f,    &fdist); 
-        printf("kpar:%d, mytid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, mytid, cdist, fdist, res_loc); 
+        printf("kpar:%d, mytid:%d, cvdist:%13.8e, loc_res:%13.8e\n", kpar, mytid, cdist, res_loc); 
     }
     // Fine solver has already evolved over the time slice, local residual should be ZERO
-    if(mytid == kpar-1){ 
+    // mytid starts from ZERO, kpar starts from ONE
+    if(mytid == kpar-2){ 
         if(res_loc > 0 ) {
             res_loc = sqrt(res_loc);
             vector_dist(g, u_c,   u_cprev, &cdist); 
-            vector_dist(g, u_end, u_f,     &fdist); 
-            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, mytid:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, mytid, myid, cdist, fdist, res_loc); 
+            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, mytid:%d, myid:%d, cvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, mytid, myid, cdist, res_loc); 
         }
     }
 
@@ -300,7 +299,7 @@ void Driver::INFO(const char* fmt, ...) {
 
 void Driver::WARN(const char* fmt, ...) {
 
-    if(myid != 0) return ;
+    //if(myid != 0) return ;
     int ret; 
     va_list args;
 

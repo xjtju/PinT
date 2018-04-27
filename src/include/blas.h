@@ -26,5 +26,7 @@ extern "C" {
      void blas_pint_sum_3d_(int *nxyz, int *ng, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
 
      void blas_pint_sum_1dn_(int *nxyz, int *ng, int *num, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
+     void blas_pint_sum_2dn_(int *nxyz, int *ng, int *num, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
+     void blas_pint_sum_3dn_(int *nxyz, int *ng, int *num, double *u, double *f, double *g, double *g_, double *factor, double *res, double *sml);  
 }
 #endif

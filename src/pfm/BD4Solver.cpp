@@ -10,8 +10,8 @@ BD4Solver::BD4Solver(PinT *c, Grid *g, bool isFS) : NewtonSolver(c,g,isFS) {
     setup(); 
 
     if(0 == grid->myid)
-        if(isFS) param.printLamda("Fine   Solver"); 
-        else     param.printLamda("Coarse Solver"); 
+        if(isFS) param.printLamda("BD Fine Solver"); 
+        else     param.printLamda("BD Coar Solver"); 
 } 
 
 void BD4Solver::setup() {
@@ -51,14 +51,14 @@ void BD4Solver::unpack() {
 }
 
 double* BD4Solver::curr_solns(){
-     bd4_pack_(slns, soln_3, soln_2, soln_1, soln, &size);
+     bd4_pack_(slns, soln_3, soln_2, soln_1, getSoln(), &size);
      return slns; 
 }
 
 void BD4Solver::backup_prevs() 
 {
     blas_cp_(prevslns, this->curr_solns(), &dsize);  
-    blas_cp_(grid->u_cprev, grid->u_c, &size);
+    blas_cp_(grid->u_cprev, getSoln(), &size);
 }
 
 void BD4Solver::update_uend() {
@@ -67,20 +67,20 @@ void BD4Solver::update_uend() {
 
 // initialization for the first time slice is different for the other slices
 // 1     : soln1/2/3/4=soln
-// others: unpack
+// others: unpack, nothing need to do here
 void BD4Solver::init_holder() {
     if(conf->mytid == 0) {
-        blas_cp_(soln_4, soln, &size); 
-        blas_cp_(soln_3, soln, &size); 
-        blas_cp_(soln_2, soln, &size); 
-        blas_cp_(soln_1, soln, &size);
+        blas_cp_(soln_4, getSoln(), &size); 
+        blas_cp_(soln_3, getSoln(), &size); 
+        blas_cp_(soln_2, getSoln(), &size); 
+        blas_cp_(soln_1, getSoln(), &size);
     }
-//    printf("mytid:%d, bd4 solns: %e, %e, %e, %e \n",conf->mytid, soln_1[size/4], soln_2[size/4], soln_3[size/4], soln_4[size/4]);
 }
 
+// update four solns in order 
 void BD4Solver::update_holder(){
     blas_cp_(soln_4, soln_3, &size); 
     blas_cp_(soln_3, soln_2, &size); 
     blas_cp_(soln_2, soln_1, &size); 
-    blas_cp_(soln_1, soln,   &size);
+    blas_cp_(soln_1, getSoln(),   &size);
 }

@@ -163,27 +163,50 @@ end subroutine blas_vdist_3d
 subroutine blas_pint_sum_1dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
-    integer :: ng, num, i, ix 
-    real, dimension( 1-ng:nxyz(1)+ng,1:num ) :: u, f, g, g_ 
-    real :: factor, res, sml, tmp1, tmp2, u_nrm2, val 
-    
+    integer :: ng, num, i   
+    real, dimension( 1:nxyz(1),1:num ) :: u, f, g, g_ 
+    real :: factor, res, sml  
     do i=1, num 
         call blas_pint_sum_1d(nxyz, ng, u(:,i), f(:,i), g(:,i), g_(:,i), factor, res, sml)
     end do  
-
 end subroutine blas_pint_sum_1dn 
+
+subroutine blas_pint_sum_2dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i, ix 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1:num ) :: u, f, g, g_ 
+    real :: factor, res, sml 
+    do i=1, num 
+        call blas_pint_sum_2d(nxyz, ng, u(:,:,i), f(:,:,i), g(:,:,i), g_(:,:,i), factor, res, sml)
+    end do  
+end subroutine blas_pint_sum_2dn 
+
+subroutine blas_pint_sum_3dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i, ix 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng, 1:num ) :: u, f, g, g_ 
+    real :: factor, res, sml 
+    do i=1, num 
+        call blas_pint_sum_3d(nxyz, ng, u(:,:,:,i), f(:,:,:,i), g(:,:,:,i), g_(:,:,:,i), factor, res, sml)
+    end do  
+end subroutine blas_pint_sum_3dn 
 
 subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, factor, res, sml)
 implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, ix 
     real, dimension( 1-ng:nxyz(1)+ng ) :: u, f, g, g_ 
-    real :: factor, res, sml, tmp1, tmp2, u_nrm2 
+    real :: factor, res, sml, tmp1, tmp2, u_nrm2, val1, val2, val3   
     res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
     u_nrm2 = 0.0
-
+    !call blas_vdist_1d(nxyz, ng, g_, g, val1)
+    !call blas_vdist_1d(nxyz, ng, u,  f,  val2)
+    !call blas_vdist_1d(nxyz, ng, u,  g,  val3)
+    !print *, '--->',  val1, val2, val3  
     ix = nxyz(1)
     do i=1, ix
         tmp1 = ( g(i) - g_(i) )*factor + f(i)
@@ -191,7 +214,7 @@ implicit none
         u(i) = tmp1
         res    = res    + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
-        end do
+    end do
 
     if( u_nrm2 < 1.0e-108) u_nrm2 = sml; !! avoid divided by ZERO
     res = res/u_nrm2
