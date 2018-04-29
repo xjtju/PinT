@@ -13,7 +13,7 @@ EulerSolver::EulerSolver(PinT *c, Grid *g, bool isFS) : Solver(c,g,isFS){
     setup();
     if(0 == grid->myid)
         if(isFS) param.printLamda("EU Fine Solver"); 
-        else fprintf(stderr, "WARN : EulerSolver is used as coarse solver, unstable !"); 
+        else fprintf(stderr, "WARN : EulerSolver is used as coarse solver, unstable !\n"); 
 }
     
 void EulerSolver::setup(){

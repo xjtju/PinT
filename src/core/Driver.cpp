@@ -193,7 +193,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.start(Monitor::RES);
         g->sp_allreduce(&res_loc, &res_sp);
         g->sp_allreduce(&nrm_loc, &nrm_sp);
-        //printf("res_loc=%e, res_sp=%e\n", res_loc, res_sp);
+        printf("id=%d/%d, res_loc=%e, res_sp=%e, nrm_loc=%e, nrm_sp=%e\n", mytid, mysid, res_loc, res_sp, nrm_loc, nrm_sp);
         if( nrm_sp < 1.0e-108 ) nrm_sp = smlr; // avoid divided by ZERO
         res_sp = res_sp/nrm_sp;
         if( res_sp < smlr )  res_sp = 0.0;

@@ -52,8 +52,11 @@ int main(int argc, char* argv[]) {
     Solver *G, *F;
     
     if(param.csolver == param.ID_CN) 
-         G = new CNSolver (conf, g, false);    
-    else G = new BD4Solver(conf, g, false);  
+        G = new CNSolver (conf, g, false);    
+    if(param.csolver == param.ID_BD) 
+        G = new BD4Solver(conf, g, false);  
+    if(param.csolver == param.ID_EU) 
+        G = new EulerSolver(conf, g, false);
 
     if(param.fsolver == param.ID_EU) 
          F = new EulerSolver(conf, g, true);
