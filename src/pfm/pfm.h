@@ -62,9 +62,10 @@ extern "C" {
     // For 4th order backward differentiation method of AC
     //
     
-    void bd4_pack_(  double* sbuf, double* soln,   double* soln_1, double* soln_2, double* soln_3, unsigned long* size);
-    void bd4_unpack_(double* rbuf, double* soln_1, double* soln_2, double* soln_3, double* soln_4, unsigned long* size);
+    void bd4_pack_(  double* sbuf, double* soln_3, double* soln_2, double* soln_1, double* soln, unsigned long* size);
+    void bd4_unpack_(double* rbuf, double* soln_4, double* soln_3, double* soln_2, double* soln_1, unsigned long* size);
     void bd4_update_uend_(double* uend, double* sbuf, unsigned long* size);
+
     // 1D
     void rhs_g1_ac_bd4_1d_(int *nxyz, int *ng, double *soln_1, double *soln_2, double *soln_3, double *soln_4, 
             double *g1, double *dtk, double *beta_);

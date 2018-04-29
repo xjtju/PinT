@@ -152,6 +152,40 @@ implicit none
     val = sqrt(val)
 end subroutine blas_vdist_3d
 
+
+subroutine blas_pint_sum_1dn(nxyz, ng, num, u, f, g, g_, factor, res, nrm)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i   
+    real, dimension( 1-ng:nxyz(1)+ng, 1:num ) :: u, f, g, g_ 
+    real :: factor, res, nrm  
+    do i=1, num 
+        call blas_pint_sum_1d(nxyz, ng, u(:,i), f(:,i), g(:,i), g_(:,i), factor, res, nrm)
+    end do  
+end subroutine blas_pint_sum_1dn 
+
+subroutine blas_pint_sum_2dn(nxyz, ng, num, u, f, g, g_, factor, res, nrm)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i, ix 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1:num ) :: u, f, g, g_ 
+    real :: factor, res, nrm 
+    do i=1, num 
+        call blas_pint_sum_2d(nxyz, ng, u(:,:,i), f(:,:,i), g(:,:,i), g_(:,:,i), factor, res, nrm)
+    end do  
+end subroutine blas_pint_sum_2dn 
+
+subroutine blas_pint_sum_3dn(nxyz, ng, num, u, f, g, g_, factor, res, nrm)
+implicit none
+    integer, dimension(3) :: nxyz 
+    integer :: ng, num, i, ix 
+    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng, 1:num ) :: u, f, g, g_ 
+    real :: factor, res, nrm 
+    do i=1, num 
+        call blas_pint_sum_3d(nxyz, ng, u(:,:,:,i), f(:,:,:,i), g(:,:,:,i), g_(:,:,:,i), factor, res, nrm)
+    end do  
+end subroutine blas_pint_sum_3dn 
+
 !! PinT F = G + F - G  
 !! The real execution order of the formula is very important for residual error,
 !! when the difference between G and G_ is very small, 
@@ -159,40 +193,6 @@ end subroutine blas_vdist_3d
 !! If using automatical compiling optimazation, 
 !! the operation order may be changed, it is possible to resulting in a small different result.        
 !! But in most cases, the degree of difference will not affect the final solution. 
-
-subroutine blas_pint_sum_1dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
-implicit none
-    integer, dimension(3) :: nxyz 
-    integer :: ng, num, i   
-    real, dimension( 1:nxyz(1),1:num ) :: u, f, g, g_ 
-    real :: factor, res, sml  
-    do i=1, num 
-        call blas_pint_sum_1d(nxyz, ng, u(:,i), f(:,i), g(:,i), g_(:,i), factor, res, sml)
-    end do  
-end subroutine blas_pint_sum_1dn 
-
-subroutine blas_pint_sum_2dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
-implicit none
-    integer, dimension(3) :: nxyz 
-    integer :: ng, num, i, ix 
-    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1:num ) :: u, f, g, g_ 
-    real :: factor, res, sml 
-    do i=1, num 
-        call blas_pint_sum_2d(nxyz, ng, u(:,:,i), f(:,:,i), g(:,:,i), g_(:,:,i), factor, res, sml)
-    end do  
-end subroutine blas_pint_sum_2dn 
-
-subroutine blas_pint_sum_3dn(nxyz, ng, num, u, f, g, g_, factor, res, sml)
-implicit none
-    integer, dimension(3) :: nxyz 
-    integer :: ng, num, i, ix 
-    real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng, 1-ng:nxyz(3)+ng, 1:num ) :: u, f, g, g_ 
-    real :: factor, res, sml 
-    do i=1, num 
-        call blas_pint_sum_3d(nxyz, ng, u(:,:,:,i), f(:,:,:,i), g(:,:,:,i), g_(:,:,:,i), factor, res, sml)
-    end do  
-end subroutine blas_pint_sum_3dn 
-
 subroutine blas_pint_sum_1d(nxyz, ng, u, f, g, g_, factor, res, u_nrm2)
 implicit none
     integer, dimension(3) :: nxyz 

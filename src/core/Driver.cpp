@@ -122,11 +122,11 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
+    G->pack(); //pack is necessary only at initialization of parareal
     if(isSendSlice(1)){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
-        G->pack(); //pack is necessary only at initialization of parareal
         ierr = MPI_Rsend(sendslns, solnsize, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
     monitor.stop(Monitor::SEND);
@@ -193,9 +193,10 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.start(Monitor::RES);
         g->sp_allreduce(&res_loc, &res_sp);
         g->sp_allreduce(&nrm_loc, &nrm_sp);
-        printf("id=%d/%d, res_loc=%e, res_sp=%e, nrm_loc=%e, nrm_sp=%e\n", mytid, mysid, res_loc, res_sp, nrm_loc, nrm_sp);
-        if( nrm_sp < 1.0e-108 ) nrm_sp = smlr; // avoid divided by ZERO
-        res_sp = res_sp/nrm_sp;
+        //printf("id=%d/%d, res_loc=%e, res_sp=%e, nrm_loc=%e, nrm_sp=%e\n", mytid, mysid, res_loc, res_sp, nrm_loc, nrm_sp);
+        if( nrm_sp < 1.0e-300 ) nrm_sp = smlr; // avoid divided by ZERO
+        res_sp = res_sp/nrm_sp; // relative error
+        //res_sp = res_sp/(g->size*conf->spnum); // absolute error
         if( res_sp < smlr )  res_sp = 0.0;
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         if(pipelined == 0) {

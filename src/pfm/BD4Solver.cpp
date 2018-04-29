@@ -70,9 +70,12 @@ void BD4Solver::update_uend() {
 // others: unpack, nothing need to do here
 void BD4Solver::init_holder() {
     if(conf->mytid == 0) {
-        blas_cp_(soln_4, getSoln(), &size); 
-        blas_cp_(soln_3, getSoln(), &size); 
-        blas_cp_(soln_2, getSoln(), &size); 
+        //blas_cp_(soln_4, getSoln(), &size); 
+        //blas_cp_(soln_3, getSoln(), &size); 
+        //blas_cp_(soln_2, getSoln(), &size); 
+        blas_clear_(soln_4, &size);
+        blas_clear_(soln_3, &size);
+        blas_clear_(soln_2, &size);
         blas_cp_(soln_1, getSoln(), &size);
     }
 }
