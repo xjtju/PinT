@@ -53,17 +53,17 @@ class Driver {
     /**
      * Parareal's iterative formula : F = G + F - G  
      *
-     * NOTE:
+     * NOTE :
      * Due to the "Machine Epsilon" or rounding error, residual calculation is very important.
      * Sometimes, in theory, the residual should be ZERO, but in practice, the calculation value is not ZERO, 
      * despite it is very small, it will has an unignorable impact on convergency due to  accumulating effect.
-     * the "smlr" is the threshold for residual control, when res < smlr, res is regarded as ZERO.
+     * the "nrm" is the norm-2 of the solution, (accuracy problem : parallel version vs serial version) 
      */
-    inline void pint_sum(Grid *grid, int* num, double *u, double *f, double *g, double *g_, double *relax_factor, double *res, double *sml)  {
+    inline void pint_sum(Grid *grid, int* num, double *u, double *f, double *g, double *g_, double *relax_factor, double *res, double *nrm)  {
         switch(grid->ndim) {
-            case 1: blas_pint_sum_1dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
-            case 2: blas_pint_sum_2dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
-            case 3: blas_pint_sum_3dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, sml); break;
+            case 1: blas_pint_sum_1dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, nrm); break;
+            case 2: blas_pint_sum_2dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, nrm); break;
+            case 3: blas_pint_sum_3dn_(grid->nxyz, &grid->nguard, num, u, f, g, g_, relax_factor, res, nrm); break;
         }
     }
 

@@ -40,7 +40,7 @@ void BD4Solver::create_holder() {
 
 void BD4Solver::pack()   { // pack is easy
     //soln_3/2/1/0 -> sbuf
-    bd4_pack_(sbuf, soln_3, soln_2, soln_1, soln, &size);
+    bd4_pack_(sbuf, soln_3, soln_2, soln_1, getSoln(), &size);
 }
 
 void BD4Solver::unpack() {

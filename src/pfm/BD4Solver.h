@@ -67,7 +67,7 @@ protected:
     virtual void pack();   
     virtual void unpack(); 
 
-    virtual size_t varsize() { // the size of send/recv variables
+    virtual size_t solnsize() { // the size of send/recv variables
         return dsize; 
     }
     

@@ -452,7 +452,7 @@ void Grid::sp_allreduce(double *d) {
     double tmp[1];
     MPI_Allreduce(d, tmp, 1, MPI_DOUBLE, MPI_SUM, *sp_comm);
     *d = *tmp;
-}
+} 
 
 void Grid::sp_allreduce(double *d, double *o) {
     MPI_Allreduce(d, o, 1, MPI_DOUBLE, MPI_SUM, *sp_comm);

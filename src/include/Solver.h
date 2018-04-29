@@ -165,7 +165,7 @@ public:
         blas_cp_(grid->u_cprev, grid->u_c, &size);  
      }
 
-     virtual size_t varsize() { // the size of send/recv variables
+     virtual size_t solnsize() { // the size of send/recv variables
          return size;
      }
     
