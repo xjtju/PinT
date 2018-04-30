@@ -43,16 +43,33 @@ void BD4Solver::pack()   { // pack is easy
     bd4_pack_(sbuf, soln_3, soln_2, soln_1, getSoln(), &size);
 }
 
+/**
+ * NOTE : ??? 
+ *   the init of BD4 at the start of time slice has a big impact on convergence rate
+ *     1: simplified BD4, soln_4 = soln_3 = soln_2 = soln_1, faster convergence rate
+ *     2: standard BD4, bd4_unpack_()
+ *   
+ */
 void BD4Solver::unpack() {
     // rbuf -> soln_1/2/3/4
     bd4_unpack_(rbuf, soln_4, soln_3, soln_2, soln_1, &size);
+    //blas_cp_(soln_4, soln_1, &size);
+    //blas_cp_(soln_3, soln_1, &size);
+    //blas_cp_(soln_2, soln_1, &size);
     // use the newest value as the initial guess for the staring point of the time slice    
     blas_cp_(grid->u_start, soln_1, &size);
+
+    //double d4, d3, d2, d1;
+    //blas_vdist_1d_(grid->nxyz, &grid->nguard, soln_4,   soln_1, &d4); 
+    //blas_vdist_1d_(grid->nxyz, &grid->nguard, soln_3,   soln_1, &d3); 
+    //blas_vdist_1d_(grid->nxyz, &grid->nguard, soln_2,   soln_1, &d2); 
+    //blas_vdist_1d_(grid->nxyz, &grid->nguard, soln_1,   soln,   &d1); 
+    //printf("mytid=%d, d1-4=%e, d1-3=%e, d1-2=%e, d0-1=%e\n", conf->mytid, d4, d3, d2, d1);
 }
 
 double* BD4Solver::curr_solns(){
-     bd4_pack_(slns, soln_3, soln_2, soln_1, getSoln(), &size);
-     return slns; 
+    bd4_pack_(slns, soln_3, soln_2, soln_1, getSoln(), &size);
+    return slns; 
 }
 
 void BD4Solver::backup_prevs() 
@@ -66,7 +83,7 @@ void BD4Solver::update_uend() {
 }
 
 // initialization for the first time slice is different for the other slices
-// 1     : soln1/2/3/4=soln
+// 1     : soln_1/2/3/4 <- soln or soln_1 <- soln
 // others: unpack, nothing need to do here
 void BD4Solver::init_holder() {
     if(conf->mytid == 0) {
@@ -86,4 +103,5 @@ void BD4Solver::update_holder(){
     blas_cp_(soln_3, soln_2, &size); 
     blas_cp_(soln_2, soln_1, &size); 
     blas_cp_(soln_1, getSoln(),   &size);
+
 }

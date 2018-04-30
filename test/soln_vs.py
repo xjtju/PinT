@@ -41,7 +41,7 @@ def main(argv):
 
     d1 = ds1[...]
     d2 = ds2[...]
-    grid = (d1 - d2)/d2
+    grid = (d1 - d2)/d2  # when d2 is very small, the relative error is not accurate 
     grid = np.absolute(grid)
     grid.sort()
     gmean = np.mean(grid)
@@ -62,7 +62,7 @@ def main(argv):
     #density._compute_covariance()
     #plt.plot(xs, density(xs)/1000.0, '-o')
     #plt.plot(grid, pdf, '-o') # including h here is crucial
-    plt.hist(grid, 20, weights=weights, facecolor='g', alpha=0.75)  
+    plt.hist(grid,50, weights=weights, facecolor='g', alpha=0.75)  
     #plt.colorbar()
     #fig.colorbar(p)
     ax = plt.gca()
@@ -75,7 +75,7 @@ def main(argv):
 
     plt.title(lname)
     #axes = plt.gca()
-    #ax.set_xlim([-0.001, 0.018])
+    #ax.set_xlim([0.00001, 0.0001])
     #ax.set_xlim([-0.00001,0.00026])
     #ax.set_ylim([0, 0.00006*totalcount])
     #ax.set_ylim([0, 0.004*totalcount])

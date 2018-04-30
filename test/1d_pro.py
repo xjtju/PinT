@@ -15,7 +15,7 @@ xlen = 1.0
 ylen = 1.0
 
 def get_color():
-    for item in ['r','g', 'm', 'b', 'c', 'y','k']:
+    for item in ['r','g', 'm', 'b', 'c', 'k','y']:
         yield item
 
 # plot from multi files for comparison  
@@ -67,8 +67,8 @@ def main(argv):
 
     #plt.title(r'Heat equation', fontsize=18)
     #plt.title(r'G1: ${k=1600~}$,  ${\beta}=0.0$', fontsize=26)
-    plt.title(r'G2: ${k=16000}$, ${\beta}=-0.128$', fontsize=26)
-    #plt.title(r'G3: ${k=1600~}$,  ${\beta}=-0.128$', fontsize=26)
+    #plt.title(r'G2: ${k=16000}$, ${\beta}=-0.128$', fontsize=26)
+    plt.title(r'G3: ${k=1600~}$,  ${\beta}=-0.128$', fontsize=26)
 
     axes = plt.gca()
     axes.set_xlim([-0.02, xlen+0.02])
