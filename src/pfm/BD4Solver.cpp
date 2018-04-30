@@ -16,7 +16,7 @@ BD4Solver::BD4Solver(PinT *c, Grid *g, bool isFS) : NewtonSolver(c,g,isFS) {
 
 void BD4Solver::setup() {
     if( (isFine) || (conf->num_std != 4)){
-        Driver::Abort("BD4 is used only as coarse solver, and parameter num_std must be 4!\n");
+        Driver::Abort("BD4 is used only as coarse solver, and parameter 'num_std' must be 4!\n");
     }
     dsize = grid->size * conf->num_std;  // 4th order backward differentiation
     dtk = param.dtk;

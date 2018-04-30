@@ -143,18 +143,35 @@ public:
          printf("WARN: the blank init function is used for solver");
      } 
 
-     // integrate over one time slice, that is one time slice iteration (each Kpar)
-     // return total iteration count
+     /**
+      * integrate over one time slice, that is one time slice iteration (each Kpar)
+      * return total iteration count
+      */
      virtual unsigned long  evolve() = 0;
 
      /***************** non-standard parareal extension interfaces **********************/
 
-     // return the solution of previous iteration of coarse solver 
+     /** 
+      * in the standard parareal template, 
+      * solutions of only one previous time step need to be transferred to the next time slice,
+      * grid->u_end is used to hold the solution.
+      *
+      * BUT, some time integration schemes need more previous solutions, 
+      * such as Backward Differentiation Formula series, for example BD4Solver used in 'pfm' module,
+      * it need solutions from 4 previous time slices, that is previous solutions need to be preserved for a while.    
+      * The original standard template can't provide a general support for this condition, 
+      * in order to make the Driver class general and independent, the following interfaces are designed.     
+      */
+
+     /** 
+      * return the solutions of previous iteration of coarse solver 
+      */
      virtual double* prev_solns() {
          if(isFine) return NULL;
          return grid->u_cprev;
      }
 
+     // return the current solutions
      virtual double* curr_solns(){
          return getSoln(); 
      }
@@ -165,7 +182,8 @@ public:
         blas_cp_(grid->u_cprev, grid->u_c, &size);  
      }
 
-     virtual size_t solnsize() { // the size of send/recv variables
+     // the size of send/recv variables
+     virtual size_t solnsize() { 
          return size;
      }
     
@@ -177,10 +195,16 @@ public:
      virtual double* recvslns() {
          return grid->u_start;  
      }
-     // pack and unpack the send/recv data, nothing need to be done in the standard parareal 
-     // It is not an easy task to make the pair functions general, not completed
+     /**
+      * pack and unpack the send/recv data, nothing need to do in the standard parareal 
+      * for some particular coarse solver, like BD4, 
+      * you must pack the preserved four previous solutions into send buffer of MPI manually. 
+      * It is not an easy task to make the pair functions general for all the children solvers 
+      * in the current version, concrete class must provide its own implementation as needed 
+      */
      virtual void pack()   { }
      virtual void unpack() { }
+
      // write back the final solution (u_end) from correction item (Driver.pint_sum) 
      virtual void update_uend(){ }
 };
