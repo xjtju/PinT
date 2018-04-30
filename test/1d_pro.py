@@ -15,7 +15,7 @@ xlen = 1.0
 ylen = 1.0
 
 def get_color():
-    for item in ['r','g', 'm', 'b', 'c', 'y','k']:
+    for item in ['r','g', 'm', 'b', 'c', 'k','y']:
         yield item
 
 # plot from multi files for comparison  
@@ -51,7 +51,7 @@ def main(argv):
         acolor = next(color)  
         plt.plot(posx, ds1, color=acolor, label=lname)
 
-    plt.legend(loc='lower center', shadow=True)
+    plt.legend(loc='upper right', shadow=True, fontsize=16)
     #plt.tick_params(axis='both', which='major', labelsize=20,length=9)
     #plt.tick_params(axis='both', which='minor', labelsize=12,length=5)
 
@@ -66,17 +66,18 @@ def main(argv):
     #P.ylim(-0.1, 1.1)
 
     #plt.title(r'Heat equation', fontsize=18)
-    plt.title(r'G1: ${k=1600~}$,  ${\beta}=0.0$', fontsize=18)
-    #plt.title(r'G2: ${k=16000}$, ${\beta}=-0.128$', fontsize=18)
-    #plt.title(r'G3: ${k=1600~}$,  ${\beta}=-0.128$', fontsize=18)
+    #plt.title(r'G1: ${k=1600~}$,  ${\beta}=0.0$', fontsize=26)
+    #plt.title(r'G2: ${k=16000}$, ${\beta}=-0.128$', fontsize=26)
+    plt.title(r'G3: ${k=1600~}$,  ${\beta}=-0.128$', fontsize=26)
 
     axes = plt.gca()
     axes.set_xlim([-0.02, xlen+0.02])
     axes.set_ylim([-0.02, ylen+0.02])
-    axes.set_xlabel(r'x position', fontsize=16)
-    axes.set_ylabel(r'$\Phi$', fontsize=16)
+    axes.set_xlabel(r'x position', fontsize=24)
+    axes.set_ylabel(r'$\phi$', fontsize=26)
     plt.grid()
     plt.xticks(np.arange(0, 1.02, 0.1))
+    plt.tick_params(labelsize=20)
 
     #plt.savefig('pfm.png',bbox_inches='tight')
     plt.show()

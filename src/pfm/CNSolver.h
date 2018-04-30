@@ -5,6 +5,7 @@
 #include "PBiCGStab.h"
 #include "PFMParams.h"
 #include "NewtonSolver.h"
+#include "Driver.h"
 
 /**
  * Phase Field Model using Newton-Raphson 
@@ -33,6 +34,14 @@ protected:
     double beta_;       // 0.5-beta
     double dtk;         // dt*k
 
+    size_t dsize; 
+    double *soln_2;
+    double *soln_3;
+    double *slns;
+
+    virtual double* curr_solns();
+    virtual void update_holder();
+
     void setup();
 
     virtual void stencil() {
@@ -58,6 +67,11 @@ public:
     CNSolver(PinT *c, Grid *g, bool isFS); 
 
     virtual ~CNSolver() {
+        if(conf->num_std == 4) {
+            free_mem(soln_2);
+            free_mem(soln_3);
+            free_mem(slns);
+        }
     }
 };
 

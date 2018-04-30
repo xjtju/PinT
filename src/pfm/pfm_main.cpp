@@ -52,14 +52,15 @@ int main(int argc, char* argv[]) {
     Solver *G, *F;
     
     if(param.csolver == param.ID_CN) 
-        G =  new CNSolver (conf, g, false);    
-    else G = new BD4Solver(conf, g, false);  
+        G = new CNSolver (conf, g, false);    
+    if(param.csolver == param.ID_BD) 
+        G = new BD4Solver(conf, g, false);  
+    if(param.csolver == param.ID_EU) 
+        G = new EulerSolver(conf, g, false);
 
     if(param.fsolver == param.ID_EU) 
-        F = new EulerSolver(conf, g, true);
-    else if(param.fsolver == param.ID_CN) 
-         F =  new CNSolver (conf, g, true);   
-    else F =  new BD4Solver(conf, g, true); 
+         F = new EulerSolver(conf, g, true);
+    else F = new CNSolver   (conf, g, true);   
 
     //driver.Abort("高次元テスト3D PFM:%d\n", 5); // DEBUG
     // run the parareal algorithm 

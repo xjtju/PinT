@@ -122,6 +122,7 @@ void PinT::print() {
     printf("  time domin       : %f\n", Tspan);
     printf("  time  parallel   : %d\n", tsnum);
     printf("  space parallel   : %d\n", spnum);
+    printf("  number of std    : %d %s\n", num_std, (num_std>1) ? "[non-standard]" : "" );
 
     printf("  serial time steps: %d\n", Nt);
     printf("  fine   steps     : %d\n", f_steps);
@@ -220,6 +221,7 @@ int handler(void* pint, const char* section, const char* name, const char* value
     else if (MATCH("parareal", "spnumx")) { conf->spnumx = atoi(value); } 
     else if (MATCH("parareal", "spnumy")) { conf->spnumy = atoi(value); } 
     else if (MATCH("parareal", "spnumz")) { conf->spnumz = atoi(value); } 
+    else if (MATCH("parareal", "num_std")) { conf->num_std = atoi(value); } 
 
     else if (MATCH("parareal", "pipelined"))  { conf->pipelined  = atoi(value); } 
     else if (MATCH("parareal", "skip_mode"))  { conf->skip_mode  = atoi(value); } 

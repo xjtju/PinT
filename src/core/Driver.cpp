@@ -85,11 +85,15 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         INFO("\ninitial data has been dumped to ...all.ini.h5 \n\n");
     }
     // for convience only, set the pointer to grid inner variables
-    double *u_cprev = g->u_cprev;  
     double *u_start= g->u_start; 
     double *u_end  = g->u_end;  
     double *u_c    = g->u_c;  
     double *u_f    = g->u_f; 
+
+    double *sendslns = G->sendslns();
+    double *recvslns = G->recvslns();
+    size_t solnsize  = G->solnsize();
+
     double relax_factor = conf->relax_factor;  // convergence accelerator 
 
     int source, dest, tag;
@@ -103,44 +107,45 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
     if(isRecvSlice(1)) {
         source = myid - spnum;
         tag = myid*100;
-        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+        MPI_Recv(recvslns, solnsize, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+        G->unpack();
     } 
     monitor.stop(Monitor::RECV);
-
-    //g->guardcell(u_start); // not necessary, the solver will do guardcell at the end of each time step   
 
     //coarse 
     monitor.start(Monitor::CSolver);
     blas_cp_(u_c, u_start, &size);  
     icount = G->evolve();
-    monitor.stop(Monitor::CSolver, 1 ,icount);
+    // unify the process flow of send/recv, in a sence, u_c can be regarded as u_end at the init step 
+    blas_cp_(u_end, u_c, &size);  
+    monitor.stop(Monitor::CSolver, 1, icount);
     
     monitor.start(Monitor::SEND);
     // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
+    G->pack(); //pack is necessary only at initialization of parareal
     if(isSendSlice(1)){
         dest = myid + spnum;
         tag  = (myid + spnum)*100;
         //send to next time slice
-        ierr = MPI_Rsend(u_c, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
+        ierr = MPI_Rsend(sendslns, solnsize, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
     }
     monitor.stop(Monitor::SEND);
 
-    // except the last time slice, all others need to send the coarse(estimate) value to its next slice  
-    //blas_cp_(u_end, u_c, size); 
-
-    double res_loc, res_sp, max_res;
-    res_loc = res_sp = max_res = 0.0;
+    double res_loc, res_sp, max_res, nrm_loc, nrm_sp;
     kpar = 0;
     for(int k=1; k<=conf->kpar_limit; k++)
     {
         res_loc = 0.0;
         res_sp  = 0.0;
         max_res = 0.0;
+        nrm_loc = 0.0;
+        nrm_sp  = 0.0;
 
         kpar = kpar + 1;
         
-        // step1:
-        blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
+        // step1: backup previous solutions of coarse solver
+        //blas_cp_(u_cprev, u_c, &size); //this step is not necessary at the following of fine solver 
+        G->backup_prevs();
 
         // step2: fine solver parallel run based on U^{k-1}_{n-1}
         monitor.start(Monitor::FSolver);
@@ -150,20 +155,17 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //else TRACE("%d, F is skiped\n",mytid);
         monitor.stop(Monitor::FSolver, 1, icount);
 
-        if( kpar==1 ) {
-            blas_cp_(u_end, u_f, &size); 
-        }
-        
-        // step3:
+        // step3: receive the latest solutions from the previous slice
          monitor.start(Monitor::RECV); 
         if(isRecvSlice(k)){
 	        source = myid - spnum;
 	        tag    = myid*100 + kpar;
-	        MPI_Recv(u_start, size, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
+	        MPI_Recv(recvslns, solnsize, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &stat);
         } else TRACE("SKIP RECV : t=%d/s=%d \n", mytid, mysid); 
+        if(mytid!=0) G->unpack();
         monitor.stop(Monitor::RECV);
-        // step4:
-        
+
+        // step4: run coarse solver based on the latest solutions just received 
         monitor.start(Monitor::CSolver);
         blas_cp_(u_c, u_start, &size); 
         //if(!isSkip(k)) 
@@ -172,22 +174,30 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitor.stop(Monitor::CSolver, 1, icount);
 
         // step5: correct the value and calculate the local residual
-        //if(!isSkip(k))
-        pint_sum(g, u_end, u_f, u_c, u_cprev, &relax_factor, &res_loc, &smlr);  
-        //else TRACE("%d, SUM is skiped\n",mytid);
+        //if(!isSkip(k)) {
+        pint_sum(g, &conf->num_std, sendslns, F->curr_solns(), G->curr_solns(), G->prev_solns(), &relax_factor, &res_loc, &nrm_loc);  
+        G->update_uend(); //make sure the u_end has the latest solution 
+        //}else TRACE("%d, SUM is skiped\n",mytid);
         
-        // step6:
+        // step6: send to latest correced solutions to the next slice
         monitor.start(Monitor::SEND); 
         if(isSendSlice(k)){
 	        dest = myid + spnum;
 	        tag  = (myid + spnum)*100 + kpar;
-	        ierr = MPI_Send(u_end, size, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
+            //here, pack is unnecessary, pint_sum() do it
+	        ierr = MPI_Send(sendslns, solnsize, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);    
         } else TRACE("SKIP SEND : t=%d/s=%d \n", mytid, mysid); 
         monitor.stop(Monitor::SEND); 
 
-        //STEP7 gather residual
+        //STEP7 : gather residual
         monitor.start(Monitor::RES);
         g->sp_allreduce(&res_loc, &res_sp);
+        g->sp_allreduce(&nrm_loc, &nrm_sp);
+        //printf("id=%d/%d, res_loc=%e, res_sp=%e, nrm_loc=%e, nrm_sp=%e\n", mytid, mysid, res_loc, res_sp, nrm_loc, nrm_sp);
+        if( nrm_sp < 1.0e-300 ) nrm_sp = smlr; // avoid divided by ZERO
+        res_sp = res_sp/nrm_sp; // relative error
+        //res_sp = res_sp/(g->size*conf->spnum); // absolute error
+        if( res_sp < smlr )  res_sp = 0.0;
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         if(pipelined == 0) {
             g->allreduce(&res_sp, &max_res, MPI_MAX);  // time space is enough ?!
@@ -197,7 +207,7 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         monitorResidual(g, res_loc, max_res, size);
         monitor.stop(Monitor::RES);
 
-         //STEP8
+         //STEP8 : check the convience
         if(pipelined == 0){
             if( max_res < conf->converge_eps) {
                 if(myid==numprocs-1) printf("Parareal is converged at %d iteration, res = %e .\n", k , max_res);
@@ -225,7 +235,7 @@ void Driver::finalize(bool pfile) {
 
     //Sometimes, profiling information cannot be completely written into common files like above in HPC environments,
     //but stdout/stderr has no problem.  
-    monitor.print(stderr, "The TAO of Programming", "The PinT performance test framework");
+    monitor.print(stderr, "ITO supercomputer in Kyushu University", "The PinT performance test framework");
     monitor.printDetail(stderr);
 
     MPI_Finalize();
@@ -247,21 +257,20 @@ void Driver::monitorResidual(Grid *g, double res_loc, double max_res,int size ){
     double *u_cprev = g->u_cprev;  
     double *u_end  = g->u_end;  
     double *u_f    = g->u_f;
-    double cdist, fdist;
+    double cdist;
 
     if(debug && (mysid==0)){
         res_loc = sqrt(res_loc);
         vector_dist(g, u_c,   u_cprev,&cdist); 
-        vector_dist(g, u_end, u_f,    &fdist); 
-        printf("kpar:%d, mytid:%d, cvdist:%13.8e, fvdist:%13.8e , loc_res:%13.8e\n", kpar, mytid, cdist, fdist, res_loc); 
+        printf("kpar:%d, mytid:%d, cvdist:%13.8e, loc_res:%13.8e\n", kpar, mytid, cdist, res_loc); 
     }
     // Fine solver has already evolved over the time slice, local residual should be ZERO
-    if(mytid == kpar-1){ 
+    // mytid starts from ZERO, kpar starts from ONE
+    if(mytid == kpar-2){ 
         if(res_loc > 0 ) {
             res_loc = sqrt(res_loc);
             vector_dist(g, u_c,   u_cprev, &cdist); 
-            vector_dist(g, u_end, u_f,     &fdist); 
-            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, mytid:%d, myid:%d, cvdist:%13.8e, fvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, mytid, myid, cdist, fdist, res_loc); 
+            WARN("Local residual should be ZERO, but it's NOT, details : \n \t kpar:%d, mytid:%d, myid:%d, cvdist:%13.8e, loc_res:%13.8e . \n\n", kpar, mytid, myid, cdist, res_loc); 
         }
     }
 
@@ -288,7 +297,7 @@ void Driver::INFO(const char* fmt, ...) {
 
 void Driver::WARN(const char* fmt, ...) {
 
-    if(myid != 0) return ;
+    //if(myid != 0) return ;
     int ret; 
     va_list args;
 
