@@ -72,7 +72,7 @@ protected:
     size_t outer_size; // guard cells included
     size_t &size = outer_size;      // alias of outer_size 
 
-    int steps;     // the number of time steps in one time slice
+    long steps;     // the number of time steps in one time slice
 
     bool isFine = true;  // is fine solver or coarse solver, default is true
 

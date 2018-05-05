@@ -25,8 +25,10 @@ protected:
     double *soln_2;
     double *soln_3;
     double *slns;
-
-    void euler();
+    
+    int rfc_;
+    
+    void euler(long step);
 
 public:
     EulerSolver(PinT *c, Grid *g); 

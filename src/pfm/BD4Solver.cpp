@@ -53,9 +53,9 @@ void BD4Solver::pack()   { // pack is easy
 void BD4Solver::unpack() {
     // rbuf -> soln_1/2/3/4
     bd4_unpack_(rbuf, soln_4, soln_3, soln_2, soln_1, &size);
-    //blas_cp_(soln_4, soln_1, &size);
-    //blas_cp_(soln_3, soln_1, &size);
-    //blas_cp_(soln_2, soln_1, &size);
+    blas_cp_(soln_4, soln_1, &size);
+    blas_cp_(soln_3, soln_1, &size);
+    blas_cp_(soln_2, soln_1, &size);
     // use the newest value as the initial guess for the staring point of the time slice    
     blas_cp_(grid->u_start, soln_1, &size);
 
