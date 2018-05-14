@@ -7,7 +7,7 @@ subroutine bd4_pack(sbuf, sln3, sln2, sln1, sln, n)
 implicit none
     real, dimension(1:n)  :: sln3, sln2, sln1, sln 
     real, dimension(1:4*n):: sbuf
-    integer(KIND=8) :: n
+    integer :: n
     sbuf(    1 : n)   = sln3(1:n)
     sbuf(  n+1 : 2*n) = sln2(1:n)
     sbuf(2*n+1 : 3*n) = sln1(1:n)
@@ -18,7 +18,7 @@ subroutine bd4_unpack(rbuf, sln4, sln3, sln2, sln1, n)
 implicit none
     real, dimension(1:n)  :: sln4, sln3, sln2, sln1 
     real, dimension(1:4*n):: rbuf
-    integer(KIND=8) :: n 
+    integer :: n 
     sln4(1:n) = rbuf(    1 : n)
     sln3(1:n) = rbuf(  n+1 : 2*n)
     sln2(1:n) = rbuf(2*n+1 : 3*n)
@@ -29,7 +29,7 @@ subroutine bd4_update_uend(uend, sbuf, n)
 implicit none
     real, dimension(1:n)  :: uend 
     real, dimension(1:4*n)::sbuf 
-    integer(KIND=8) :: n 
+    integer :: n 
 
     uend(1:n) = sbuf(3*n+1 : 4*n)
 end subroutine bd4_update_uend

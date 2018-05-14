@@ -46,16 +46,21 @@ void BD4Solver::pack()   { // pack is easy
 /**
  * NOTE : ??? 
  *   the init of BD4 at the start of time slice has a big impact on convergence rate
- *     1: simplified BD4, soln_4 = soln_3 = soln_2 = soln_1, faster convergence rate
- *     2: standard BD4, bd4_unpack_()
+ *     1: simplified BD4, soln_4 = soln_3 = soln_2 = soln_1 , faster convergence rate
+ *     2. a variant BD4 , soln_4 = solon_4, soln_3 = soln_3, soln_2 = soln_1, 
+ *     3: standard BD4,   soln_4 = soln_4, soln_3=soln_3, soln_2=soln_2, soln_1=soln_1 
+ *
+ *   According the 1D test case (k=1600, beta=-0.128, T=0.1, rfc_=1000) 
+ *     NO.2 has the best convergence rate, 
+ *     NO.1 is always faster one iteration than NO.3  
  *   
  */
 void BD4Solver::unpack() {
     // rbuf -> soln_1/2/3/4
     bd4_unpack_(rbuf, soln_4, soln_3, soln_2, soln_1, &size);
-    blas_cp_(soln_4, soln_1, &size);
-    blas_cp_(soln_3, soln_1, &size);
-    blas_cp_(soln_2, soln_1, &size);
+    //blas_cp_(soln_4, soln_1, &size);
+    //blas_cp_(soln_3, soln_1, &size);
+    //blas_cp_(soln_2, soln_1, &size);
     // use the newest value as the initial guess for the staring point of the time slice    
     blas_cp_(grid->u_start, soln_1, &size);
 

@@ -61,7 +61,11 @@ int NewtonSolver::newton_raphson() {
         // step5: update solution 
         update();
         // when solution is changed, synchonization is necessary
-        grid->guardcell(soln); 
+        grid->guardcell(soln);
+        // the boundary condition should be applied again 
+        // NOTE : 
+        //   sometimes the bc has a big impact on the iteration number of linear solver 
+        grid->bc(soln);       
 
         // step5: check converge in all grids   
         chk_eps(&err);

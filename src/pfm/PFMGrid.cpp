@@ -74,8 +74,8 @@ void PFMGrid::init3d(){
        ydist = this->getY(j) -  conf->Yspan/2 ;
        zdist = this->getZ(k) -  conf->Zspan/2 ;
        ind = this->getOuterIdx(i, j, k);  
-       //if( (fabs(xdist)<=r)) //  && (fabs(ydist)<=r) && (fabs(zdist)<=r) )
-       if(xdist<=0.0)
+       if( (fabs(xdist)<=r)) //  && (fabs(ydist)<=r) && (fabs(zdist)<=r) )
+       //if(xdist<=0.0)
            unk = 1.0; 
        else unk = 0.0; 
        

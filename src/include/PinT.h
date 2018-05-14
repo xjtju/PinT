@@ -131,6 +131,8 @@ public:
     int mytid;  // process id in time domain (slice number)
     MPI_Comm *sp_comm; //space within the same time slice
 
+    //residual calculation method. 0: relative norm; 1: standard root mean square deviation 
+    int residual_type = 0;
     double converge_eps = 1.0e-6;
     double smlr = 1.0e-15;
 

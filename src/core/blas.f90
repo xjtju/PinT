@@ -198,7 +198,7 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, ix 
     real, dimension( 1-ng:nxyz(1)+ng ) :: u, f, g, g_ 
-    real :: factor, res, tmp1, tmp2, u_nrm2, val1, val2, val3   
+    real :: factor, res, tmp1, tmp2, u_nrm2 !!, val1, val2, val3   
     res = 0.0
     tmp1 = 0.0
     tmp2 = 0.0
@@ -229,7 +229,7 @@ implicit none
     integer, dimension(3) :: nxyz 
     integer :: ng, i, j, ix, jy
     real, dimension( 1-ng:nxyz(1)+ng, 1-ng:nxyz(2)+ng ) :: u, f, g, g_ 
-    real :: factor, res, tmp1, tmp2, u_nrm2
+    real :: factor, res, tmp1, tmp2, u_nrm2 !!, val2
 
     res = 0.0
     tmp1 = 0.0
@@ -246,6 +246,8 @@ implicit none
         res    = res + tmp2*tmp2
         u_nrm2 = u_nrm2 + tmp1*tmp1
     end do
+        !!call blas_vdist_1d(nxyz, ng, u(:,j), u(:,j+1), val2)
+        !!print *, res, u_nrm2, sqrt(res/u_nrm2), val2
     end do
 end subroutine blas_pint_sum_2d
 

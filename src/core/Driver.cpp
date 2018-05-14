@@ -179,6 +179,8 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         G->update_uend(); //make sure the u_end has the latest solution 
         //}else TRACE("%d, SUM is skiped\n",mytid);
         
+        //printf("mytid=%d, %e, %e, %e \n", mytid, res_loc, nrm_loc, sqrt(res_loc/nrm_loc));
+
         // step6: send to latest correced solutions to the next slice
         monitor.start(Monitor::SEND); 
         if(isSendSlice(k)){
@@ -192,11 +194,12 @@ void Driver::evolve(Grid* g, Solver* G, Solver* F){
         //STEP7 : gather residual
         monitor.start(Monitor::RES);
         g->sp_allreduce(&res_loc, &res_sp);
-        g->sp_allreduce(&nrm_loc, &nrm_sp);
-        //printf("id=%d/%d, res_loc=%e, res_sp=%e, nrm_loc=%e, nrm_sp=%e\n", mytid, mysid, res_loc, res_sp, nrm_loc, nrm_sp);
-        if( nrm_sp < 1.0e-300 ) nrm_sp = smlr; // avoid divided by ZERO
-        res_sp = res_sp/nrm_sp; // relative error
-        //res_sp = res_sp/(g->size*conf->spnum); // absolute error
+        if(conf->residual_type == 0 ) {
+            g->sp_allreduce(&nrm_loc, &nrm_sp);
+            if( nrm_sp < 1.0e-300 ) nrm_sp = smlr;  // avoid divided by ZERO
+            res_sp = res_sp/nrm_sp;                 // relative error
+        }
+        else res_sp = res_sp/(g->inner_size*conf->spnum); // absolute error
         if( res_sp < smlr )  res_sp = 0.0;
         //MPI_Allreduce(&res_loc, &res_sp,  1, MPI_DOUBLE, MPI_SUM, sp_comm);
         if(pipelined == 0) {
